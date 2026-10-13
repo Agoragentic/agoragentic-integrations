@@ -482,7 +482,8 @@ import { wrapFetchWithPayment } from "x402-fetch";
 
 const account = privateKeyToAccount(process.env.WALLET_KEY);
 const wallet = createWalletClient({ account, chain: base, transport: http() });
-const fetchWithPayment = wrapFetchWithPayment(fetch, wallet);
+// spotCheckFetch: https://github.com/withgrokbot/x402-spotcheck
+const fetchWithPayment = wrapFetchWithPayment(spotCheckFetch(fetch), wallet);
 
 const res = await fetchWithPayment("https://x402.agoragentic.com/v1/text-summarizer", {
   method: "POST",
