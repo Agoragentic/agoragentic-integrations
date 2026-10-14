@@ -108,10 +108,10 @@ var require_package = __commonJS({
         url: "https://github.com/rhein1/agoragentic-integrations/issues"
       },
       devDependencies: {
-        "@modelcontextprotocol/client": "2.0.0",
-        "@modelcontextprotocol/node": "2.0.0",
-        "@modelcontextprotocol/sdk": "1.30.0",
-        "@modelcontextprotocol/server": "2.0.0",
+        "@modelcontextprotocol/client": "2.3.0",
+        "@modelcontextprotocol/node": "2.1.1",
+        "@modelcontextprotocol/sdk": "1.31.0",
+        "@modelcontextprotocol/server": "2.3.0",
         esbuild: "0.28.2"
       },
       overrides: {
@@ -477,10 +477,10 @@ var require_util = __commonJS({
     function cloneDef(schema) {
       return mergeDefs(schema._zod.def);
     }
-    function getElementAtPath(obj, path8) {
-      if (!path8)
+    function getElementAtPath(obj, path9) {
+      if (!path9)
         return obj;
-      return path8.reduce((acc, key) => acc?.[key], obj);
+      return path9.reduce((acc, key) => acc?.[key], obj);
     }
     function promiseAllObject(promisesObj) {
       const keys = Object.keys(promisesObj);
@@ -890,11 +890,11 @@ var require_util = __commonJS({
       }
       return false;
     }
-    function prefixIssues(path8, issues) {
+    function prefixIssues(path9, issues) {
       return issues.map((iss) => {
         var _a;
         (_a = iss).path ?? (_a.path = []);
-        iss.path.unshift(path8);
+        iss.path.unshift(path9);
         return iss;
       });
     }
@@ -1083,16 +1083,16 @@ var require_errors = __commonJS({
     }
     function formatError(error, mapper = (issue) => issue.message) {
       const fieldErrors = { _errors: [] };
-      const processError = (error2, path8 = []) => {
+      const processError = (error2, path9 = []) => {
         for (const issue of error2.issues) {
           if (issue.code === "invalid_union" && issue.errors.length) {
-            issue.errors.map((issues) => processError({ issues }, [...path8, ...issue.path]));
+            issue.errors.map((issues) => processError({ issues }, [...path9, ...issue.path]));
           } else if (issue.code === "invalid_key") {
-            processError({ issues: issue.issues }, [...path8, ...issue.path]);
+            processError({ issues: issue.issues }, [...path9, ...issue.path]);
           } else if (issue.code === "invalid_element") {
-            processError({ issues: issue.issues }, [...path8, ...issue.path]);
+            processError({ issues: issue.issues }, [...path9, ...issue.path]);
           } else {
-            const fullpath = [...path8, ...issue.path];
+            const fullpath = [...path9, ...issue.path];
             if (fullpath.length === 0) {
               fieldErrors._errors.push(mapper(issue));
             } else {
@@ -1119,17 +1119,17 @@ var require_errors = __commonJS({
     }
     function treeifyError(error, mapper = (issue) => issue.message) {
       const result = { errors: [] };
-      const processError = (error2, path8 = []) => {
+      const processError = (error2, path9 = []) => {
         var _a, _b;
         for (const issue of error2.issues) {
           if (issue.code === "invalid_union" && issue.errors.length) {
-            issue.errors.map((issues) => processError({ issues }, [...path8, ...issue.path]));
+            issue.errors.map((issues) => processError({ issues }, [...path9, ...issue.path]));
           } else if (issue.code === "invalid_key") {
-            processError({ issues: issue.issues }, [...path8, ...issue.path]);
+            processError({ issues: issue.issues }, [...path9, ...issue.path]);
           } else if (issue.code === "invalid_element") {
-            processError({ issues: issue.issues }, [...path8, ...issue.path]);
+            processError({ issues: issue.issues }, [...path9, ...issue.path]);
           } else {
-            const fullpath = [...path8, ...issue.path];
+            const fullpath = [...path9, ...issue.path];
             if (fullpath.length === 0) {
               result.errors.push(mapper(issue));
               continue;
@@ -1161,8 +1161,8 @@ var require_errors = __commonJS({
     }
     function toDotPath(_path) {
       const segs = [];
-      const path8 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
-      for (const seg of path8) {
+      const path9 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
+      for (const seg of path9) {
         if (typeof seg === "number")
           segs.push(`[${seg}]`);
         else if (typeof seg === "symbol")
@@ -16494,13 +16494,13 @@ var require_from_json_schema = __commonJS({
       if (!ref.startsWith("#")) {
         throw new Error("External $ref is not supported, only local refs (#/...) are allowed");
       }
-      const path8 = ref.slice(1).split("/").filter(Boolean);
-      if (path8.length === 0) {
+      const path9 = ref.slice(1).split("/").filter(Boolean);
+      if (path9.length === 0) {
         return ctx.rootSchema;
       }
       const defsKey = ctx.version === "draft-2020-12" ? "$defs" : "definitions";
-      if (path8[0] === defsKey) {
-        const key = path8[1];
+      if (path9[0] === defsKey) {
+        const key = path9[1];
         if (!key || !ctx.defs[key]) {
           throw new Error(`Reference not found: ${ref}`);
         }
@@ -17133,9 +17133,9 @@ var require_v4 = __commonJS({
   }
 });
 
-// risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/core/dist/auth-CfDMXiII.cjs
-var require_auth_CfDMXiII = __commonJS({
-  "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/core/dist/auth-CfDMXiII.cjs"(exports) {
+// risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/core/dist/auth-D1CeV_Jr.cjs
+var require_auth_D1CeV_Jr = __commonJS({
+  "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/core/dist/auth-D1CeV_Jr.cjs"(exports) {
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -18007,7 +18007,8 @@ var require_auth_CfDMXiII = __commonJS({
       introspection_endpoint_auth_signing_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
       code_challenge_methods_supported: zod_v4.array(zod_v4.string()).optional(),
       client_id_metadata_document_supported: zod_v4.boolean().optional(),
-      authorization_response_iss_parameter_supported: zod_v4.boolean().optional().catch(void 0)
+      authorization_response_iss_parameter_supported: zod_v4.boolean().optional().catch(void 0),
+      dpop_signing_alg_values_supported: zod_v4.array(zod_v4.string()).optional()
     });
     var OpenIdProviderMetadataSchema = zod_v4.looseObject({
       issuer: zod_v4.string(),
@@ -18058,7 +18059,8 @@ var require_auth_CfDMXiII = __commonJS({
       token_type: zod_v4.string(),
       expires_in: zod_v4.coerce.number().optional(),
       scope: zod_v4.string().optional(),
-      refresh_token: zod_v4.string().optional()
+      refresh_token: zod_v4.string().optional(),
+      issuer: zod_v4.string().optional().catch(void 0)
     }).strip();
     var IdJagTokenExchangeResponseSchema = zod_v4.object({
       issued_token_type: zod_v4.literal("urn:ietf:params:oauth:token-type:id-jag"),
@@ -18096,7 +18098,8 @@ var require_auth_CfDMXiII = __commonJS({
       client_id: zod_v4.string(),
       client_secret: zod_v4.string().optional(),
       client_id_issued_at: zod_v4.number().optional(),
-      client_secret_expires_at: zod_v4.number().optional()
+      client_secret_expires_at: zod_v4.number().optional(),
+      issuer: zod_v4.string().optional().catch(void 0)
     }).strip();
     var OAuthClientInformationFullSchema = OAuthClientMetadataSchema.merge(OAuthClientInformationSchema);
     var OAuthClientRegistrationErrorSchema = zod_v4.object({
@@ -19307,7 +19310,7 @@ var require_auth_CfDMXiII = __commonJS({
 // risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/core/dist/internal.cjs
 var require_internal = __commonJS({
   "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/core/dist/internal.cjs"(exports) {
-    var require_auth = require_auth_CfDMXiII();
+    var require_auth = require_auth_D1CeV_Jr();
     exports.AnnotationsSchema = require_auth.AnnotationsSchema;
     exports.AudioContentSchema = require_auth.AudioContentSchema;
     exports.BAGGAGE_META_KEY = require_auth.BAGGAGE_META_KEY;
@@ -19510,9 +19513,9 @@ var require_internal = __commonJS({
   }
 });
 
-// risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/src-STyD_Vvf.cjs
-var require_src_STyD_Vvf = __commonJS({
-  "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/src-STyD_Vvf.cjs"(exports) {
+// risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/src-BhnGYybN.cjs
+var require_src_BhnGYybN = __commonJS({
+  "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/src-BhnGYybN.cjs"(exports) {
     var require_chunk = require_chunk_Bnu9O96Y();
     var require_dialects = require_dialects_D8eXzoGv();
     var _modelcontextprotocol_core_internal = require_internal();
@@ -19563,6 +19566,8 @@ var require_src_STyD_Vvf = __commonJS({
       OAuthErrorCode$1["InvalidRedirectUri"] = "invalid_redirect_uri";
       OAuthErrorCode$1["InsufficientScope"] = "insufficient_scope";
       OAuthErrorCode$1["InvalidTarget"] = "invalid_target";
+      OAuthErrorCode$1["InvalidDpopProof"] = "invalid_dpop_proof";
+      OAuthErrorCode$1["UseDpopNonce"] = "use_dpop_nonce";
       return OAuthErrorCode$1;
     })({});
     var OAuthError = class OAuthError2 extends Error {
@@ -19652,8 +19657,18 @@ var require_src_STyD_Vvf = __commonJS({
         if (typeof this !== "function") throw new TypeError("isInstance must be called on the class (e.g. `SdkError.isInstance(value)`); for callbacks use `v => SdkError.isInstance(v)`");
         return brandedHasInstance(this, value);
       }
-      constructor(code, message, data) {
-        super(message);
+      /**
+      * @param code - Stable string code identifying the failure ({@linkcode SdkErrorCode}).
+      * @param message - Human-readable description.
+      * @param data - Optional structured payload (for example the HTTP status carried by
+      * {@linkcode SdkHttpError}). Opaque to the SDK: a `cause` key inside `data` is not
+      * promoted to `Error.cause`.
+      * @param options - Standard `ErrorOptions`, forwarded to `Error`. Pass the underlying
+      * failure as `{ cause }` so it is reachable through the `Error.cause` chain that
+      * loggers and error trackers walk.
+      */
+      constructor(code, message, data, options) {
+        super(message, options);
         this.code = code;
         this.data = data;
         this.name = "SdkError";
@@ -19664,8 +19679,11 @@ var require_src_STyD_Vvf = __commonJS({
       static {
         Object.defineProperty(this, "mcpBrand", { value: "mcp.SdkHttpError" });
       }
-      constructor(code, message, data) {
-        super(code, message, data);
+      /**
+      * @param options - Standard `ErrorOptions`, forwarded to `Error` (see {@linkcode SdkError}).
+      */
+      constructor(code, message, data, options) {
+        super(code, message, data, options);
         this.name = "SdkHttpError";
       }
       get status() {
@@ -21789,7 +21807,8 @@ var require_src_STyD_Vvf = __commonJS({
         ListResourceTemplatesResultResponseSchema: wireResultResponse(ListResourceTemplatesResultSchema$1),
         ReadResourceResultResponseSchema: wireResultResponse(zod_v4.union([ReadResourceResultSchema$1, InputRequiredResultSchema])),
         CompleteResultResponseSchema: wireResultResponse(CompleteResultSchema$1),
-        DiscoverResultResponseSchema: wireResultResponse(DiscoverResultSchema$1)
+        DiscoverResultResponseSchema: wireResultResponse(DiscoverResultSchema$1),
+        SubscriptionsListenResultResponseSchema: wireResultResponse(SubscriptionsListenResultSchema$1)
       };
     }
     var memo;
@@ -22184,9 +22203,9 @@ var require_src_STyD_Vvf = __commonJS({
         });
         const parsed = buildSchemas2026().RequestMetaEnvelopeSchema.safeParse(meta);
         if (!parsed.success) for (const issue of parsed.error.issues) {
-          const path8 = issue.path.map(String);
-          const key = path8.length > 0 ? path8.join(".") : "_meta";
-          if (path8.length === 1 && issues.some((existing) => existing.key === key && existing.problem === "missing")) continue;
+          const path9 = issue.path.map(String);
+          const key = path9.length > 0 ? path9.join(".") : "_meta";
+          if (path9.length === 1 && issues.some((existing) => existing.key === key && existing.problem === "missing")) continue;
           issues.push({
             key,
             problem: issue.message
@@ -22220,6 +22239,8 @@ var require_src_STyD_Vvf = __commonJS({
           const rawInputRequests = raw["inputRequests"];
           const inputRequests = isPlainObject$4(rawInputRequests) ? rawInputRequests : {};
           const requestState = raw["requestState"];
+          const metaParse = raw["_meta"] === void 0 ? void 0 : buildSchemas2026().ResultMetaSchema.safeParse(raw["_meta"]);
+          const meta = metaParse?.success ? metaParse.data : void 0;
           if (Object.keys(inputRequests).length === 0 && typeof requestState !== "string") return {
             kind: "invalid",
             error: new SdkError(SdkErrorCode.InvalidResult, `Invalid result for ${method}: input_required carries neither inputRequests nor requestState (every input_required result must include at least one of the two)`, {
@@ -22230,7 +22251,8 @@ var require_src_STyD_Vvf = __commonJS({
           return {
             kind: "input_required",
             inputRequests,
-            ...typeof requestState === "string" && { requestState }
+            ...typeof requestState === "string" && { requestState },
+            ...meta !== void 0 && { _meta: meta }
           };
         }
         if (rawResultType !== "complete") return {
@@ -22299,6 +22321,9 @@ var require_src_STyD_Vvf = __commonJS({
     }
     function isSpecNotificationMethod(method) {
       return ALL_CODECS.some((codec) => codec.hasNotificationMethod(method));
+    }
+    function isExtensionReusedRequestMethod(method) {
+      return method === "tasks/get" || method === "tasks/cancel";
     }
     var ALL_CODECS = [rev2025Codec, rev2026Codec];
     function isPlainObject$3(value) {
@@ -22522,29 +22547,29 @@ var require_src_STyD_Vvf = __commonJS({
     function scanXMcpHeaderDeclarations(inputSchema) {
       const declarations = [];
       const seenLower = /* @__PURE__ */ new Map();
-      const visit = (node, path8, reachable) => {
+      const visit = (node, path9, reachable) => {
         if (node === null || typeof node !== "object") return void 0;
         const schema = node;
         if (X_MCP_HEADER_KEY in schema) {
-          if (!reachable || path8.length === 0) return `${pathName(path8)}: x-mcp-header is only permitted on properties statically reachable via a chain of 'properties' keys (not under items, additionalProperties, oneOf/anyOf/allOf/not, if/then/else, or $ref)`;
+          if (!reachable || path9.length === 0) return `${pathName(path9)}: x-mcp-header is only permitted on properties statically reachable via a chain of 'properties' keys (not under items, additionalProperties, oneOf/anyOf/allOf/not, if/then/else, or $ref)`;
           const raw = schema[X_MCP_HEADER_KEY];
-          if (typeof raw !== "string" || raw.length === 0) return `${pathName(path8)}: x-mcp-header MUST be a non-empty string`;
-          if (!RFC9110_TOKEN.test(raw)) return `${pathName(path8)}: x-mcp-header '${raw}' is not a valid RFC 9110 token (no spaces, control characters or HTTP delimiters)`;
+          if (typeof raw !== "string" || raw.length === 0) return `${pathName(path9)}: x-mcp-header MUST be a non-empty string`;
+          if (!RFC9110_TOKEN.test(raw)) return `${pathName(path9)}: x-mcp-header '${raw}' is not a valid RFC 9110 token (no spaces, control characters or HTTP delimiters)`;
           const type = typeof schema.type === "string" ? schema.type : void 0;
-          if (type === void 0 || !PERMITTED_X_MCP_HEADER_TYPES.has(type)) return `${pathName(path8)}: x-mcp-header is only permitted on primitive-typed properties (string, integer, boolean); got ${type ?? "<none>"}`;
+          if (type === void 0 || !PERMITTED_X_MCP_HEADER_TYPES.has(type)) return `${pathName(path9)}: x-mcp-header is only permitted on primitive-typed properties (string, integer, boolean); got ${type ?? "<none>"}`;
           const lower = raw.toLowerCase();
           const prior = seenLower.get(lower);
           if (prior !== void 0) return `x-mcp-header '${raw}' is not case-insensitively unique (also declared as '${prior}')`;
           seenLower.set(lower, raw);
           declarations.push({
-            path: path8,
+            path: path9,
             headerName: raw,
             type
           });
         }
         const properties = schema.properties;
         if (properties !== null && typeof properties === "object") for (const [key, child] of Object.entries(properties)) {
-          const fault$1 = visit(child, [...path8, key], reachable);
+          const fault$1 = visit(child, [...path9, key], reachable);
           if (fault$1 !== void 0) return fault$1;
         }
         for (const k of NON_REACHABLE_SUBSCHEMA_KEYWORDS) {
@@ -22552,7 +22577,7 @@ var require_src_STyD_Vvf = __commonJS({
           if (sub === void 0) continue;
           const branches = Array.isArray(sub) ? sub : sub !== null && typeof sub === "object" && OBJECT_VALUED_SUBSCHEMA_KEYWORDS.has(k) ? Object.values(sub) : [sub];
           for (const branch of branches) {
-            const fault$1 = visit(branch, [...path8, `<${k}>`], false);
+            const fault$1 = visit(branch, [...path9, `<${k}>`], false);
             if (fault$1 !== void 0) return fault$1;
           }
         }
@@ -22592,8 +22617,8 @@ var require_src_STyD_Vvf = __commonJS({
       "$defs",
       "definitions"
     ]);
-    function pathName(path8) {
-      return path8.length === 0 ? "<root>" : path8.join(".");
+    function pathName(path9) {
+      return path9.length === 0 ? "<root>" : path9.join(".");
     }
     var BASE64_SENTINEL_PREFIX = "=?base64?";
     var BASE64_SENTINEL_SUFFIX = "?=";
@@ -22624,9 +22649,9 @@ var require_src_STyD_Vvf = __commonJS({
         return;
       }
     }
-    function valueAtPath(root, path8) {
+    function valueAtPath(root, path9) {
       let node = root;
-      for (const key of path8) {
+      for (const key of path9) {
         if (node === null || typeof node !== "object") return void 0;
         node = node[key];
       }
@@ -22721,7 +22746,7 @@ var require_src_STyD_Vvf = __commonJS({
         evaluatedAt: "pre-dispatch",
         codes: [HEADER_MISMATCH_ERROR_CODE],
         conformance: ["http-header-validation"],
-        rationale: "SEP-2243 standard `Mcp-Method` / `Mcp-Name` headers — presence, sentinel decoding, and `Mcp-Name` ↔ body cross-check — are validated by the HTTP entry on a modern-classified request after the supported-revision gate and before dispatch. The classifier’s own header-mismatch cells (protocol-version, `Mcp-Method` mismatch) stay on the edge `era-classification` rung; this rung carries the entry-layer presence/`Mcp-Name` half. Evaluated before the capability gate, the factory call, and the `Mcp-Param-*` rung so a request that fails several rungs is answered by the standard-header rung first. The documented order (after method-registry 5 and request-params 6) is NOT the observed precedence: serveModern evaluates this rung immediately after the supported-revision gate, so a request that also fails a dispatch rung is answered here before the dispatch rungs (5–6) are consulted."
+        rationale: "SEP-2243 standard `MCP-Protocol-Version` / `Mcp-Method` / `Mcp-Name` headers — presence, sentinel decoding, and `Mcp-Name` ↔ body cross-check — are validated by the HTTP entry on a modern-classified request after the supported-revision gate and before dispatch. The spec requires `MCP-Protocol-Version` and `Mcp-Method` on every modern *request* POST (`Mcp-Name` only for the methods that mirror `params.name` / `params.uri` / `params.taskId`, see `MCP_NAME_HEADER_SOURCE`) and names them in that order, so a request missing several is answered by the earliest. Notification POSTs are exempt: the presence half runs on requests only, so a modern-enveloped notification is dispatched even with no standard headers at all. The classifier’s own header-mismatch cells (protocol-version, `Mcp-Method` mismatch) stay on the edge `era-classification` rung; this rung carries the entry-layer presence/`Mcp-Name` half — including the missing `MCP-Protocol-Version` cell, which cannot live on the edge rung without breaking body-primary classification. Evaluated before the capability gate, the factory call, and the `Mcp-Param-*` rung so a request that fails several rungs is answered by the standard-header rung first. The documented order (after method-registry 5 and request-params 6) is NOT the observed precedence: serveModern evaluates this rung immediately after the supported-revision gate, so a request that also fails a dispatch rung is answered here before the dispatch rungs (5–6) are consulted."
       },
       {
         rung: "client-capabilities",
@@ -22773,8 +22798,20 @@ var require_src_STyD_Vvf = __commonJS({
     var MCP_NAME_HEADER_SOURCE = {
       "tools/call": "name",
       "prompts/get": "name",
-      "resources/read": "uri"
+      "resources/read": "uri",
+      "tasks/get": "taskId",
+      "tasks/update": "taskId",
+      "tasks/cancel": "taskId"
     };
+    function mcpNameSource(method, params) {
+      const field = Object.hasOwn(MCP_NAME_HEADER_SOURCE, method) ? MCP_NAME_HEADER_SOURCE[method] : void 0;
+      if (field === void 0) return;
+      const raw = isPlainObject$2(params) ? params[field] : void 0;
+      return {
+        field,
+        value: typeof raw === "string" ? raw : void 0
+      };
+    }
     function stripHttpOws(value) {
       let start = 0;
       while (start < value.length) {
@@ -22793,11 +22830,14 @@ var require_src_STyD_Vvf = __commonJS({
     function validateStandardRequestHeaders(request, route) {
       if (route.messageKind !== "request") return;
       const method = route.message.method;
+      if (request.protocolVersionHeader === void 0) {
+        const claimed = route.classification.revision;
+        return crossCheckMismatch("version-header-missing", "(missing)", claimed === void 0 ? "the body carries a modern per-request envelope but the required MCP-Protocol-Version header is absent" : `the body envelope names protocol version ${claimed} but the required MCP-Protocol-Version header is absent`, "standard-header-validation");
+      }
       if (request.mcpMethodHeader === void 0) return crossCheckMismatch("method-header-missing", "(missing)", `the body names method ${method} but the required Mcp-Method header is absent`, "standard-header-validation");
-      const sourceField = Object.hasOwn(MCP_NAME_HEADER_SOURCE, method) ? MCP_NAME_HEADER_SOURCE[method] : void 0;
-      if (sourceField === void 0) return;
-      const sourceValue = route.message.params?.[sourceField];
-      const bodyValue = typeof sourceValue === "string" ? sourceValue : void 0;
+      const source = mcpNameSource(method, route.message.params);
+      if (source === void 0) return;
+      const { field: sourceField, value: bodyValue } = source;
       if (request.mcpNameHeader === void 0) {
         if (bodyValue === void 0) return;
         return crossCheckMismatch("name-header-missing", "(missing)", `the body carries params.${sourceField}="${bodyValue}" but the required Mcp-Name header is absent`, "standard-header-validation");
@@ -23120,7 +23160,7 @@ var require_src_STyD_Vvf = __commonJS({
       array: shapeKeys([_modelcontextprotocol_core_internal.UntitledMultiSelectEnumSchemaSchema, _modelcontextprotocol_core_internal.TitledMultiSelectEnumSchemaSchema])
     };
     var SUPPORTED_STRING_FORMATS = new Set(_modelcontextprotocol_core_internal.StringSchemaSchema.shape.format.unwrap().options);
-    function walkProperty(node, path8, vendor, unsupported) {
+    function walkProperty(node, path9, vendor, unsupported) {
       if (!isJsonObject(node)) return node;
       const allowedKeys = typeof node.type === "string" && Object.hasOwn(PROPERTY_KEYS_BY_TYPE, node.type) ? PROPERTY_KEYS_BY_TYPE[node.type] : void 0;
       if (allowedKeys === void 0) return node;
@@ -23128,8 +23168,8 @@ var require_src_STyD_Vvf = __commonJS({
       for (const [key, value] of Object.entries(node)) if (allowedKeys.has(key) || isAnnotationOnlyJsonSchemaKeyword(key)) pruned[key] = value;
       else if (key === "pattern" && node.type === "string" && typeof node.format === "string") {
         if (!SUPPORTED_STRING_FORMATS.has(node.format)) pruned[key] = value;
-        else if (typeof value !== "string" || !isLibraryFormatPattern(node.format, value, vendor)) unsupported.push(`${path8}.${key}`);
-      } else unsupported.push(`${path8}.${key}`);
+        else if (typeof value !== "string" || !isLibraryFormatPattern(node.format, value, vendor)) unsupported.push(`${path9}.${key}`);
+      } else unsupported.push(`${path9}.${key}`);
       return pruned;
     }
     function walkRequestedSchema(converted, vendor) {
@@ -23146,11 +23186,11 @@ var require_src_STyD_Vvf = __commonJS({
       const offenders = Object.entries(pruned.properties).filter(([, node]) => !parseSchema(_modelcontextprotocol_core_internal.PrimitiveSchemaDefinitionSchema, node).success).map(([name]) => `properties.${name}`);
       return offenders.length > 0 ? offenders.join(", ") : fallback;
     }
-    function findDroppedConstraintPaths(original, parsed, path8 = "") {
-      if (Array.isArray(original) && Array.isArray(parsed)) return original.flatMap((item, index) => findDroppedConstraintPaths(item, parsed[index], `${path8}[${index}]`));
+    function findDroppedConstraintPaths(original, parsed, path9 = "") {
+      if (Array.isArray(original) && Array.isArray(parsed)) return original.flatMap((item, index) => findDroppedConstraintPaths(item, parsed[index], `${path9}[${index}]`));
       if (!isJsonObject(original) || !isJsonObject(parsed)) return [];
       return Object.entries(original).flatMap(([key, value]) => {
-        const childPath = path8 ? `${path8}.${key}` : key;
+        const childPath = path9 ? `${path9}.${key}` : key;
         if (!Object.prototype.hasOwnProperty.call(parsed, key)) return isAnnotationOnlyJsonSchemaKeyword(key) ? [] : [childPath];
         return findDroppedConstraintPaths(value, parsed[key], childPath);
       });
@@ -23558,6 +23598,8 @@ var require_src_STyD_Vvf = __commonJS({
       _transport;
       _requestMessageId = 0;
       _requestHandlers = /* @__PURE__ */ new Map();
+      /** Methods registered with an explicit schema; the era gate in `_onrequest` reads it for the Tasks extension names. */
+      _customSchemaRequestMethods = /* @__PURE__ */ new Set();
       _requestHandlerAbortControllers = /* @__PURE__ */ new Map();
       _notificationHandlers = /* @__PURE__ */ new Map();
       _responseHandlers = /* @__PURE__ */ new Map();
@@ -23694,7 +23736,7 @@ var require_src_STyD_Vvf = __commonJS({
         return this._requestHandlers.get(method);
       }
       async _oncancel(notification) {
-        if (!notification.params.requestId) return;
+        if (notification.params.requestId === void 0) return;
         this._requestHandlerAbortControllers.get(notification.params.requestId)?.abort(notification.params.reason);
       }
       _setupTimeout(messageId, timeout, maxTotalTimeout, onTimeout, resetTimeoutOnProgress = false) {
@@ -23841,7 +23883,7 @@ var require_src_STyD_Vvf = __commonJS({
             return;
           }
         }
-        if (isSpecRequestMethod(request.method) && !codec.hasRequestMethod(request.method)) {
+        if (isSpecRequestMethod(request.method) && !codec.hasRequestMethod(request.method) && !(isExtensionReusedRequestMethod(request.method) && this._customSchemaRequestMethods.has(request.method))) {
           sendErrorResponse(ProtocolErrorCode.MethodNotFound, "Method not found");
           return;
         }
@@ -23974,8 +24016,11 @@ var require_src_STyD_Vvf = __commonJS({
       }
       request(request, schemaOrOptions, maybeOptions) {
         const codec = this._resolveOutboundCodec(request.method);
+        if (isStandardSchema(schemaOrOptions)) {
+          if (!isExtensionReusedRequestMethod(request.method)) this._assertOutboundRequestInEra(codec, request.method);
+          return this._requestWithSchemaViaCodec(codec, request, schemaOrOptions, maybeOptions);
+        }
         this._assertOutboundRequestInEra(codec, request.method);
-        if (isStandardSchema(schemaOrOptions)) return this._requestWithSchemaViaCodec(codec, request, schemaOrOptions, maybeOptions);
         const validate = codecResultValidator(codec, request.method);
         if (validate === void 0) throw new TypeError(`'${request.method}' is not a spec method; pass a result schema as the second argument to request().`);
         return this._requestWithSchemaViaCodec(codec, request, validate, schemaOrOptions);
@@ -24093,19 +24138,20 @@ var require_src_STyD_Vvf = __commonJS({
           const cancel = (reason2) => {
             if (responseReceived) return;
             this._progressHandlers.delete(messageId);
-            if (requestAbort === void 0) this._transport?.send(this._envelopeOutbound({
-              jsonrpc: "2.0",
-              method: "notifications/cancelled",
-              params: {
-                requestId: messageId,
-                reason: String(reason2)
-              }
-            }), {
-              relatedRequestId,
-              resumptionToken,
-              onresumptiontoken
-            }).catch((error) => this._onerror(/* @__PURE__ */ new Error(`Failed to send cancellation: ${error}`)));
-            else requestAbort.abort();
+            if (requestAbort === void 0) {
+              if (request.method !== "initialize") this._transport?.send(this._envelopeOutbound({
+                jsonrpc: "2.0",
+                method: "notifications/cancelled",
+                params: {
+                  requestId: messageId,
+                  reason: String(reason2)
+                }
+              }), {
+                relatedRequestId,
+                resumptionToken,
+                onresumptiontoken
+              }).catch((error) => this._onerror(/* @__PURE__ */ new Error(`Failed to send cancellation: ${error}`)));
+            } else requestAbort.abort();
             reject(reason2 instanceof SdkError ? reason2 : new SdkError(SdkErrorCode.RequestTimeout, String(reason2)));
           };
           this._responseHandlers.set(messageId, (response) => {
@@ -24167,7 +24213,7 @@ var require_src_STyD_Vvf = __commonJS({
       * Emits a notification, which is a one-way message that does not expect a response.
       */
       async notification(notification, options) {
-        return this._notificationViaCodec(this._resolveOutboundCodec(notification.method), notification, options);
+        return await this._notificationViaCodec(this._resolveOutboundCodec(notification.method), notification, options);
       }
       /**
       * The notification funnel proper, keyed by the resolved era codec —
@@ -24185,7 +24231,7 @@ var require_src_STyD_Vvf = __commonJS({
           jsonrpc: "2.0",
           ...notification
         });
-        if ((this._options?.debouncedNotificationMethods ?? []).includes(notification.method) && !notification.params && !options?.relatedRequestId) {
+        if ((this._options?.debouncedNotificationMethods ?? []).includes(notification.method) && !notification.params && options?.relatedRequestId === void 0) {
           if (this._pendingDebouncedNotifications.has(notification.method)) return;
           this._pendingDebouncedNotifications.add(notification.method);
           Promise.resolve().then(() => {
@@ -24218,6 +24264,8 @@ var require_src_STyD_Vvf = __commonJS({
           return maybeHandler(parsed.data, ctx);
         };
         else throw new TypeError("setRequestHandler: handler is required");
+        if (typeof schemasOrHandler === "function") this._customSchemaRequestMethods.delete(method);
+        else this._customSchemaRequestMethods.add(method);
         this._requestHandlers.set(method, this._wrapHandler(method, stored));
       }
       /**
@@ -24247,6 +24295,7 @@ var require_src_STyD_Vvf = __commonJS({
       */
       removeRequestHandler(method) {
         this._requestHandlers.delete(method);
+        this._customSchemaRequestMethods.delete(method);
       }
       /**
       * Asserts that a request handler has not already been set for the given method, in preparation for a new one being automatically installed.
@@ -24324,7 +24373,8 @@ var require_src_STyD_Vvf = __commonJS({
       return {
         resultType: "input_required",
         inputRequests: decoded.inputRequests,
-        ...decoded.requestState !== void 0 && { requestState: decoded.requestState }
+        ...decoded.requestState !== void 0 && { requestState: decoded.requestState },
+        ...decoded._meta !== void 0 && { _meta: decoded._meta }
       };
     }
     var require_content_type = /* @__PURE__ */ require_chunk.__commonJSMin(((exports2) => {
@@ -28073,8 +28123,8 @@ var require_ajvProvider_ZaoO9afR = __commonJS({
         for (let i = 0; i < str.length; i++) if (str[i] === token) ind++;
         return ind;
       }
-      function removeDotSegments(path8) {
-        let input = path8;
+      function removeDotSegments(path9) {
+        let input = path9;
         const output = [];
         let nextSlash = -1;
         let len = 0;
@@ -28227,8 +28277,8 @@ var require_ajvProvider_ZaoO9afR = __commonJS({
           wsComponent.secure = void 0;
         }
         if (wsComponent.resourceName) {
-          const [path8, query] = wsComponent.resourceName.split("?");
-          wsComponent.path = path8 && path8 !== "/" ? path8 : void 0;
+          const [path9, query] = wsComponent.resourceName.split("?");
+          wsComponent.path = path9 && path9 !== "/" ? path9 : void 0;
           wsComponent.query = query;
           wsComponent.resourceName = void 0;
         }
@@ -32336,11 +32386,11 @@ var require_shimsNode = __commonJS({
   }
 });
 
-// risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/mcp-D7GmuPnv.cjs
-var require_mcp_D7GmuPnv = __commonJS({
-  "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/mcp-D7GmuPnv.cjs"(exports) {
+// risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/mcp-BumlNux0.cjs
+var require_mcp_BumlNux0 = __commonJS({
+  "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/mcp-BumlNux0.cjs"(exports) {
     var require_chunk = require_chunk_Bnu9O96Y();
-    var require_src = require_src_STyD_Vvf();
+    var require_src = require_src_BhnGYybN();
     var _modelcontextprotocol_server__shims = require_shimsNode();
     var _modelcontextprotocol_core_internal = require_internal();
     var COMPLETABLE_SYMBOL = /* @__PURE__ */ Symbol.for("mcp.completable");
@@ -32547,6 +32597,10 @@ data: ${JSON.stringify({
               params: { notifications: honored }
             }, subscriptionId);
             writeNotification(ack.method, ack.params);
+            if (Object.keys(honored).length === 0) {
+              teardown(true);
+              return;
+            }
             unsubscribe = bus.subscribe((event) => {
               if (closed || !listenFilterAccepts(honored, event)) return;
               const note = stampSubscriptionId(serverEventToNotification(event), subscriptionId);
@@ -32603,7 +32657,7 @@ data: ${JSON.stringify({
       _serverCapabilities;
       /**
       * The serving instance's identity, stamped onto the graceful-close
-      * results' `_meta` (the spec's `SubscriptionsListenResultMeta` extends
+      * results' `_meta` (the spec's `SubscriptionsListenResultMetaObject` extends
       * `ResultMetaObject`). Handed over together with the capabilities.
       */
       _serverInfo;
@@ -32730,6 +32784,197 @@ data: ${JSON.stringify({
             uri: uri ?? ""
           };
       }
+    }
+    function comparableResource(value) {
+      const text = String(value);
+      const hash = text.indexOf("#");
+      return (hash === -1 ? text : text.slice(0, hash)).replace(/\/$/, "");
+    }
+    function sameResource(reported, expected) {
+      if (!reported) return false;
+      return comparableResource(reported) === comparableResource(expected);
+    }
+    function headerQuotedValue(value) {
+      return value.replaceAll(/[\\"]/g, String.raw`\$&`).replaceAll(/[^\u0020-\u007E]/g, " ");
+    }
+    function buildWwwAuthenticateHeader(errorCode2, description, requiredScopes, resourceMetadataUrl) {
+      let header = `Bearer error="${headerQuotedValue(errorCode2)}", error_description="${headerQuotedValue(description)}"`;
+      if (requiredScopes.length > 0) header += `, scope="${headerQuotedValue(requiredScopes.join(" "))}"`;
+      if (resourceMetadataUrl) header += `, resource_metadata="${headerQuotedValue(resourceMetadataUrl)}"`;
+      return header;
+    }
+    async function verifyBearerToken(authorizationHeader, options) {
+      const { verifier, requiredScopes = [], expectedResource } = options;
+      if (!authorizationHeader) throw new require_src.OAuthError(require_src.OAuthErrorCode.InvalidToken, "Missing Authorization header");
+      const [type, token] = authorizationHeader.split(" ");
+      if (type?.toLowerCase() !== "bearer" || !token) throw new require_src.OAuthError(require_src.OAuthErrorCode.InvalidToken, "Invalid Authorization header format, expected 'Bearer TOKEN'");
+      const authInfo = await verifier.verifyAccessToken(token);
+      if (expectedResource !== void 0 && !sameResource(authInfo.resource, expectedResource)) throw new require_src.OAuthError(require_src.OAuthErrorCode.InvalidToken, "Token was not issued for this resource");
+      if (requiredScopes.length > 0) {
+        if (!requiredScopes.every((scope) => authInfo.scopes.includes(scope))) throw new require_src.OAuthError(require_src.OAuthErrorCode.InsufficientScope, "Insufficient scope");
+      }
+      if (typeof authInfo.expiresAt !== "number" || Number.isNaN(authInfo.expiresAt)) throw new require_src.OAuthError(require_src.OAuthErrorCode.InvalidToken, "Token has no expiration time");
+      else if (authInfo.expiresAt < Date.now() / 1e3) throw new require_src.OAuthError(require_src.OAuthErrorCode.InvalidToken, "Token has expired");
+      if (options.resourceMetadataUrl !== void 0 && authInfo.resourceMetadataUrl === void 0) return {
+        ...authInfo,
+        resourceMetadataUrl: options.resourceMetadataUrl
+      };
+      return authInfo;
+    }
+    function bearerAuthChallengeResponse(error, options) {
+      const { requiredScopes = [], resourceMetadataUrl } = options ?? {};
+      if (!(error instanceof require_src.OAuthError)) {
+        const serverError = new require_src.OAuthError(require_src.OAuthErrorCode.ServerError, "Internal Server Error");
+        return Response.json(serverError.toResponseObject(), { status: 500 });
+      }
+      switch (error.code) {
+        case require_src.OAuthErrorCode.InvalidToken: {
+          const challenge = buildWwwAuthenticateHeader(error.code, error.message, requiredScopes, resourceMetadataUrl);
+          return Response.json(error.toResponseObject(), {
+            status: 401,
+            headers: { "WWW-Authenticate": challenge }
+          });
+        }
+        case require_src.OAuthErrorCode.InsufficientScope: {
+          const challenge = buildWwwAuthenticateHeader(error.code, error.message, requiredScopes, resourceMetadataUrl);
+          return Response.json(error.toResponseObject(), {
+            status: 403,
+            headers: { "WWW-Authenticate": challenge }
+          });
+        }
+        case require_src.OAuthErrorCode.ServerError:
+          return Response.json(error.toResponseObject(), { status: 500 });
+        default:
+          return Response.json(error.toResponseObject(), { status: 400 });
+      }
+    }
+    function requireBearerAuth(options) {
+      const { verifier, requiredScopes = [], resourceMetadataUrl, expectedResource } = options;
+      const resolved = {
+        verifier,
+        requiredScopes,
+        resourceMetadataUrl,
+        expectedResource
+      };
+      return async (request) => {
+        const [authorizationHeader] = (request.headers.get("authorization") ?? "").split(",");
+        try {
+          return await verifyBearerToken(authorizationHeader || void 0, resolved);
+        } catch (error) {
+          return bearerAuthChallengeResponse(error, resolved);
+        }
+      };
+    }
+    function checkIssuerUrl(issuer, allowInsecure) {
+      if (issuer.protocol !== "https:" && issuer.hostname !== "localhost" && issuer.hostname !== "127.0.0.1" && !allowInsecure) throw new Error("Issuer URL must be HTTPS");
+      if (issuer.hash) throw new Error(`Issuer URL must not have a fragment: ${issuer}`);
+      if (issuer.search) throw new Error(`Issuer URL must not have a query string: ${issuer}`);
+    }
+    function buildOAuthProtectedResourceMetadata(options) {
+      checkIssuerUrl(new URL(options.oauthMetadata.issuer), options.dangerouslyAllowInsecureIssuerUrl);
+      return {
+        resource: options.resourceServerUrl.href,
+        authorization_servers: [options.oauthMetadata.issuer],
+        scopes_supported: options.scopesSupported,
+        resource_name: options.resourceName,
+        resource_documentation: options.serviceDocumentationUrl?.href
+      };
+    }
+    function getOAuthProtectedResourceMetadataUrl(serverUrl) {
+      const metadataUrl = new URL(serverUrl);
+      metadataUrl.pathname = protectedResourceMetadataPath(serverUrl);
+      metadataUrl.hash = "";
+      return metadataUrl.href;
+    }
+    function protectedResourceMetadataPath(resourceServerUrl) {
+      const rsPath = stripTrailingSlash(resourceServerUrl.pathname);
+      return `/.well-known/oauth-protected-resource${rsPath === "/" ? "" : rsPath}`;
+    }
+    function stripTrailingSlash(path9) {
+      return path9.length > 1 && path9.endsWith("/") ? path9.slice(0, -1) : path9;
+    }
+    var ALLOWED_METHODS = "GET, HEAD, OPTIONS";
+    function metadataDocumentResponse(request, metadata) {
+      if (request.method === "OPTIONS") {
+        const requestedHeaders = request.headers.get("access-control-request-headers");
+        return new Response(null, {
+          status: 204,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": ALLOWED_METHODS,
+            ...requestedHeaders === null ? {} : {
+              "Access-Control-Allow-Headers": requestedHeaders,
+              Vary: "Access-Control-Request-Headers"
+            }
+          }
+        });
+      }
+      if (request.method !== "GET" && request.method !== "HEAD") {
+        const error = new require_src.OAuthError(require_src.OAuthErrorCode.MethodNotAllowed, `The method ${request.method} is not allowed for this endpoint`);
+        return Response.json(error.toResponseObject(), {
+          status: 405,
+          headers: {
+            Allow: ALLOWED_METHODS,
+            "Access-Control-Allow-Origin": "*"
+          }
+        });
+      }
+      const response = Response.json(metadata, { headers: { "Access-Control-Allow-Origin": "*" } });
+      return request.method === "HEAD" ? new Response(null, {
+        status: response.status,
+        headers: response.headers
+      }) : response;
+    }
+    function oauthMetadataResponse(request, options) {
+      const requestPath = stripTrailingSlash(new URL(request.url).pathname);
+      if (requestPath === protectedResourceMetadataPath(options.resourceServerUrl)) return metadataDocumentResponse(request, buildOAuthProtectedResourceMetadata(options));
+      if (requestPath === "/.well-known/oauth-authorization-server") {
+        buildOAuthProtectedResourceMetadata(options);
+        return metadataDocumentResponse(request, options.oauthMetadata);
+      }
+    }
+    function supportsScopeChallengeResolver(transport) {
+      return typeof transport === "object" && transport !== null && "setScopeChallengeResolver" in transport && typeof transport.setScopeChallengeResolver === "function";
+    }
+    function assertScope(scope, location) {
+      if (typeof scope !== "string" || !/^[\u0021\u0023-\u005B\u005D-\u007E]+$/.test(scope)) throw new TypeError(`${location} must satisfy the OAuth scope-token grammar`);
+    }
+    function validateScopeChallenge(challenge) {
+      if (challenge === null || typeof challenge !== "object" || !Array.isArray(challenge.scopes) || challenge.scopes.length === 0) throw new TypeError("scope challenge must contain at least one scope");
+      for (const [index, scope] of challenge.scopes.entries()) assertScope(scope, `scope challenge scopes[${index}]`);
+      if (challenge.errorDescription !== void 0 && typeof challenge.errorDescription !== "string") throw new TypeError("scope challenge errorDescription must be a string");
+      if (challenge.errorDescription !== void 0 && !/^[\u0020-\u0021\u0023-\u005B\u005D-\u007E]+$/.test(challenge.errorDescription)) throw new TypeError("scope challenge errorDescription must satisfy the RFC 6750 error-description grammar");
+      return challenge;
+    }
+    function requireScopes(...scopes) {
+      if (scopes.length === 0) throw new TypeError("requireScopes must contain at least one scope");
+      for (const [index, scope] of scopes.entries()) assertScope(scope, `requireScopes scope[${index}]`);
+      const requiredScopes = [...scopes];
+      return ({ authInfo }) => {
+        if (authInfo === void 0) return;
+        const activeScopes = new Set(authInfo.scopes);
+        if (requiredScopes.every((scope) => activeScopes.has(scope))) return;
+        return { scopes: requiredScopes };
+      };
+    }
+    async function findScopeChallenge(requests, authInfo, resolve) {
+      for (const request of requests) {
+        const challenge = await resolve({
+          request,
+          ...authInfo !== void 0 && { authInfo }
+        });
+        if (challenge !== void 0) return validateScopeChallenge(challenge);
+      }
+    }
+    function scopeChallengeResourceMetadataUrl(authInfo) {
+      if (authInfo?.resourceMetadataUrl !== void 0) return authInfo.resourceMetadataUrl;
+      if (authInfo?.resource?.protocol === "https:" || authInfo?.resource?.protocol === "http:") return getOAuthProtectedResourceMetadataUrl(authInfo.resource);
+    }
+    function createScopeChallengeResponse(challenge, resourceMetadataUrl) {
+      return bearerAuthChallengeResponse(new require_src.OAuthError(require_src.OAuthErrorCode.InsufficientScope, challenge.errorDescription ?? "Insufficient scope"), {
+        requiredScopes: [...challenge.scopes],
+        resourceMetadataUrl
+      });
     }
     var DEFAULT_LEGACY_SHIM_MAX_ROUNDS = 8;
     var DEFAULT_LEGACY_SHIM_ROUND_TIMEOUT_MS = 6e5;
@@ -32934,6 +33179,11 @@ data: ${JSON.stringify({
         this.setNotificationHandler("notifications/initialized", () => this.oninitialized?.());
         if (require_src.modernProtocolVersions(this._supportedProtocolVersions).length > 0) this.setRequestHandler("server/discover", () => this._ondiscover());
         if (this._capabilities.logging) this._registerLoggingHandler();
+      }
+      /** Attaches to the given transport; rejects while this instance is connected to another one. */
+      async connect(transport) {
+        if (this.transport !== void 0) throw new require_src.SdkError(require_src.SdkErrorCode.AlreadyConnected, "Use a separate Server instance per connection: this instance is already connected to a transport. To connect it to a new transport, call close() first.");
+        await super.connect(transport);
       }
       /**
       * Registers the built-in `logging/setLevel` request handler.
@@ -33488,21 +33738,41 @@ data: ${JSON.stringify({
     function discoverAdvertisedCapabilities(capabilities) {
       return { ...capabilities };
     }
+    function toolInputElementCount(value, max) {
+      let count = 0;
+      const stack = [value];
+      while (stack.length > 0) {
+        const node = stack.pop();
+        if (node === null || typeof node !== "object") continue;
+        if (Array.isArray(node)) for (const child of node) {
+          if (++count > max) return count;
+          if (child !== null && typeof child === "object") stack.push(child);
+        }
+        else for (const key in node) {
+          if (!Object.prototype.hasOwnProperty.call(node, key)) continue;
+          if (++count > max) return count;
+          const child = node[key];
+          if (child !== null && typeof child === "object") stack.push(child);
+        }
+      }
+      return count;
+    }
+    function resolveMaxToolInputElements(value) {
+      if (value === void 0 || value === Infinity) return void 0;
+      if (typeof value !== "number" || Number.isNaN(value) || value < 1) throw new RangeError(`maxToolInputElements must be a number of at least 1, or Infinity, got ${String(value)}`);
+      return value;
+    }
     var McpServer = class {
       /**
       * The underlying {@linkcode Server} instance, useful for advanced operations like sending notifications.
       */
       server;
+      _maxToolInputElements;
       _registeredResources = {};
       _registeredResourceTemplates = {};
       _registeredTools = {};
       _registeredPrompts = {};
-      /**
-      * Per-tool JSON-converted `inputSchema`, memoized so the SEP-2243
-      * registration-time scan and the pre-dispatch validation step share one
-      * conversion instead of paying it twice per request under the
-      * per-request-factory `createMcpHandler` model.
-      */
+      /** Per-tool JSON-converted `inputSchema`, filled on first use by `toolInputSchemaJson()`. */
       _toolInputSchemaJson = {};
       /**
       * The JSON-serialized `inputSchema` of a registered tool, or `undefined`
@@ -33527,6 +33797,7 @@ data: ${JSON.stringify({
       }
       constructor(serverInfo, options) {
         this.server = new Server(serverInfo, options);
+        this._maxToolInputElements = resolveMaxToolInputElements(options?.maxToolInputElements);
         if (options?.capabilities?.tools) this.setToolRequestHandlers();
         if (options?.capabilities?.resources) this.setResourceRequestHandlers();
         if (options?.capabilities?.prompts) this.setPromptRequestHandlers();
@@ -33544,6 +33815,7 @@ data: ${JSON.stringify({
       * ```
       */
       async connect(transport) {
+        if (supportsScopeChallengeResolver(transport)) transport.setScopeChallengeResolver((context) => this.resolveScopeChallenge(context));
         return await this.server.connect(transport);
       }
       /**
@@ -33552,6 +33824,41 @@ data: ${JSON.stringify({
       async close() {
         await this.server.close();
       }
+      /** @internal */
+      resolveScopeChallenge = (context) => {
+        switch (context.request.method) {
+          case "tools/call": {
+            const toolName = context.request.params?.name;
+            if (typeof toolName !== "string") return;
+            const tool = this._registeredTools[toolName];
+            if (tool === void 0 || !tool.enabled) return;
+            return tool.scopeChallenge?.(context);
+          }
+          case "resources/read": {
+            const resourceUri = context.request.params?.uri;
+            if (typeof resourceUri !== "string") return;
+            let uri;
+            try {
+              uri = new URL(resourceUri);
+            } catch {
+              return;
+            }
+            const resource = this._registeredResources[uri.toString()];
+            if (resource !== void 0) return resource.enabled ? resource.scopeChallenge?.(context) : void 0;
+            for (const template of Object.values(this._registeredResourceTemplates)) if (template.resourceTemplate.uriTemplate.match(uri.toString())) return template.enabled ? template.scopeChallenge?.(context) : void 0;
+            return;
+          }
+          case "prompts/get": {
+            const promptName = context.request.params?.name;
+            if (typeof promptName !== "string") return;
+            const prompt = this._registeredPrompts[promptName];
+            if (prompt === void 0 || !prompt.enabled) return;
+            return prompt.scopeChallenge?.(context);
+          }
+          default:
+            return;
+        }
+      };
       _toolHandlersInitialized = false;
       setToolRequestHandlers() {
         if (this._toolHandlersInitialized) return;
@@ -33563,7 +33870,7 @@ data: ${JSON.stringify({
             name,
             title: tool.title,
             description: tool.description,
-            inputSchema: tool.inputSchema ? require_src.standardSchemaToJsonSchema(tool.inputSchema, "input") : EMPTY_OBJECT_JSON_SCHEMA,
+            inputSchema: tool.inputSchema ? convertListedInputSchema(name, tool.inputSchema) : EMPTY_OBJECT_JSON_SCHEMA,
             annotations: tool.annotations,
             icons: tool.icons,
             execution: tool.execution,
@@ -33608,6 +33915,7 @@ data: ${JSON.stringify({
       * Validates tool input arguments against the tool's input schema.
       */
       async validateToolInput(tool, args, toolName) {
+        if (this._maxToolInputElements !== void 0 && toolInputElementCount(args, this._maxToolInputElements) > this._maxToolInputElements) throw new require_src.ProtocolError(require_src.ProtocolErrorCode.InvalidParams, `Invalid arguments for tool ${toolName}: arguments contain more than the maximum of ${this._maxToolInputElements} elements`);
         if (!tool.inputSchema) return;
         const parseResult = await require_src.validateStandardSchema(tool.inputSchema, args ?? {});
         if (!parseResult.success) throw new require_src.ProtocolError(require_src.ProtocolErrorCode.InvalidParams, `Input validation error: Invalid arguments for tool ${toolName}: ${parseResult.error}`);
@@ -33718,7 +34026,10 @@ data: ${JSON.stringify({
           }
           for (const template of Object.values(this._registeredResourceTemplates)) {
             const variables = template.resourceTemplate.uriTemplate.match(uri.toString());
-            if (variables) return require_src.attachCacheHintFallback(await template.readCallback(uri, variables, ctx), template.cacheHint);
+            if (variables) {
+              if (!template.enabled) throw new require_src.ProtocolError(require_src.ProtocolErrorCode.InvalidParams, `Resource template ${template.resourceTemplate.uriTemplate} disabled`);
+              return require_src.attachCacheHintFallback(await template.readCallback(uri, variables, ctx), template.cacheHint);
+            }
           }
           throw new require_src.ResourceNotFoundError(request.params.uri);
         });
@@ -33749,36 +34060,32 @@ data: ${JSON.stringify({
         this._promptHandlersInitialized = true;
       }
       registerResource(name, uriOrTemplate, config, readCallback) {
-        const cacheHint = config.cacheHint;
-        let metadata = config;
-        if (cacheHint !== void 0) {
-          require_src.assertValidCacheHint(cacheHint, `resource ${name}`);
-          const rest = { ...config };
-          delete rest.cacheHint;
-          metadata = rest;
-        }
+        const { cacheHint, scopeChallenge, ...resourceMetadata } = config;
+        const metadata = resourceMetadata;
+        if (cacheHint !== void 0) require_src.assertValidCacheHint(cacheHint, `resource ${name}`);
         if (typeof uriOrTemplate === "string") {
           if (this._registeredResources[uriOrTemplate]) throw new Error(`Resource ${uriOrTemplate} is already registered`);
-          const registeredResource = this._createRegisteredResource(name, config.title, uriOrTemplate, metadata, readCallback);
+          const registeredResource = this._createRegisteredResource(name, config.title, uriOrTemplate, metadata, scopeChallenge, readCallback);
           if (cacheHint !== void 0) registeredResource.cacheHint = cacheHint;
           this.setResourceRequestHandlers();
           this.sendResourceListChanged();
           return registeredResource;
         } else {
           if (this._registeredResourceTemplates[name]) throw new Error(`Resource template ${name} is already registered`);
-          const registeredResourceTemplate = this._createRegisteredResourceTemplate(name, config.title, uriOrTemplate, metadata, readCallback);
+          const registeredResourceTemplate = this._createRegisteredResourceTemplate(name, config.title, uriOrTemplate, metadata, scopeChallenge, readCallback);
           if (cacheHint !== void 0) registeredResourceTemplate.cacheHint = cacheHint;
           this.setResourceRequestHandlers();
           this.sendResourceListChanged();
           return registeredResourceTemplate;
         }
       }
-      _createRegisteredResource(name, title, uri, metadata, readCallback) {
+      _createRegisteredResource(name, title, uri, metadata, scopeChallenge, readCallback) {
         const registeredResource = {
           name,
           title,
           metadata,
           readCallback,
+          scopeChallenge,
           enabled: true,
           disable: () => registeredResource.update({ enabled: false }),
           enable: () => registeredResource.update({ enabled: true }),
@@ -33792,6 +34099,7 @@ data: ${JSON.stringify({
             if (updates.title !== void 0) registeredResource.title = updates.title;
             if (updates.metadata !== void 0) registeredResource.metadata = updates.metadata;
             if (updates.callback !== void 0) registeredResource.readCallback = updates.callback;
+            if (updates.scopeChallenge !== void 0) registeredResource.scopeChallenge = updates.scopeChallenge === null ? void 0 : updates.scopeChallenge;
             if (updates.enabled !== void 0) registeredResource.enabled = updates.enabled;
             this.sendResourceListChanged();
           }
@@ -33799,12 +34107,13 @@ data: ${JSON.stringify({
         this._registeredResources[uri] = registeredResource;
         return registeredResource;
       }
-      _createRegisteredResourceTemplate(name, title, template, metadata, readCallback) {
+      _createRegisteredResourceTemplate(name, title, template, metadata, scopeChallenge, readCallback) {
         const registeredResourceTemplate = {
           resourceTemplate: template,
           title,
           metadata,
           readCallback,
+          scopeChallenge,
           enabled: true,
           disable: () => registeredResourceTemplate.update({ enabled: false }),
           enable: () => registeredResourceTemplate.update({ enabled: true }),
@@ -33818,6 +34127,7 @@ data: ${JSON.stringify({
             if (updates.template !== void 0) registeredResourceTemplate.resourceTemplate = updates.template;
             if (updates.metadata !== void 0) registeredResourceTemplate.metadata = updates.metadata;
             if (updates.callback !== void 0) registeredResourceTemplate.readCallback = updates.callback;
+            if (updates.scopeChallenge !== void 0) registeredResourceTemplate.scopeChallenge = updates.scopeChallenge === null ? void 0 : updates.scopeChallenge;
             if (updates.enabled !== void 0) registeredResourceTemplate.enabled = updates.enabled;
             this.sendResourceListChanged();
           }
@@ -33827,7 +34137,7 @@ data: ${JSON.stringify({
         if (Array.isArray(variableNames) && variableNames.some((v) => !!template.completeCallback(v))) this.setCompletionRequestHandler();
         return registeredResourceTemplate;
       }
-      _createRegisteredPrompt(name, title, description, argsSchema, callback, icons, _meta) {
+      _createRegisteredPrompt(name, title, description, argsSchema, callback, icons, scopeChallenge, _meta) {
         let currentArgsSchema = argsSchema;
         let currentCallback = callback;
         const registeredPrompt = {
@@ -33835,6 +34145,7 @@ data: ${JSON.stringify({
           description,
           argsSchema,
           icons,
+          scopeChallenge,
           _meta,
           handler: createPromptHandler(name, argsSchema, callback),
           enabled: true,
@@ -33849,6 +34160,7 @@ data: ${JSON.stringify({
             if (updates.title !== void 0) registeredPrompt.title = updates.title;
             if (updates.description !== void 0) registeredPrompt.description = updates.description;
             if (updates.icons !== void 0) registeredPrompt.icons = updates.icons;
+            if (updates.scopeChallenge !== void 0) registeredPrompt.scopeChallenge = updates.scopeChallenge === null ? void 0 : updates.scopeChallenge;
             if (updates._meta !== void 0) registeredPrompt._meta = updates._meta;
             let needsHandlerRegen = false;
             if (updates.argsSchema !== void 0) {
@@ -33876,25 +34188,25 @@ data: ${JSON.stringify({
         }
         return registeredPrompt;
       }
-      _createRegisteredTool(name, title, description, inputSchema, outputSchema, annotations, icons, execution, _meta, handler) {
+      _createRegisteredTool(name, title, description, inputSchema, outputSchema, annotations, icons, execution, scopeChallenge, _meta, handler) {
         require_src.validateAndWarnToolName(name);
-        if (inputSchema !== void 0) try {
-          const json = require_src.standardSchemaToJsonSchema(inputSchema, "input");
-          this._toolInputSchemaJson[name] = json;
-          const scan = require_src.scanXMcpHeaderDeclarations(json);
-          if (!scan.valid) console.warn(`[mcp-sdk] tool '${name}' carries an invalid x-mcp-header declaration and will be excluded by conforming Streamable HTTP clients: ${scan.reason}`);
-        } catch {
-        }
         let currentHandler = handler;
+        let outputSchemaJson;
         const registeredTool = {
           title,
           description,
           inputSchema,
           outputSchema,
-          outputSchemaJson: convertOutputSchemaJson(outputSchema),
+          get outputSchemaJson() {
+            return outputSchemaJson ??= convertOutputSchemaJson(registeredTool.outputSchema);
+          },
+          set outputSchemaJson(value) {
+            outputSchemaJson = value;
+          },
           annotations,
           icons,
           execution,
+          scopeChallenge,
           _meta,
           handler,
           executor: createToolExecutor(inputSchema, handler),
@@ -33933,6 +34245,7 @@ data: ${JSON.stringify({
             }
             if (updates.annotations !== void 0) registeredTool.annotations = updates.annotations;
             if (updates.icons !== void 0) registeredTool.icons = updates.icons;
+            if (updates.scopeChallenge !== void 0) registeredTool.scopeChallenge = updates.scopeChallenge === null ? void 0 : updates.scopeChallenge;
             if (updates._meta !== void 0) registeredTool._meta = updates._meta;
             if (updates.enabled !== void 0) registeredTool.enabled = updates.enabled;
             this.sendToolListChanged();
@@ -33945,13 +34258,13 @@ data: ${JSON.stringify({
       }
       registerTool(name, config, cb) {
         if (this._registeredTools[name]) throw new Error(`Tool ${name} is already registered`);
-        const { title, description, inputSchema, outputSchema, annotations, icons, _meta } = config;
-        return this._createRegisteredTool(name, title, description, require_src.normalizeRawShapeSchema(inputSchema), require_src.normalizeRawShapeSchema(outputSchema), annotations, icons, void 0, _meta, cb);
+        const { title, description, inputSchema, outputSchema, annotations, icons, scopeChallenge, _meta } = config;
+        return this._createRegisteredTool(name, title, description, require_src.normalizeRawShapeSchema(inputSchema), require_src.normalizeRawShapeSchema(outputSchema), annotations, icons, void 0, scopeChallenge, _meta, cb);
       }
       registerPrompt(name, config, cb) {
         if (this._registeredPrompts[name]) throw new Error(`Prompt ${name} is already registered`);
-        const { title, description, argsSchema, icons, _meta } = config;
-        const registeredPrompt = this._createRegisteredPrompt(name, title, description, require_src.normalizeRawShapeSchema(argsSchema), cb, icons, _meta);
+        const { title, description, argsSchema, icons, scopeChallenge, _meta } = config;
+        const registeredPrompt = this._createRegisteredPrompt(name, title, description, require_src.normalizeRawShapeSchema(argsSchema), cb, icons, scopeChallenge, _meta);
         this.setPromptRequestHandlers();
         this.sendPromptListChanged();
         return registeredPrompt;
@@ -34041,6 +34354,12 @@ data: ${JSON.stringify({
       type: "object",
       properties: {}
     };
+    function convertListedInputSchema(name, inputSchema) {
+      const json = require_src.standardSchemaToJsonSchema(inputSchema, "input");
+      const scan = require_src.scanXMcpHeaderDeclarations(json);
+      if (!scan.valid) console.warn(`[mcp-sdk] tool '${name}' carries an invalid x-mcp-header declaration and will be excluded by conforming Streamable HTTP clients: ${scan.reason}`);
+      return json;
+    }
     function convertOutputSchemaJson(outputSchema) {
       if (outputSchema === void 0) return void 0;
       try {
@@ -34053,7 +34372,7 @@ data: ${JSON.stringify({
       if (argsSchema) {
         const typedCallback = callback;
         return async (args, ctx) => {
-          const parseResult = await require_src.validateStandardSchema(argsSchema, args);
+          const parseResult = await require_src.validateStandardSchema(argsSchema, args ?? {});
           if (!parseResult.success) throw new require_src.ProtocolError(require_src.ProtocolErrorCode.InvalidParams, `Invalid arguments for prompt ${name}: ${parseResult.error}`);
           return typedCallback(parseResult.data, ctx);
         };
@@ -34134,6 +34453,18 @@ data: ${JSON.stringify({
         return armSseKeepAlive;
       }
     });
+    Object.defineProperty(exports, "bearerAuthChallengeResponse", {
+      enumerable: true,
+      get: function() {
+        return bearerAuthChallengeResponse;
+      }
+    });
+    Object.defineProperty(exports, "buildOAuthProtectedResourceMetadata", {
+      enumerable: true,
+      get: function() {
+        return buildOAuthProtectedResourceMetadata;
+      }
+    });
     Object.defineProperty(exports, "completable", {
       enumerable: true,
       get: function() {
@@ -34146,10 +34477,28 @@ data: ${JSON.stringify({
         return createListenRouter;
       }
     });
+    Object.defineProperty(exports, "createScopeChallengeResponse", {
+      enumerable: true,
+      get: function() {
+        return createScopeChallengeResponse;
+      }
+    });
     Object.defineProperty(exports, "createServerNotifier", {
       enumerable: true,
       get: function() {
         return createServerNotifier;
+      }
+    });
+    Object.defineProperty(exports, "findScopeChallenge", {
+      enumerable: true,
+      get: function() {
+        return findScopeChallenge;
+      }
+    });
+    Object.defineProperty(exports, "getOAuthProtectedResourceMetadataUrl", {
+      enumerable: true,
+      get: function() {
+        return getOAuthProtectedResourceMetadataUrl;
       }
     });
     Object.defineProperty(exports, "installModernOnlyHandlers", {
@@ -34164,6 +34513,30 @@ data: ${JSON.stringify({
         return isCompletable;
       }
     });
+    Object.defineProperty(exports, "oauthMetadataResponse", {
+      enumerable: true,
+      get: function() {
+        return oauthMetadataResponse;
+      }
+    });
+    Object.defineProperty(exports, "requireBearerAuth", {
+      enumerable: true,
+      get: function() {
+        return requireBearerAuth;
+      }
+    });
+    Object.defineProperty(exports, "requireScopes", {
+      enumerable: true,
+      get: function() {
+        return requireScopes;
+      }
+    });
+    Object.defineProperty(exports, "scopeChallengeResourceMetadataUrl", {
+      enumerable: true,
+      get: function() {
+        return scopeChallengeResourceMetadataUrl;
+      }
+    });
     Object.defineProperty(exports, "seedClientIdentityFromEnvelope", {
       enumerable: true,
       get: function() {
@@ -34176,6 +34549,12 @@ data: ${JSON.stringify({
         return serverIdentityOf;
       }
     });
+    Object.defineProperty(exports, "verifyBearerToken", {
+      enumerable: true,
+      get: function() {
+        return verifyBearerToken;
+      }
+    });
   }
 });
 
@@ -34183,8 +34562,8 @@ data: ${JSON.stringify({
 var require_dist = __commonJS({
   "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/index.cjs"(exports) {
     var require_chunk = require_chunk_Bnu9O96Y();
-    var require_mcp = require_mcp_D7GmuPnv();
-    var require_src = require_src_STyD_Vvf();
+    var require_mcp = require_mcp_BumlNux0();
+    var require_src = require_src_BhnGYybN();
     var _modelcontextprotocol_server__shims = require_shimsNode();
     var _modelcontextprotocol_core_internal = require_internal();
     var PerRequestHTTPServerTransport = class {
@@ -34414,9 +34793,46 @@ data: ${JSON.stringify(message)}
         ...ctx.authInfo !== void 0 && { authInfo: ctx.authInfo }
       });
     }
+    var DEFAULT_MAX_REQUEST_BODY_SIZE = 4 * 1024 * 1024;
+    var MAX_BATCH_SIZE = 100;
+    function requestBodyTooLargeMessage(maxBytes) {
+      return `Payload Too Large: Request body must not exceed ${maxBytes} bytes`;
+    }
+    function resolveMaxRequestBodySize(value) {
+      if (value === void 0) return DEFAULT_MAX_REQUEST_BODY_SIZE;
+      if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) throw new RangeError(`maxRequestBodySize must be a positive number of bytes, got ${String(value)}`);
+      return value;
+    }
+    async function readRequestBody(request, maxBytes = DEFAULT_MAX_REQUEST_BODY_SIZE) {
+      if (Number(request.headers.get("content-length")) > maxBytes) return { tooLarge: true };
+      if (request.body === null) return {
+        tooLarge: false,
+        text: ""
+      };
+      const reader = request.body.getReader();
+      const decoder = new TextDecoder();
+      let received = 0;
+      let text = "";
+      try {
+        for (; ; ) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          received += value.byteLength;
+          if (received > maxBytes) return { tooLarge: true };
+          text += decoder.decode(value, { stream: true });
+        }
+      } finally {
+        reader.releaseLock();
+      }
+      return {
+        tooLarge: false,
+        text: text + decoder.decode()
+      };
+    }
     var WebStandardStreamableHTTPServerTransport = class {
       sessionIdGenerator;
       _started = false;
+      _hasHandledRequest = false;
       _closed = false;
       _streamMapping = /* @__PURE__ */ new Map();
       _requestToStreamMapping = /* @__PURE__ */ new Map();
@@ -34433,6 +34849,8 @@ data: ${JSON.stringify(message)}
       _retryInterval;
       _supportedProtocolVersions;
       _keepAliveMs;
+      _maxRequestBodySize;
+      _scopeChallengeResolver;
       sessionId;
       onclose;
       onerror;
@@ -34449,6 +34867,7 @@ data: ${JSON.stringify(message)}
         this._retryInterval = options.retryInterval;
         this._supportedProtocolVersions = options.supportedProtocolVersions ?? _modelcontextprotocol_core_internal.SUPPORTED_PROTOCOL_VERSIONS;
         this._keepAliveMs = options.keepAliveMs ?? require_mcp.DEFAULT_SSE_KEEP_ALIVE_MS;
+        this._maxRequestBodySize = resolveMaxRequestBodySize(options.maxRequestBodySize);
       }
       startKeepAlive(controller, encoder) {
         if (this._closed) return void 0;
@@ -34460,6 +34879,10 @@ data: ${JSON.stringify(message)}
           }
         });
         return timer;
+      }
+      /** Sets the scope challenge resolver for parsed JSON-RPC requests. */
+      setScopeChallengeResolver(resolver) {
+        this._scopeChallengeResolver = resolver;
       }
       /**
       * Starts the transport. This is required by the {@linkcode Transport} interface but is a no-op
@@ -34497,6 +34920,11 @@ data: ${JSON.stringify(message)}
           }
         });
       }
+      async _checkScopeChallenge(messages, authInfo) {
+        if (!this._scopeChallengeResolver) return;
+        const challenge = await require_mcp.findScopeChallenge(messages.filter((message) => require_src.isJSONRPCRequest(message)), authInfo, this._scopeChallengeResolver);
+        return challenge === void 0 ? void 0 : require_mcp.createScopeChallengeResponse(challenge, require_mcp.scopeChallengeResourceMetadataUrl(authInfo));
+      }
       /**
       * Validates request headers for DNS rebinding protection.
       * @returns Error response if validation fails, `undefined` if validation passes.
@@ -34526,6 +34954,8 @@ data: ${JSON.stringify(message)}
       */
       async handleRequest(req, options) {
         if (this._closed) return this.createJsonErrorResponse(404, -32001, "Session not found");
+        if (!this.sessionIdGenerator && this._hasHandledRequest) throw new Error("Stateless transport cannot be reused across requests. Create a new transport per request.");
+        this._hasHandledRequest = true;
         const validationError = this.validateRequestHeaders(req);
         if (validationError) return validationError;
         switch (req.method) {
@@ -34774,12 +35204,22 @@ data:
           const request = req;
           let rawMessage;
           if (options?.parsedBody === void 0) try {
-            rawMessage = await req.json();
+            const body = await readRequestBody(req, this._maxRequestBodySize);
+            if (body.tooLarge) {
+              const message = requestBodyTooLargeMessage(this._maxRequestBodySize);
+              this.onerror?.(new Error(message));
+              return this.createJsonErrorResponse(413, -32e3, message);
+            }
+            rawMessage = JSON.parse(body.text);
           } catch (error) {
             this.onerror?.(error);
             return this.createJsonErrorResponse(400, -32700, "Parse error: Invalid JSON");
           }
           else rawMessage = options.parsedBody;
+          if (Array.isArray(rawMessage) && rawMessage.length > MAX_BATCH_SIZE) {
+            this.onerror?.(/* @__PURE__ */ new Error(`Invalid Request: Batch must not exceed ${MAX_BATCH_SIZE} messages`));
+            return this.createJsonErrorResponse(400, -32600, `Invalid Request: Batch must not exceed ${MAX_BATCH_SIZE} messages`);
+          }
           let messages;
           try {
             messages = Array.isArray(rawMessage) ? rawMessage.map((msg) => _modelcontextprotocol_core_internal.JSONRPCMessageSchema.parse(msg)) : [_modelcontextprotocol_core_internal.JSONRPCMessageSchema.parse(rawMessage)];
@@ -34809,6 +35249,14 @@ data:
             if (protocolError) return protocolError;
           }
           if (this._closed) return this.createJsonErrorResponse(404, -32001, "Session not found");
+          let scopeChallengeResponse;
+          try {
+            scopeChallengeResponse = await this._checkScopeChallenge(messages, options?.authInfo);
+          } catch (error) {
+            this.onerror?.(error);
+            return this.createJsonErrorResponse(500, -32603, "Internal server error");
+          }
+          if (scopeChallengeResponse) return scopeChallengeResponse;
           if (!messages.some((element) => require_src.isJSONRPCRequest(element))) {
             for (const message of messages) this.onmessage?.(message, {
               authInfo: options?.authInfo,
@@ -35069,7 +35517,10 @@ data:
     function internalServerErrorResponse(id = null) {
       return jsonRpcErrorResponse(500, -32603, "Internal server error", void 0, id);
     }
-    function createLegacyStatelessFallback(factory, onerror, keepAliveMs) {
+    function assertNotServing(server) {
+      if (server.transport !== void 0) throw new Error("The factory returned an instance that is still serving another request. Return a new instance for each request.");
+    }
+    function createLegacyStatelessFallback(factory, onerror, keepAliveMs, maxRequestBodySize) {
       return async (request, options) => {
         if (request.method.toUpperCase() !== "POST") return jsonRpcErrorResponse(405, -32e3, "Method not allowed.");
         try {
@@ -35080,7 +35531,8 @@ data:
           });
           const transport = new WebStandardStreamableHTTPServerTransport({
             sessionIdGenerator: void 0,
-            ...keepAliveMs !== void 0 && { keepAliveMs }
+            ...keepAliveMs !== void 0 && { keepAliveMs },
+            ...maxRequestBodySize !== void 0 && { maxRequestBodySize }
           });
           await product.connect(transport);
           const teardown = () => {
@@ -35141,10 +35593,17 @@ data:
         }
       };
     }
-    function legacyStatelessFallback(factory, onerror) {
-      return createLegacyStatelessFallback(factory, onerror);
+    function legacyStatelessFallback(factory, onerror, options) {
+      return createLegacyStatelessFallback(factory, onerror, void 0, resolveMaxRequestBodySize(options?.maxRequestBodySize));
     }
-    async function classifyEntryRequest(request, providedParsedBody, needsForward = true) {
+    function standardHeadersOf(request) {
+      return {
+        protocolVersionHeader: request.headers.get("mcp-protocol-version") ?? void 0,
+        mcpMethodHeader: request.headers.get("mcp-method") ?? void 0,
+        mcpNameHeader: request.headers.get("mcp-name") ?? void 0
+      };
+    }
+    async function classifyEntryRequest(request, providedParsedBody, needsForward = true, maxRequestBodySize = DEFAULT_MAX_REQUEST_BODY_SIZE) {
       const httpMethod = request.method.toUpperCase();
       let body;
       let parsedBody = providedParsedBody;
@@ -35155,7 +35614,9 @@ data:
           if (needsForward) forwardRequest = request.clone();
           let bodyText;
           try {
-            bodyText = await request.text();
+            const read = await readRequestBody(request, maxRequestBodySize);
+            if (read.tooLarge) return { step: "body-too-large" };
+            bodyText = read.text;
           } catch {
             return { step: "unreadable-body" };
           }
@@ -35175,9 +35636,7 @@ data:
         step: "classified",
         outcome: require_src.classifyInboundRequest({
           httpMethod,
-          protocolVersionHeader: request.headers.get("mcp-protocol-version") ?? void 0,
-          mcpMethodHeader: request.headers.get("mcp-method") ?? void 0,
-          mcpNameHeader: request.headers.get("mcp-name") ?? void 0,
+          ...standardHeadersOf(request),
           ...body !== void 0 && { body }
         }),
         body,
@@ -35185,12 +35644,14 @@ data:
         forwardRequest
       };
     }
-    async function isLegacyRequest(request, parsedBody) {
-      const classified = await classifyEntryRequest(parsedBody === void 0 && request.method.toUpperCase() === "POST" ? request.clone() : request, parsedBody, false);
+    async function isLegacyRequest(request, parsedBody, options) {
+      const maxRequestBodySize = resolveMaxRequestBodySize(options?.maxRequestBodySize);
+      const classified = await classifyEntryRequest(parsedBody === void 0 && request.method.toUpperCase() === "POST" ? request.clone() : request, parsedBody, false, maxRequestBodySize);
       return classified.step === "no-json-body" || classified.step === "classified" && classified.outcome.kind === "legacy";
     }
     function createMcpHandler(factory, options = {}) {
       const { legacy, onerror, responseMode } = options;
+      const maxRequestBodySize = resolveMaxRequestBodySize(options.maxRequestBodySize);
       if (typeof legacy === "function") throw new TypeError("The 'legacy' option only accepts 'stateless' or 'reject', not a handler function. To serve 2025-era traffic with your own handler, route in user land with the exported isLegacyRequest(request) predicate in front of a strict (legacy: 'reject') handler.");
       const inflight = /* @__PURE__ */ new Set();
       let closed = false;
@@ -35209,7 +35670,7 @@ data:
         onerror: reportError
       });
       if (responseMode === "json") console.warn("responseMode: 'json' drops mid-call notifications. subscriptions/listen streams are always served over SSE regardless; other notifications emitted before a result are dropped.");
-      const legacyHandler = legacy === "reject" ? void 0 : createLegacyStatelessFallback(factory, reportError, options.keepAliveMs);
+      const legacyHandler = legacy === "reject" ? void 0 : createLegacyStatelessFallback(factory, reportError, options.keepAliveMs, maxRequestBodySize);
       async function serveModern(route, request, authInfo) {
         const claimedRevision = route.classification.revision;
         if (claimedRevision === void 0 || !require_src.SUPPORTED_MODERN_PROTOCOL_VERSIONS.includes(claimedRevision)) {
@@ -35222,8 +35683,7 @@ data:
         }
         const stdHeaderRejection = require_src.validateStandardRequestHeaders({
           httpMethod: request.method,
-          mcpMethodHeader: request.headers.get("mcp-method") ?? void 0,
-          mcpNameHeader: request.headers.get("mcp-name") ?? void 0
+          ...standardHeadersOf(request)
         }, route);
         if (stdHeaderRejection !== void 0) {
           reportError(/* @__PURE__ */ new Error(`Rejected inbound request (${stdHeaderRejection.cell}): ${stdHeaderRejection.message}`));
@@ -35248,6 +35708,7 @@ data:
           requestInfo: request
         });
         const server = product instanceof require_mcp.McpServer ? product.server : product;
+        assertNotServing(server);
         if (route.messageKind === "request" && route.message.method === "subscriptions/listen") {
           const capabilities = server.getCapabilities();
           const serverInfo = require_mcp.serverIdentityOf(server);
@@ -35270,6 +35731,18 @@ data:
             }
           }
         }
+        if (route.messageKind === "request" && product instanceof require_mcp.McpServer) try {
+          const challenge = await require_mcp.findScopeChallenge([route.message], authInfo, (context) => product.resolveScopeChallenge(context));
+          if (challenge !== void 0) {
+            product.close().catch(reportError);
+            return require_mcp.createScopeChallengeResponse(challenge, require_mcp.scopeChallengeResourceMetadataUrl(authInfo));
+          }
+        } catch (error) {
+          product.close().catch(reportError);
+          reportError(toError(error));
+          return internalServerErrorResponse(route.message.id);
+        }
+        assertNotServing(server);
         require_src.setNegotiatedProtocolVersion(server, claimedRevision);
         require_mcp.installModernOnlyHandlers(server, require_src.SUPPORTED_MODERN_PROTOCOL_VERSIONS);
         if (meta !== void 0) require_mcp.seedClientIdentityFromEnvelope(server, {
@@ -35278,10 +35751,12 @@ data:
         });
         const previousOnClose = server.onclose;
         inflight.add(server);
-        server.onclose = () => {
+        const onExchangeClose = () => {
           inflight.delete(server);
+          if (server.onclose === onExchangeClose) server.onclose = previousOnClose;
           previousOnClose?.();
         };
+        server.onclose = onExchangeClose;
         try {
           const response = await invoke(product, route.message, {
             classification: route.classification,
@@ -35318,8 +35793,9 @@ data:
           reportError(/* @__PURE__ */ new Error("Unsupported Media Type: Content-Type must be application/json"));
           return jsonRpcErrorResponse(415, -32e3, "Unsupported Media Type: Content-Type must be application/json");
         }
-        const classified = await classifyEntryRequest(request, requestOptions?.parsedBody);
+        const classified = await classifyEntryRequest(request, requestOptions?.parsedBody, true, maxRequestBodySize);
         if (classified.step === "unreadable-body") return jsonRpcErrorResponse(400, -32700, "Parse error: the request body could not be read");
+        if (classified.step === "body-too-large") return jsonRpcErrorResponse(413, -32e3, requestBodyTooLargeMessage(maxRequestBodySize));
         if (classified.step === "no-json-body") {
           if (legacyHandler !== void 0) return legacyHandler(classified.forwardRequest, { ...authInfo !== void 0 && { authInfo } });
           return jsonRpcErrorResponse(400, -32700, "Parse error: the request body is not valid JSON");
@@ -35360,71 +35836,6 @@ data:
           }));
           inflight.clear();
           await Promise.all(closing);
-        }
-      };
-    }
-    function headerQuotedValue(value) {
-      return value.replaceAll(/[\\"]/g, String.raw`\$&`).replaceAll(/[^\u0020-\u007E]/g, " ");
-    }
-    function buildWwwAuthenticateHeader(errorCode2, description, requiredScopes, resourceMetadataUrl) {
-      let header = `Bearer error="${headerQuotedValue(errorCode2)}", error_description="${headerQuotedValue(description)}"`;
-      if (requiredScopes.length > 0) header += `, scope="${requiredScopes.join(" ")}"`;
-      if (resourceMetadataUrl) header += `, resource_metadata="${resourceMetadataUrl}"`;
-      return header;
-    }
-    async function verifyBearerToken(authorizationHeader, options) {
-      const { verifier, requiredScopes = [] } = options;
-      if (!authorizationHeader) throw new require_src.OAuthError(require_src.OAuthErrorCode.InvalidToken, "Missing Authorization header");
-      const [type, token] = authorizationHeader.split(" ");
-      if (type?.toLowerCase() !== "bearer" || !token) throw new require_src.OAuthError(require_src.OAuthErrorCode.InvalidToken, "Invalid Authorization header format, expected 'Bearer TOKEN'");
-      const authInfo = await verifier.verifyAccessToken(token);
-      if (requiredScopes.length > 0) {
-        if (!requiredScopes.every((scope) => authInfo.scopes.includes(scope))) throw new require_src.OAuthError(require_src.OAuthErrorCode.InsufficientScope, "Insufficient scope");
-      }
-      if (typeof authInfo.expiresAt !== "number" || Number.isNaN(authInfo.expiresAt)) throw new require_src.OAuthError(require_src.OAuthErrorCode.InvalidToken, "Token has no expiration time");
-      else if (authInfo.expiresAt < Date.now() / 1e3) throw new require_src.OAuthError(require_src.OAuthErrorCode.InvalidToken, "Token has expired");
-      return authInfo;
-    }
-    function bearerAuthChallengeResponse(error, options) {
-      const { requiredScopes = [], resourceMetadataUrl } = options ?? {};
-      if (!(error instanceof require_src.OAuthError)) {
-        const serverError = new require_src.OAuthError(require_src.OAuthErrorCode.ServerError, "Internal Server Error");
-        return Response.json(serverError.toResponseObject(), { status: 500 });
-      }
-      switch (error.code) {
-        case require_src.OAuthErrorCode.InvalidToken: {
-          const challenge = buildWwwAuthenticateHeader(error.code, error.message, requiredScopes, resourceMetadataUrl);
-          return Response.json(error.toResponseObject(), {
-            status: 401,
-            headers: { "WWW-Authenticate": challenge }
-          });
-        }
-        case require_src.OAuthErrorCode.InsufficientScope: {
-          const challenge = buildWwwAuthenticateHeader(error.code, error.message, requiredScopes, resourceMetadataUrl);
-          return Response.json(error.toResponseObject(), {
-            status: 403,
-            headers: { "WWW-Authenticate": challenge }
-          });
-        }
-        case require_src.OAuthErrorCode.ServerError:
-          return Response.json(error.toResponseObject(), { status: 500 });
-        default:
-          return Response.json(error.toResponseObject(), { status: 400 });
-      }
-    }
-    function requireBearerAuth(options) {
-      const { verifier, requiredScopes = [], resourceMetadataUrl } = options;
-      const resolved = {
-        verifier,
-        requiredScopes,
-        resourceMetadataUrl
-      };
-      return async (request) => {
-        const [authorizationHeader] = (request.headers.get("authorization") ?? "").split(",");
-        try {
-          return await verifyBearerToken(authorizationHeader || void 0, resolved);
-        } catch (error) {
-          return bearerAuthChallengeResponse(error, resolved);
         }
       };
     }
@@ -35479,76 +35890,14 @@ data:
         headers: { "Content-Type": "application/json" }
       });
     }
-    function checkIssuerUrl(issuer, allowInsecure) {
-      if (issuer.protocol !== "https:" && issuer.hostname !== "localhost" && issuer.hostname !== "127.0.0.1" && !allowInsecure) throw new Error("Issuer URL must be HTTPS");
-      if (issuer.hash) throw new Error(`Issuer URL must not have a fragment: ${issuer}`);
-      if (issuer.search) throw new Error(`Issuer URL must not have a query string: ${issuer}`);
-    }
-    function buildOAuthProtectedResourceMetadata(options) {
-      checkIssuerUrl(new URL(options.oauthMetadata.issuer), options.dangerouslyAllowInsecureIssuerUrl);
-      return {
-        resource: options.resourceServerUrl.href,
-        authorization_servers: [options.oauthMetadata.issuer],
-        scopes_supported: options.scopesSupported,
-        resource_name: options.resourceName,
-        resource_documentation: options.serviceDocumentationUrl?.href
-      };
-    }
-    function getOAuthProtectedResourceMetadataUrl(serverUrl) {
-      return new URL(protectedResourceMetadataPath(serverUrl), serverUrl).href;
-    }
-    function protectedResourceMetadataPath(resourceServerUrl) {
-      const rsPath = stripTrailingSlash(resourceServerUrl.pathname);
-      return `/.well-known/oauth-protected-resource${rsPath === "/" ? "" : rsPath}`;
-    }
-    function stripTrailingSlash(path8) {
-      return path8.length > 1 && path8.endsWith("/") ? path8.slice(0, -1) : path8;
-    }
-    var ALLOWED_METHODS = "GET, HEAD, OPTIONS";
-    function metadataDocumentResponse(request, metadata) {
-      if (request.method === "OPTIONS") {
-        const requestedHeaders = request.headers.get("access-control-request-headers");
-        return new Response(null, {
-          status: 204,
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": ALLOWED_METHODS,
-            ...requestedHeaders === null ? {} : {
-              "Access-Control-Allow-Headers": requestedHeaders,
-              Vary: "Access-Control-Request-Headers"
-            }
-          }
-        });
-      }
-      if (request.method !== "GET" && request.method !== "HEAD") {
-        const error = new require_src.OAuthError(require_src.OAuthErrorCode.MethodNotAllowed, `The method ${request.method} is not allowed for this endpoint`);
-        return Response.json(error.toResponseObject(), {
-          status: 405,
-          headers: {
-            Allow: ALLOWED_METHODS,
-            "Access-Control-Allow-Origin": "*"
-          }
-        });
-      }
-      const response = Response.json(metadata, { headers: { "Access-Control-Allow-Origin": "*" } });
-      return request.method === "HEAD" ? new Response(null, {
-        status: response.status,
-        headers: response.headers
-      }) : response;
-    }
-    function oauthMetadataResponse(request, options) {
-      const requestPath = stripTrailingSlash(new URL(request.url).pathname);
-      if (requestPath === protectedResourceMetadataPath(options.resourceServerUrl)) return metadataDocumentResponse(request, buildOAuthProtectedResourceMetadata(options));
-      if (requestPath === "/.well-known/oauth-authorization-server") {
-        buildOAuthProtectedResourceMetadata(options);
-        return metadataDocumentResponse(request, options.oauthMetadata);
-      }
-    }
     function validateOriginHeader(originHeader, allowedOriginHostnames) {
       if (originHeader === null || originHeader === void 0 || originHeader === "") return { ok: true };
       let hostname;
+      let scheme;
       try {
-        hostname = new URL(originHeader).hostname;
+        const url = new URL(originHeader);
+        hostname = url.hostname;
+        scheme = url.protocol;
       } catch {
         return {
           ok: false,
@@ -35563,7 +35912,7 @@ data:
         message: `Invalid Origin header: ${originHeader}`,
         originHeader
       };
-      if (!allowedOriginHostnames.includes(hostname)) return {
+      if (!(scheme !== "http:" && scheme !== "https:" && allowedOriginHostnames.includes(`${scheme}//*`)) && !allowedOriginHostnames.includes(hostname)) return {
         ok: false,
         errorCode: "invalid_origin",
         message: `Invalid Origin: ${hostname}`,
@@ -35696,6 +36045,7 @@ data:
         return _modelcontextprotocol_core_internal.CLIENT_INFO_META_KEY;
       }
     });
+    exports.DEFAULT_MAX_REQUEST_BODY_SIZE = DEFAULT_MAX_REQUEST_BODY_SIZE;
     Object.defineProperty(exports, "DEFAULT_NEGOTIATED_PROTOCOL_VERSION", {
       enumerable: true,
       get: function() {
@@ -35818,8 +36168,8 @@ data:
     exports.acceptedContent = require_src.acceptedContent;
     exports.assertCompleteRequestPrompt = require_src.assertCompleteRequestPrompt;
     exports.assertCompleteRequestResourceTemplate = require_src.assertCompleteRequestResourceTemplate;
-    exports.bearerAuthChallengeResponse = bearerAuthChallengeResponse;
-    exports.buildOAuthProtectedResourceMetadata = buildOAuthProtectedResourceMetadata;
+    exports.bearerAuthChallengeResponse = require_mcp.bearerAuthChallengeResponse;
+    exports.buildOAuthProtectedResourceMetadata = require_mcp.buildOAuthProtectedResourceMetadata;
     exports.checkResourceAllowed = require_src.checkResourceAllowed;
     exports.classifyInboundRequest = require_src.classifyInboundRequest;
     exports.completable = require_mcp.completable;
@@ -35829,7 +36179,7 @@ data:
     exports.deserializeMessage = require_src.deserializeMessage;
     exports.fromJsonSchema = fromJsonSchema;
     exports.getDisplayName = require_src.getDisplayName;
-    exports.getOAuthProtectedResourceMetadataUrl = getOAuthProtectedResourceMetadataUrl;
+    exports.getOAuthProtectedResourceMetadataUrl = require_mcp.getOAuthProtectedResourceMetadataUrl;
     exports.hostHeaderValidationResponse = hostHeaderValidationResponse;
     exports.inputRequired = require_src.inputRequired;
     exports.inputResponse = require_src.inputResponse;
@@ -35851,17 +36201,19 @@ data:
     exports.localhostAllowedHostnames = localhostAllowedHostnames;
     exports.localhostAllowedOrigins = localhostAllowedOrigins;
     exports.mergeCapabilities = require_src.mergeCapabilities;
-    exports.oauthMetadataResponse = oauthMetadataResponse;
+    exports.oauthMetadataResponse = require_mcp.oauthMetadataResponse;
     exports.originValidationResponse = originValidationResponse;
     exports.parseJSONRPCMessage = require_src.parseJSONRPCMessage;
     exports.preloadSchemas = require_src.preloadSchemas;
-    exports.requireBearerAuth = requireBearerAuth;
+    exports.readRequestBody = readRequestBody;
+    exports.requireBearerAuth = require_mcp.requireBearerAuth;
+    exports.requireScopes = require_mcp.requireScopes;
     exports.resourceUrlFromServerUrl = require_src.resourceUrlFromServerUrl;
     exports.serializeMessage = require_src.serializeMessage;
     exports.specTypeSchemas = require_src.specTypeSchemas;
     exports.validateHostHeader = validateHostHeader;
     exports.validateOriginHeader = validateOriginHeader;
-    exports.verifyBearerToken = verifyBearerToken;
+    exports.verifyBearerToken = require_mcp.verifyBearerToken;
   }
 });
 
@@ -35869,9 +36221,10 @@ data:
 var require_stdio = __commonJS({
   "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/stdio.cjs"(exports) {
     var require_chunk = require_chunk_Bnu9O96Y();
-    var require_mcp = require_mcp_D7GmuPnv();
-    var require_src = require_src_STyD_Vvf();
+    var require_mcp = require_mcp_BumlNux0();
+    var require_src = require_src_BhnGYybN();
     var _modelcontextprotocol_server__shims = require_shimsNode();
+    var swallowsErrorsAfterClose = /* @__PURE__ */ Symbol("swallowsErrorsAfterClose");
     var StdioServerTransport = class {
       _readBuffer;
       _started = false;
@@ -35898,7 +36251,12 @@ var require_stdio = __commonJS({
         this.onerror?.(error);
       };
       _onstdouterror = (error) => {
+        if (this._closed) return;
         this.onerror?.(error);
+        this.close().catch(() => {
+        });
+      };
+      _onstdinclose = () => {
         this.close().catch(() => {
         });
       };
@@ -35908,8 +36266,12 @@ var require_stdio = __commonJS({
       async start() {
         if (this._started) throw new Error("StdioServerTransport already started! If using Server class, note that connect() calls start() automatically.");
         this._started = true;
+        for (const listener of this._stdout.listeners("error")) if (listener[swallowsErrorsAfterClose]) this._stdout.off("error", listener);
+        if (this._stdin.readableEnded || this._stdin.destroyed) setImmediate(this._onstdinclose);
         this._stdin.on("data", this._ondata);
         this._stdin.on("error", this._onerror);
+        this._stdin.on("end", this._onstdinclose);
+        this._stdin.on("close", this._onstdinclose);
         this._stdout.on("error", this._onstdouterror);
       }
       processReadBuffer() {
@@ -35926,7 +36288,9 @@ var require_stdio = __commonJS({
         this._closed = true;
         this._stdin.off("data", this._ondata);
         this._stdin.off("error", this._onerror);
-        this._stdout.off("error", this._onstdouterror);
+        this._stdin.off("end", this._onstdinclose);
+        this._stdin.off("close", this._onstdinclose);
+        this._onstdouterror[swallowsErrorsAfterClose] = true;
         if (this._stdin.listenerCount("data") === 0) this._stdin.pause();
         this._readBuffer.clear();
         this.onclose?.();
@@ -36203,6 +36567,7 @@ var require_stdio = __commonJS({
             return;
           }
           if (state.era === "modern" && await tryServeListen(message)) return;
+          if (isTornDown()) return;
           state.instance.channel.deliver(message);
           return;
         }
@@ -36269,6 +36634,7 @@ var require_stdio = __commonJS({
               };
             }
             if (await tryServeListen(message)) return;
+            if (isTornDown()) return;
             state.instance.channel.deliver(message, { classification: opening.classification });
             return;
           case "legacy": {
@@ -36364,7 +36730,7 @@ var require_mcp_server = __commonJS({
   "risk-fork-hosted-mcp/.build/upstream/mcp/mcp-server.js"(exports, module) {
     "use strict";
     var crypto2 = __require("crypto");
-    var { TextDecoder: TextDecoder4, types: { isProxy } } = __require("node:util");
+    var { TextDecoder: TextDecoder4, types: { isProxy: isProxy2 } } = __require("node:util");
     var { version: PACKAGE_VERSION } = require_package();
     var DEFAULT_REMOTE_MCP_URL = "https://agoragentic.com/api/mcp";
     var REMOTE_MCP_URL = process.env.AGORAGENTIC_MCP_URL || DEFAULT_REMOTE_MCP_URL;
@@ -36536,7 +36902,7 @@ var require_mcp_server = __commonJS({
       if (!value || typeof value !== "object" || Array.isArray(value)) {
         throw new TypeError(`${field} must be a plain object`);
       }
-      if (isProxy(value)) throw new TypeError(`${field} must not be a Proxy`);
+      if (isProxy2(value)) throw new TypeError(`${field} must not be a Proxy`);
       const prototype = Object.getPrototypeOf(value);
       if (prototype !== Object.prototype && prototype !== null) {
         throw new TypeError(`${field} must be a plain object`);
@@ -36567,7 +36933,7 @@ var require_mcp_server = __commonJS({
       let nodes = 0;
       let bytes = 0;
       const ancestors = /* @__PURE__ */ new WeakSet();
-      function walk(current, path8, depth) {
+      function walk(current, path9, depth) {
         nodes += 1;
         if (nodes > MAX_ENFORCEMENT_JSON_NODES) {
           throw new TypeError(`${field} exceeds the JSON node limit`);
@@ -36585,60 +36951,60 @@ var require_mcp_server = __commonJS({
         }
         if (typeof current === "number") {
           if (!Number.isFinite(current) || Object.is(current, -0)) {
-            throw new TypeError(`${path8} must be a finite, unambiguous JSON number`);
+            throw new TypeError(`${path9} must be a finite, unambiguous JSON number`);
           }
           if (Number.isInteger(current) && !Number.isSafeInteger(current)) {
-            throw new TypeError(`${path8} is outside the safe integer range`);
+            throw new TypeError(`${path9} is outside the safe integer range`);
           }
           return current;
         }
         if (!current || typeof current !== "object") {
-          throw new TypeError(`${path8} is not a JSON value`);
+          throw new TypeError(`${path9} is not a JSON value`);
         }
-        if (isProxy(current)) throw new TypeError(`${path8} must not be a Proxy`);
-        if (ancestors.has(current)) throw new TypeError(`${path8} contains a cycle`);
+        if (isProxy2(current)) throw new TypeError(`${path9} must not be a Proxy`);
+        if (ancestors.has(current)) throw new TypeError(`${path9} contains a cycle`);
         ancestors.add(current);
         try {
           const descriptors = Object.getOwnPropertyDescriptors(current);
           if (Object.getOwnPropertySymbols(current).length > 0) {
-            throw new TypeError(`${path8} contains a symbol key`);
+            throw new TypeError(`${path9} contains a symbol key`);
           }
           for (const [key, descriptor] of Object.entries(descriptors)) {
             if (Array.isArray(current) && key === "length") continue;
             if (!descriptor.enumerable || descriptor.get || descriptor.set) {
-              throw new TypeError(`${path8}.<key> is hidden or accessor-backed`);
+              throw new TypeError(`${path9}.<key> is hidden or accessor-backed`);
             }
           }
           if (Array.isArray(current)) {
             if (Object.getPrototypeOf(current) !== Array.prototype) {
-              throw new TypeError(`${path8} must use the standard Array prototype`);
+              throw new TypeError(`${path9} must use the standard Array prototype`);
             }
             const keys = Object.keys(current);
             if (keys.length !== current.length || keys.some((key) => !/^(?:0|[1-9][0-9]*)$/.test(key) || Number(key) >= current.length)) {
-              throw new TypeError(`${path8} is sparse or has extra properties`);
+              throw new TypeError(`${path9} is sparse or has extra properties`);
             }
             const output2 = [];
             for (let index = 0; index < current.length; index += 1) {
               if (!Object.prototype.hasOwnProperty.call(current, index)) {
-                throw new TypeError(`${path8} is sparse`);
+                throw new TypeError(`${path9} is sparse`);
               }
-              output2.push(walk(current[index], `${path8}[${index}]`, depth + 1));
+              output2.push(walk(current[index], `${path9}[${index}]`, depth + 1));
             }
             return output2;
           }
-          assertPlainRecord(current, path8);
+          assertPlainRecord(current, path9);
           const output = {};
           for (const key of Object.keys(current).sort()) {
             if (containsCredentialMaterial(key)) {
               throw new McpEnforcementError(
                 "MCP_CREDENTIAL_MATERIAL_REJECTED",
-                `${path8}.<key> contains credential-shaped material`
+                `${path9}.<key> contains credential-shaped material`
               );
             }
             if (["__proto__", "constructor", "prototype"].includes(key)) {
-              throw new TypeError(`${path8}.<key> is forbidden`);
+              throw new TypeError(`${path9}.<key> is forbidden`);
             }
-            output[key] = walk(current[key], `${path8}.<value>`, depth + 1);
+            output[key] = walk(current[key], `${path9}.<value>`, depth + 1);
           }
           return output;
         } finally {
@@ -36698,30 +37064,30 @@ var require_mcp_server = __commonJS({
       });
       return { sensitive, referenceKind };
     }
-    function assertOpaqueCredentialReference(value, path8, kind) {
+    function assertOpaqueCredentialReference(value, path9, kind) {
       if (value === null) return;
       if (typeof value !== "string" || value.length < 1 || value.length > 500) {
         throw new McpEnforcementError(
           "MCP_CREDENTIAL_MATERIAL_REJECTED",
-          `${path8} must be an opaque ${kind} string or null`
+          `${path9} must be an opaque ${kind} string or null`
         );
       }
       if (kind === "hash" && !/^sha256:[a-f0-9]{64}$/.test(value)) {
         throw new McpEnforcementError(
           "MCP_CREDENTIAL_MATERIAL_REJECTED",
-          `${path8} must be a sha256 reference`
+          `${path9} must be a sha256 reference`
         );
       }
       if (kind === "ref" && !/^[A-Za-z0-9][A-Za-z0-9._:/-]{0,499}$/.test(value)) {
         throw new McpEnforcementError(
           "MCP_CREDENTIAL_MATERIAL_REJECTED",
-          `${path8} must be an opaque credential reference`
+          `${path9} must be an opaque credential reference`
         );
       }
       if (containsCredentialMaterial(value)) {
         throw new McpEnforcementError(
           "MCP_CREDENTIAL_MATERIAL_REJECTED",
-          `${path8} contains credential-shaped material`
+          `${path9} contains credential-shaped material`
         );
       }
     }
@@ -36948,19 +37314,19 @@ var require_mcp_server = __commonJS({
         if (singleSchemaKeywords.has(key)) return "schema";
         return null;
       }
-      function rejectSensitiveHeader(name, headerValue, path8) {
+      function rejectSensitiveHeader(name, headerValue, path9) {
         if (typeof name !== "string" || headerValue === null || headerValue === void 0) return;
         if (credentialKeyClassification(name).sensitive) {
           throw new McpEnforcementError(
             "MCP_CREDENTIAL_MATERIAL_REJECTED",
-            `${path8} contains an authority-bearing credential header`
+            `${path9} contains an authority-bearing credential header`
           );
         }
       }
-      function inspectStructuredHeader(current, path8) {
+      function inspectStructuredHeader(current, path9) {
         if (!current || typeof current !== "object") return;
         if (Array.isArray(current) && current.length === 2) {
-          rejectSensitiveHeader(current[0], current[1], `${path8}[0]`);
+          rejectSensitiveHeader(current[0], current[1], `${path9}[0]`);
           return;
         }
         if (Array.isArray(current)) return;
@@ -36971,12 +37337,12 @@ var require_mcp_server = __commonJS({
             rejectSensitiveHeader(
               current[nameField],
               current[valueField],
-              `${path8}.${nameField}`
+              `${path9}.${nameField}`
             );
           }
         }
       }
-      function parseJsonContentText(current, path8, pathTokens) {
+      function parseJsonContentText(current, path9, pathTokens) {
         if (pathTokens.length < 3 || pathTokens.at(-1) !== "text" || !Number.isInteger(pathTokens.at(-2)) || pathTokens.at(-3) !== "content") {
           return null;
         }
@@ -36985,8 +37351,8 @@ var require_mcp_server = __commonJS({
           return null;
         }
         try {
-          assertNoDuplicateJsonObjectKeys(trimmed, `${path8} embedded JSON`);
-          return cloneBoundedJson(JSON.parse(trimmed), `${path8} embedded JSON`);
+          assertNoDuplicateJsonObjectKeys(trimmed, `${path9} embedded JSON`);
+          return cloneBoundedJson(JSON.parse(trimmed), `${path9} embedded JSON`);
         } catch (error) {
           if (error instanceof SyntaxError) return null;
           throw error;
@@ -36995,7 +37361,7 @@ var require_mcp_server = __commonJS({
       function decodeAssignmentToken(token) {
         return token.replace(/\\u([a-fA-F0-9]{4})/g, (_match, hex) => String.fromCharCode(Number.parseInt(hex, 16))).replace(/\\(["'\\])/g, "$1");
       }
-      function assertNoCredentialAssignments(current, path8) {
+      function assertNoCredentialAssignments(current, path9) {
         const assignments = current.matchAll(
           /(?:^|[\s{(\[,;?&:])(?:"((?:\\.|[^"\\\r\n]){1,128})"|'((?:\\.|[^'\\\r\n]){1,128})'|([A-Za-z][A-Za-z0-9_.-]{0,127}))[ \t]{0,256}(?:=|:)[ \t]{0,256}(?:"((?:\\.|[^"\\\r\n]){0,2048})"|'((?:\\.|[^'\\\r\n]){0,2048})'|([^\s,;}\]\r\n]{1,2048}))/g
         );
@@ -37008,7 +37374,7 @@ var require_mcp_server = __commonJS({
           if (classification.referenceKind) {
             assertOpaqueCredentialReference(
               assignmentValue || null,
-              `${path8}<assignment>`,
+              `${path9}<assignment>`,
               classification.referenceKind
             );
             continue;
@@ -37016,28 +37382,28 @@ var require_mcp_server = __commonJS({
           if (assignmentValue.length >= MIN_CREDENTIAL_ASSIGNMENT_VALUE_LENGTH) {
             throw new McpEnforcementError(
               "MCP_CREDENTIAL_MATERIAL_REJECTED",
-              `${path8} contains credential-shaped assignment material`
+              `${path9} contains credential-shaped assignment material`
             );
           }
         }
       }
-      function walk(current, path8, pathTokens = [], state = {}) {
+      function walk(current, path9, pathTokens = [], state = {}) {
         if (typeof current === "string") {
           if (containsCredentialMaterial(current)) {
             throw new McpEnforcementError(
               "MCP_CREDENTIAL_MATERIAL_REJECTED",
-              `${path8} contains credential-shaped material`
+              `${path9} contains credential-shaped material`
             );
           }
-          assertNoCredentialAssignments(current, path8);
-          const parsedContent = parseJsonContentText(current, path8, pathTokens);
+          assertNoCredentialAssignments(current, path9);
+          const parsedContent = parseJsonContentText(current, path9, pathTokens);
           if (parsedContent !== null) {
-            walk(parsedContent, `${path8}<json>`, [...pathTokens, "<json>"]);
+            walk(parsedContent, `${path9}<json>`, [...pathTokens, "<json>"]);
           }
           return;
         }
         if (!current || typeof current !== "object") return;
-        inspectStructuredHeader(current, path8);
+        inspectStructuredHeader(current, path9);
         if (Array.isArray(current)) {
           const childState = {
             sensitiveSchemaDefinition: state.sensitiveSchemaDefinition,
@@ -37045,7 +37411,7 @@ var require_mcp_server = __commonJS({
           };
           current.forEach((child, index) => walk(
             child,
-            `${path8}[${index}]`,
+            `${path9}[${index}]`,
             [...pathTokens, index],
             childState
           ));
@@ -37057,10 +37423,10 @@ var require_mcp_server = __commonJS({
           if (containsCredentialMaterial(key) && !booleanRiskCapabilityDeclaration) {
             throw new McpEnforcementError(
               "MCP_CREDENTIAL_MATERIAL_REJECTED",
-              `${path8}.<key> contains credential-shaped material`
+              `${path9}.<key> contains credential-shaped material`
             );
           }
-          const childPath = `${path8}.<value>`;
+          const childPath = `${path9}.<value>`;
           const childTokens = [...pathTokens, key];
           if (state.sensitiveSchemaDefinition && ["default", "const", "example", "examples", "enum"].includes(key) && child !== null && !(Array.isArray(child) && child.length === 0)) {
             throw new McpEnforcementError(
@@ -37993,7 +38359,7 @@ var require_mcp_server = __commonJS({
       name,
       args,
       method,
-      path: path8,
+      path: path9,
       body
     }) {
       requireEnforcementBoundary(enforcementBoundary);
@@ -38047,8 +38413,8 @@ var require_mcp_server = __commonJS({
         if (safeArgs.query) params.set("q", safeArgs.query);
         if (safeArgs.category) params.set("category", safeArgs.category);
         if (safeArgs.limit !== void 0) params.set("limit", String(safeArgs.limit));
-        const path8 = `/api/capabilities?${params.toString()}`;
-        return enforced({ name, args: safeArgs, method: "GET", path: path8 });
+        const path9 = `/api/capabilities?${params.toString()}`;
+        return enforced({ name, args: safeArgs, method: "GET", path: path9 });
       }
       if (name === "agoragentic_preview_x402") {
         const task = String(safeArgs.task || "").trim();
@@ -38067,8 +38433,8 @@ var require_mcp_server = __commonJS({
         if (safeArgs.prefer_trusted !== void 0) params.set("prefer_trusted", safeArgs.prefer_trusted ? "true" : "false");
         if (safeArgs.payment_network) params.set("payment_network", safeArgs.payment_network);
         if (safeArgs.payment_asset) params.set("payment_asset", safeArgs.payment_asset);
-        const path8 = `/api/x402/execute/match?${params.toString()}`;
-        return enforced({ name, args: safeArgs, method: "GET", path: path8 });
+        const path9 = `/api/x402/execute/match?${params.toString()}`;
+        return enforced({ name, args: safeArgs, method: "GET", path: path9 });
       }
       if (name === "agoragentic_match") {
         const params = new URLSearchParams();
@@ -38076,8 +38442,8 @@ var require_mcp_server = __commonJS({
         if (safeArgs.max_cost !== void 0) params.set("max_cost", String(safeArgs.max_cost));
         if (safeArgs.category) params.set("category", safeArgs.category);
         if (safeArgs.prefer_trusted !== void 0) params.set("prefer_trusted", safeArgs.prefer_trusted ? "true" : "false");
-        const path8 = `/api/execute/match?${params.toString()}`;
-        return enforced({ name, args: safeArgs, method: "GET", path: path8 });
+        const path9 = `/api/execute/match?${params.toString()}`;
+        return enforced({ name, args: safeArgs, method: "GET", path: path9 });
       }
       if (name === "agoragentic_execute") {
         const payload = {
@@ -38100,8 +38466,8 @@ var require_mcp_server = __commonJS({
         if (typeof invocationId !== "string" || !CANONICAL_INVOCATION_ID_PATTERN.test(invocationId)) {
           return buildJsonContent({ ok: false, error: "invalid_invocation_id" });
         }
-        const path8 = `/api/execute/status/${invocationId}`;
-        return enforced({ name, args: safeArgs, method: "GET", path: path8 });
+        const path9 = `/api/execute/status/${invocationId}`;
+        return enforced({ name, args: safeArgs, method: "GET", path: path9 });
       }
       return buildJsonContent({
         ok: false,
@@ -42302,7 +42668,7 @@ var require_split2 = __commonJS({
 var require_helper = __commonJS({
   "risk-fork-hosted-mcp/node_modules/pgpass/lib/helper.js"(exports, module) {
     "use strict";
-    var path8 = __require("path");
+    var path9 = __require("path");
     var Stream = __require("stream").Stream;
     var split = require_split2();
     var util = __require("util");
@@ -42341,7 +42707,7 @@ var require_helper = __commonJS({
     };
     module.exports.getFileName = function(rawEnv) {
       var env = rawEnv || process.env;
-      var file = env.PGPASSFILE || (isWin ? path8.join(env.APPDATA || "./", "postgresql", "pgpass.conf") : path8.join(env.HOME || "./", ".pgpass"));
+      var file = env.PGPASSFILE || (isWin ? path9.join(env.APPDATA || "./", "postgresql", "pgpass.conf") : path9.join(env.HOME || "./", ".pgpass"));
       return file;
     };
     module.exports.usePgPass = function(stats, fname) {
@@ -42473,7 +42839,7 @@ var require_helper = __commonJS({
 var require_lib = __commonJS({
   "risk-fork-hosted-mcp/node_modules/pgpass/lib/index.js"(exports, module) {
     "use strict";
-    var path8 = __require("path");
+    var path9 = __require("path");
     var fs = __require("fs");
     var helper = require_helper();
     module.exports = function(connInfo, cb) {
@@ -47164,8 +47530,8 @@ var require_utils3 = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path8) {
-      let input = path8;
+    function removeDotSegments(path9) {
+      let input = path9;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -47574,8 +47940,8 @@ var require_schemes = __commonJS({
       }
       if (wsComponent.resourceName) {
         const queryIndex = wsComponent.resourceName.indexOf("?");
-        const path8 = queryIndex === -1 ? wsComponent.resourceName : wsComponent.resourceName.slice(0, queryIndex);
-        wsComponent.path = path8 && path8 !== "/" ? path8 : void 0;
+        const path9 = queryIndex === -1 ? wsComponent.resourceName : wsComponent.resourceName.slice(0, queryIndex);
+        wsComponent.path = path9 && path9 !== "/" ? path9 : void 0;
         wsComponent.query = queryIndex === -1 ? void 0 : wsComponent.resourceName.slice(queryIndex + 1);
         wsComponent.resourceName = void 0;
       }
@@ -51998,35 +52364,35 @@ function rawSha256Ref(value) {
 var MAX_DEPTH = 64;
 var MAX_NODES = 1e5;
 var MAX_STRING_BYTES = 16 * 1024 * 1024;
-function assertJsonValue(value, state, path8, depth) {
-  if (depth > MAX_DEPTH) throw new TypeError(`Canonical JSON exceeds ${MAX_DEPTH} levels at ${path8}`);
+function assertJsonValue(value, state, path9, depth) {
+  if (depth > MAX_DEPTH) throw new TypeError(`Canonical JSON exceeds ${MAX_DEPTH} levels at ${path9}`);
   state.nodes += 1;
   if (state.nodes > MAX_NODES) throw new TypeError(`Canonical JSON exceeds ${MAX_NODES} values`);
   if (value === null || typeof value === "boolean") return;
   if (typeof value === "string") {
     if (Buffer.byteLength(value, "utf8") > MAX_STRING_BYTES) {
-      throw new TypeError(`Canonical JSON string is too large at ${path8}`);
+      throw new TypeError(`Canonical JSON string is too large at ${path9}`);
     }
     return;
   }
   if (typeof value === "number") {
     if (!Number.isFinite(value) || Object.is(value, -0)) {
-      throw new TypeError(`Canonical JSON number is not finite and unambiguous at ${path8}`);
+      throw new TypeError(`Canonical JSON number is not finite and unambiguous at ${path9}`);
     }
     if (Number.isInteger(value) && !Number.isSafeInteger(value)) {
-      throw new TypeError(`Canonical JSON integer is outside the safe range at ${path8}`);
+      throw new TypeError(`Canonical JSON integer is outside the safe range at ${path9}`);
     }
     return;
   }
   if (typeof value !== "object") {
-    throw new TypeError(`Canonical JSON contains a non-JSON value at ${path8}`);
+    throw new TypeError(`Canonical JSON contains a non-JSON value at ${path9}`);
   }
-  if (state.ancestors.has(value)) throw new TypeError(`Canonical JSON contains a cycle at ${path8}`);
+  if (state.ancestors.has(value)) throw new TypeError(`Canonical JSON contains a cycle at ${path9}`);
   state.ancestors.add(value);
   try {
     const descriptors = Object.getOwnPropertyDescriptors(value);
     if (Object.getOwnPropertySymbols(value).length > 0) {
-      throw new TypeError(`Canonical JSON contains a symbol key at ${path8}`);
+      throw new TypeError(`Canonical JSON contains a symbol key at ${path9}`);
     }
     const descriptorKeys = ownStringKeys(descriptors);
     for (let index = 0; index < descriptorKeys.length; index += 1) {
@@ -52034,29 +52400,29 @@ function assertJsonValue(value, state, path8, depth) {
       const descriptor = descriptors[key];
       if (Array.isArray(value) && key === "length") continue;
       if (!descriptor.enumerable || descriptor.get || descriptor.set) {
-        throw new TypeError(`Canonical JSON contains a hidden or accessor field at ${path8}.${key}`);
+        throw new TypeError(`Canonical JSON contains a hidden or accessor field at ${path9}.${key}`);
       }
     }
     if (Array.isArray(value)) {
       if (ownStringKeys(value).length !== value.length) {
-        throw new TypeError(`Canonical JSON array is sparse or has extra fields at ${path8}`);
+        throw new TypeError(`Canonical JSON array is sparse or has extra fields at ${path9}`);
       }
       for (let index = 0; index < value.length; index += 1) {
         const descriptor = descriptors[String(index)];
         if (!descriptor || !descriptor.enumerable || descriptor.get || descriptor.set) {
-          throw new TypeError(`Canonical JSON array is sparse at ${path8}[${index}]`);
+          throw new TypeError(`Canonical JSON array is sparse at ${path9}[${index}]`);
         }
-        assertJsonValue(descriptor.value, state, `${path8}[${index}]`, depth + 1);
+        assertJsonValue(descriptor.value, state, `${path9}[${index}]`, depth + 1);
       }
       return;
     }
     const prototype = Object.getPrototypeOf(value);
     if (prototype !== Object.prototype && prototype !== null) {
-      throw new TypeError(`Canonical JSON contains a non-plain object at ${path8}`);
+      throw new TypeError(`Canonical JSON contains a non-plain object at ${path9}`);
     }
     for (let index = 0; index < descriptorKeys.length; index += 1) {
       const key = descriptorKeys[index];
-      assertJsonValue(descriptors[key].value, state, `${path8}.${key}`, depth + 1);
+      assertJsonValue(descriptors[key].value, state, `${path9}.${key}`, depth + 1);
     }
   } finally {
     state.ancestors.delete(value);
@@ -53655,35 +54021,35 @@ function normalizedKeys(value) {
 }
 function scanAuthorityFreeJson(value, field) {
   let nodes = 0;
-  function walk(current, path8, depth) {
+  function walk(current, path9, depth) {
     nodes += 1;
     if (nodes > MAX_OPERATION_NODES) throw new TypeError(`${field} is too complex`);
     if (depth > MAX_OPERATION_DEPTH) throw new TypeError(`${field} is too deeply nested`);
     if (typeof current === "string") {
       if (securityPatternsMatch(AUTHORITY_OR_SECRET_VALUE_PATTERNS, current)) {
-        throw new TypeError(`${path8} contains authority or secret-shaped material`);
+        throw new TypeError(`${path9} contains authority or secret-shaped material`);
       }
       return;
     }
     if (current === null || typeof current !== "object") return;
     if (Array.isArray(current)) {
       for (let index = 0; index < current.length; index += 1) {
-        walk(current[index], `${path8}[${index}]`, depth + 1);
+        walk(current[index], `${path9}[${index}]`, depth + 1);
       }
       return;
     }
     for (const [key, child] of Object.entries(current)) {
       const normalized = normalizedKeys(key);
       if (securityPatternsMatch(AUTHORITY_OR_SECRET_VALUE_PATTERNS, key)) {
-        throw new TypeError(`${path8}.<key> contains authority or secret-shaped material`);
+        throw new TypeError(`${path9}.<key> contains authority or secret-shaped material`);
       }
       if (DANGEROUS_KEYS.has(key)) {
-        throw new TypeError(`${path8}.<key> is a forbidden JSON key`);
+        throw new TypeError(`${path9}.<key> is a forbidden JSON key`);
       }
       if (normalized.some((candidate) => AUTHORITY_OR_SECRET_KEY_PATTERN.test(candidate)) || isTokenMeasurementKey(key) && !isBoundedTokenMeasurementValue(child)) {
-        throw new TypeError(`${path8}.<key> is an authority or secret-bearing field`);
+        throw new TypeError(`${path9}.<key> is an authority or secret-bearing field`);
       }
-      walk(child, `${path8}.<value>`, depth + 1);
+      walk(child, `${path9}.<value>`, depth + 1);
     }
   }
   walk(value, field, 0);
@@ -54544,6 +54910,7 @@ function networkPolicy(input = {}) {
 import { randomUUID as randomUUID3 } from "node:crypto";
 import { mkdir, open, readFile as readFile2, rename, unlink } from "node:fs/promises";
 import path2 from "node:path";
+import { types as utilTypes2 } from "node:util";
 
 // risk-fork-hosted-mcp/.build/upstream/risk-fork/src/distributed-authority.mjs
 var DISTRIBUTED_OPERATION_STATES = Object.freeze([
@@ -54571,10 +54938,15 @@ var DistributedAuthorityError = class extends Error {
     this.evidence = cloneJson(evidence);
   }
 };
+var DISTRIBUTED_AMBIGUITY_EVIDENCE = /* @__PURE__ */ new WeakMap();
+function getDistributedAuthorityAmbiguityEvidence(value) {
+  return DISTRIBUTED_AMBIGUITY_EVIDENCE.get(value) ?? null;
+}
 var DistributedAuthorityAmbiguousError = class extends DistributedAuthorityError {
   constructor(message, evidence = {}) {
     super(message, "RISK_FORK_DISTRIBUTED_COMMIT_AMBIGUOUS", evidence);
     this.name = "DistributedAuthorityAmbiguousError";
+    DISTRIBUTED_AMBIGUITY_EVIDENCE.set(this, deepFreeze(cloneJson(this.evidence)));
   }
 };
 function distributedAuthorityError(message, code, evidence = {}) {
@@ -58879,9 +59251,9 @@ function makeAjv(schema) {
   registerNestedSchemaResources(ajv, schema);
   return ajv;
 }
-function walkStrings(value, visitor, limits, state = { nodes: 0 }, path8 = "$", depth = 0, enforceMeasurementValues = true) {
+function walkStrings(value, visitor, limits, state = { nodes: 0 }, path9 = "$", depth = 0, enforceMeasurementValues = true) {
   if (depth > limits.max_depth) {
-    throw new TypeError(`Artifact nesting exceeds ${limits.max_depth} levels at ${path8}`);
+    throw new TypeError(`Artifact nesting exceeds ${limits.max_depth} levels at ${path9}`);
   }
   state.nodes += 1;
   if (state.nodes > limits.max_nodes) {
@@ -58889,9 +59261,9 @@ function walkStrings(value, visitor, limits, state = { nodes: 0 }, path8 = "$", 
   }
   if (typeof value === "string") {
     if (Buffer.byteLength(value, "utf8") > limits.max_string_bytes) {
-      throw new TypeError(`Artifact string exceeds ${limits.max_string_bytes} bytes at ${path8}`);
+      throw new TypeError(`Artifact string exceeds ${limits.max_string_bytes} bytes at ${path9}`);
     }
-    visitor(value, path8);
+    visitor(value, path9);
     return;
   }
   if (Array.isArray(value)) {
@@ -58901,7 +59273,7 @@ function walkStrings(value, visitor, limits, state = { nodes: 0 }, path8 = "$", 
         visitor,
         limits,
         state,
-        `${path8}[${index}]`,
+        `${path9}[${index}]`,
         depth + 1,
         enforceMeasurementValues
       );
@@ -58911,9 +59283,9 @@ function walkStrings(value, visitor, limits, state = { nodes: 0 }, path8 = "$", 
   if (!value || typeof value !== "object") return;
   for (const [key, child] of Object.entries(value)) {
     if (Buffer.byteLength(key, "utf8") > limits.max_string_bytes) {
-      throw new TypeError(`Artifact key exceeds ${limits.max_string_bytes} bytes at ${path8}.<key>`);
+      throw new TypeError(`Artifact key exceeds ${limits.max_string_bytes} bytes at ${path9}.<key>`);
     }
-    visitor(key, `${path8}.<key>`);
+    visitor(key, `${path9}.<key>`);
     const normalizedKeys3 = normalizeChildKeys(key);
     let forbiddenFingerprint = false;
     for (let index = 0; index < normalizedKeys3.length; index += 1) {
@@ -58923,14 +59295,14 @@ function walkStrings(value, visitor, limits, state = { nodes: 0 }, path8 = "$", 
       }
     }
     if (forbiddenFingerprint || isForbiddenAuthorityShapeKey(key) || enforceMeasurementValues && isForbiddenAuthorityShapeEntry(key, child)) {
-      throw new Error(`Child artifact cannot carry trusted authority or memory field at ${path8}.<key>`);
+      throw new Error(`Child artifact cannot carry trusted authority or memory field at ${path9}.<key>`);
     }
     walkStrings(
       child,
       visitor,
       limits,
       state,
-      `${path8}.<value>`,
+      `${path9}.<value>`,
       depth + 1,
       enforceMeasurementValues
     );
@@ -58938,16 +59310,16 @@ function walkStrings(value, visitor, limits, state = { nodes: 0 }, path8 = "$", 
 }
 function scanText(value, policy, { enforceMeasurementValues = true } = {}) {
   const findings = [];
-  walkStrings(value, (text, path8) => {
+  walkStrings(value, (text, path9) => {
     const secretMatches = countSecurityPatternMatches(SECRET_PATTERNS, text);
     for (let index = 0; index < secretMatches; index += 1) {
-      findings.push({ code: "secret_pattern", path: path8 });
+      findings.push({ code: "secret_pattern", path: path9 });
     }
-    if (containsObviousCapabilityLikeText(text)) findings.push({ code: "authority_shape", path: path8 });
+    if (containsObviousCapabilityLikeText(text)) findings.push({ code: "authority_shape", path: path9 });
     if (!policy.allow_prompt_injection_text) {
       const promptMatches = countSecurityPatternMatches(PROMPT_INJECTION_PATTERNS, text);
       for (let index = 0; index < promptMatches; index += 1) {
-        findings.push({ code: "prompt_injection_pattern", path: path8 });
+        findings.push({ code: "prompt_injection_pattern", path: path9 });
       }
     }
   }, policy, { nodes: 0 }, "$", 0, enforceMeasurementValues);
@@ -58955,24 +59327,24 @@ function scanText(value, policy, { enforceMeasurementValues = true } = {}) {
 }
 function assertClosedLocalSchema(schema) {
   const seen = /* @__PURE__ */ new WeakSet();
-  function visit(value, path8 = "$") {
+  function visit(value, path9 = "$") {
     if (!value || typeof value !== "object") return;
-    if (seen.has(value)) throw new TypeError(`Typed result schema contains a cycle at ${path8}`);
+    if (seen.has(value)) throw new TypeError(`Typed result schema contains a cycle at ${path9}`);
     seen.add(value);
     try {
       if (Array.isArray(value)) {
-        value.forEach((item, index) => visit(item, `${path8}[${index}]`));
+        value.forEach((item, index) => visit(item, `${path9}[${index}]`));
         return;
       }
       for (const keyword of ["$ref", "$dynamicRef"]) {
         if (Object.hasOwn(value, keyword) && (typeof value[keyword] !== "string" || !value[keyword].startsWith("#"))) {
-          throw new TypeError(`Typed result schema forbids remote ${keyword} at ${path8}`);
+          throw new TypeError(`Typed result schema forbids remote ${keyword} at ${path9}`);
         }
       }
       if (value.type === "object" && value.additionalProperties !== false) {
-        throw new TypeError(`Typed result object schema must set additionalProperties:false at ${path8}`);
+        throw new TypeError(`Typed result object schema must set additionalProperties:false at ${path9}`);
       }
-      for (const [key, child] of Object.entries(value)) visit(child, `${path8}.${key}`);
+      for (const [key, child] of Object.entries(value)) visit(child, `${path9}.${key}`);
     } finally {
       seen.delete(value);
     }
@@ -59653,16 +60025,71 @@ function scanTaintedValue(value, policy = {}) {
 }
 
 // risk-fork-hosted-mcp/.build/upstream/risk-fork/src/clean-commit.mjs
+var COMMIT_AMBIGUOUS_ERRORS = /* @__PURE__ */ new WeakSet();
+var INTERNAL_COMMIT_RECOVERY_EVIDENCE = /* @__PURE__ */ new WeakMap();
+function isCommitAmbiguousError(value) {
+  return COMMIT_AMBIGUOUS_ERRORS.has(value);
+}
 var CommitAmbiguousError = class extends Error {
   constructor(message, evidence) {
     super(message);
     this.name = "CommitAmbiguousError";
     this.code = "RISK_FORK_COMMIT_AMBIGUOUS";
     this.evidence = evidence;
+    COMMIT_AMBIGUOUS_ERRORS.add(this);
   }
 };
+function internalCommitAmbiguity(message, evidence) {
+  const error = new CommitAmbiguousError(message, evidence);
+  const recovery = {};
+  for (const field of ["parent_ref", "transaction_ref", "authorization_id", "operation_ref", "effect_key"]) {
+    if (typeof evidence[field] !== "string") continue;
+    try {
+      recovery[field] = requireOpaqueRef(evidence[field], `internal recovery ${field}`);
+    } catch {
+    }
+  }
+  for (const field of ["binding_hash", "artifact_hash"]) {
+    if (typeof evidence[field] !== "string") continue;
+    try {
+      recovery[field] = requireSha256Ref(evidence[field], `internal recovery ${field}`);
+    } catch {
+    }
+  }
+  for (const [field, allowed] of [
+    ["status", ["active", "consuming", "prepared", "effect_started", "ambiguous"]],
+    ["parent_state_status", ["active", "committing", "ambiguous"]],
+    ["lock_owner_status", ["unknown", "missing", "live", "dead"]],
+    ["cause_code", ["EFFECT_CALLBACK_FAILED", "DURABLE_FINALIZATION_FAILED"]]
+  ]) {
+    if (allowed.includes(evidence[field])) recovery[field] = evidence[field];
+  }
+  if (Number.isSafeInteger(evidence.lock_owner_pid) && evidence.lock_owner_pid > 0) {
+    recovery.lock_owner_pid = evidence.lock_owner_pid;
+  } else if (evidence.lock_owner_pid === null) {
+    recovery.lock_owner_pid = null;
+  }
+  const pending = evidence.pending_transaction;
+  if (pending === null) {
+    recovery.pending_transaction = null;
+  } else if (pending !== void 0 && typeof pending.transaction_ref === "string") {
+    try {
+      recovery.pending_transaction = {
+        transaction_ref: requireOpaqueRef(pending.transaction_ref, "internal recovery pending transaction_ref")
+      };
+    } catch {
+    }
+  }
+  INTERNAL_COMMIT_RECOVERY_EVIDENCE.set(error, deepFreeze(recovery));
+  return error;
+}
 var FILE_PARENT_HEAD_TRANSACTIONS = /* @__PURE__ */ new WeakMap();
 var FILE_EXECUTION_AUTHORIZATION_TRANSACTIONS = /* @__PURE__ */ new WeakMap();
+function systemErrorIs(error, expected) {
+  if (utilTypes2.isProxy(error) || !utilTypes2.isNativeError(error)) return false;
+  const descriptor = Object.getOwnPropertyDescriptor(error, "code");
+  return descriptor !== void 0 && Object.hasOwn(descriptor, "value") && descriptor.value === expected;
+}
 async function atomicWriteJson(file, value) {
   const temporary = `${file}.${randomUUID3()}.tmp`;
   const handle = await open(temporary, "wx", 384);
@@ -59679,7 +60106,7 @@ async function readJsonOrNull(file) {
   try {
     return JSON.parse(await readFile2(file, "utf8"));
   } catch (error) {
-    if (error?.code === "ENOENT") return null;
+    if (systemErrorIs(error, "ENOENT")) return null;
     throw error;
   }
 }
@@ -59698,7 +60125,7 @@ async function tryAcquireFileLock(file) {
       await unlink(file).catch(() => {
       });
     }
-    if (error?.code === "EEXIST") return null;
+    if (systemErrorIs(error, "EEXIST")) return null;
     throw error;
   }
 }
@@ -59707,7 +60134,7 @@ async function inspectFileLock(file) {
   try {
     value = (await readFile2(file, "utf8")).trim();
   } catch (error) {
-    if (error?.code === "ENOENT") {
+    if (systemErrorIs(error, "ENOENT")) {
       return { owner_status: "missing", owner_pid: null };
     }
     return { owner_status: "unknown", owner_pid: null };
@@ -59723,8 +60150,8 @@ async function inspectFileLock(file) {
     process.kill(ownerPid, 0);
     return { owner_status: "live", owner_pid: ownerPid };
   } catch (error) {
-    if (error?.code === "ESRCH") return { owner_status: "dead", owner_pid: ownerPid };
-    if (error?.code === "EPERM") return { owner_status: "live", owner_pid: ownerPid };
+    if (systemErrorIs(error, "ESRCH")) return { owner_status: "dead", owner_pid: ownerPid };
+    if (systemErrorIs(error, "EPERM")) return { owner_status: "live", owner_pid: ownerPid };
     return { owner_status: "unknown", owner_pid: ownerPid };
   }
 }
@@ -59754,7 +60181,7 @@ function fileLockConflict({ kind, stateEvidence, lock }) {
       evidence
     );
   }
-  return new CommitAmbiguousError(
+  return internalCommitAmbiguity(
     `The ${kind} lock exists but its owner cannot be established; automatic retry is forbidden`,
     evidence
   );
@@ -59768,7 +60195,7 @@ async function acquireInterpretedFileLock({ file, kind, inspectPersistedState })
     if (lock.owner_status === "missing" && attempt === 0) continue;
     throw fileLockConflict({ kind, stateEvidence, lock });
   }
-  throw new CommitAmbiguousError(
+  throw internalCommitAmbiguity(
     `The ${kind} lock changed while its durable state was inspected; automatic retry is forbidden`,
     { lock_owner_status: "unknown", lock_owner_pid: null }
   );
@@ -59778,7 +60205,7 @@ async function releaseFileLock(handle, file) {
     await handle.close();
   } finally {
     await unlink(file).catch((error) => {
-      if (error?.code !== "ENOENT") throw error;
+      if (!systemErrorIs(error, "ENOENT")) throw error;
     });
   }
 }
@@ -59791,7 +60218,7 @@ function assertParentHeadAvailable(current, { parentRef, expectedHead }) {
     );
   }
   if (current.status !== "active") {
-    throw new CommitAmbiguousError("Authoritative parent head has an unresolved transaction", {
+    throw internalCommitAmbiguity("Authoritative parent head has an unresolved transaction", {
       parent_ref: parentRef,
       parent_state_status: current.status,
       pending_transaction: current.pending_transaction ?? null
@@ -59835,7 +60262,7 @@ function assertAuthorizationActive(current, authorizationId) {
     );
   }
   if (current.status !== "active") {
-    throw new CommitAmbiguousError("Execution authorization has unresolved consumption state", {
+    throw internalCommitAmbiguity("Execution authorization has unresolved consumption state", {
       authorization_id: authorizationId,
       status: current.status
     });
@@ -59866,7 +60293,7 @@ function assertParentActiveWithoutExpectedHead(current, parentRef) {
     });
   }
   if (current.status !== "active") {
-    throw new CommitAmbiguousError("Authoritative parent head has an unresolved transaction", {
+    throw internalCommitAmbiguity("Authoritative parent head has an unresolved transaction", {
       parent_ref: parentRef,
       parent_state_status: current.status,
       pending_transaction: current.pending_transaction ?? null
@@ -60063,12 +60490,12 @@ async function restoreParentReservation(files, current, authority, evidence) {
   try {
     await atomicWriteJson(files.authority, authority);
     await atomicWriteJson(files.state, current);
-  } catch (restoreError) {
-    throw new CommitAmbiguousError(
+  } catch {
+    throw internalCommitAmbiguity(
       "A pre-effect parent reservation failure could not be durably restored",
       {
         ...evidence,
-        cause: String(restoreError?.message ?? restoreError).slice(0, 1e3)
+        cause: "parent_reservation_restore_unconfirmed"
       }
     );
   }
@@ -60099,7 +60526,7 @@ function createFileParentHeadInternals(directory, clock) {
         await handle.close();
       }
     } catch (error) {
-      if (error?.code !== "EEXIST") throw error;
+      if (!systemErrorIs(error, "EEXIST")) throw error;
       const existing = await readJsonOrNull(files.state);
       if (existing?.status !== "active" || !safeEqual(existing.head_hash, normalizedHead)) {
         throw new Error("Parent head was already initialized with different or ambiguous state");
@@ -60432,24 +60859,28 @@ function createFileParentHeadInternals(directory, clock) {
         result = cloneJson(outcome.result ?? null);
         proof = deepFreeze({ ...cloneJson(proof), observed_at: observedAt });
       } catch (error) {
-        if (!externalEffectStarted && !(error instanceof CommitAmbiguousError)) {
+        if (!externalEffectStarted && !isCommitAmbiguousError(error)) {
           await restoreParentReservation(files, current, authorityBefore, {
             parent_ref: parentRef,
             transaction_ref: intent.transaction_ref
           });
           throw error;
         }
-        const failure = optionalString(error?.message, "mutation error", { maxLength: 1e3 });
+        const failure2 = "parent_effect_unconfirmed";
         await atomicWriteJson(files.state, {
           ...current,
           status: "ambiguous",
           updated_at: requireIsoDate(clock(), "clock result"),
-          pending_transaction: { ...intent, failure }
+          pending_transaction: { ...intent, failure: failure2 }
         });
-        if (error instanceof CommitAmbiguousError) throw error;
-        throw new CommitAmbiguousError(
+        throw internalCommitAmbiguity(
           "Parent commit effect began or nested authority became ambiguous; automatic retry is forbidden",
-          { parent_ref: parentRef, transaction_ref: intent.transaction_ref, cause: failure }
+          {
+            ...INTERNAL_COMMIT_RECOVERY_EVIDENCE.get(error),
+            parent_ref: parentRef,
+            transaction_ref: intent.transaction_ref,
+            cause: failure2
+          }
         );
       }
       const completedAt = proof.observed_at;
@@ -60497,13 +60928,13 @@ function createFileParentHeadInternals(directory, clock) {
             transaction_hash: transactionHash
           }
         });
-      } catch (error) {
-        throw new CommitAmbiguousError(
+      } catch {
+        throw internalCommitAmbiguity(
           "Parent commit effect completed but durable authority finalization failed",
           {
             parent_ref: parentRef,
             transaction_ref: intent.transaction_ref,
-            cause: String(error?.message ?? error).slice(0, 1e3)
+            cause: "parent_finalization_unconfirmed"
           }
         );
       }
@@ -60870,32 +61301,36 @@ function createFileExecutionAuthorizationInternals(directory, clock, verifyAutho
           throw new Error("Internal authorization transaction returned without exactly one execution");
         }
       } catch (error) {
-        if (!executionStarted && !(error instanceof CommitAmbiguousError)) {
+        if (!executionStarted && !isCommitAmbiguousError(error)) {
           try {
             await atomicWriteJson(files.state, current);
-          } catch (restoreError) {
-            throw new CommitAmbiguousError(
+          } catch {
+            throw internalCommitAmbiguity(
               "Authorization failed before execution but active state could not be restored",
               {
                 authorization_id: authorizationId,
                 binding_hash: current.binding_hash,
-                cause: String(restoreError?.message ?? restoreError).slice(0, 1e3)
+                cause: "authorization_reservation_restore_unconfirmed"
               }
             );
           }
           throw error;
         }
-        const failure = optionalString(error?.message, "executor error", { maxLength: 1e3 });
+        const failure2 = "authorized_effect_unconfirmed";
         await atomicWriteJson(files.state, {
           ...current,
           status: "ambiguous",
           updated_at: executionNow ?? initialNow,
-          failure
+          failure: failure2
         });
-        if (error instanceof CommitAmbiguousError) throw error;
-        throw new CommitAmbiguousError(
+        throw internalCommitAmbiguity(
           "Authorized execution began; automatic retry is forbidden",
-          { authorization_id: authorizationId, binding_hash: current.binding_hash, cause: failure }
+          {
+            ...INTERNAL_COMMIT_RECOVERY_EVIDENCE.get(error),
+            authorization_id: authorizationId,
+            binding_hash: current.binding_hash,
+            cause: failure2
+          }
         );
       }
       const resultHash = sha256Ref(result ?? null);
@@ -61453,13 +61888,13 @@ async function consumeAuthorizationAndExecute(input, context) {
       authorization: normalized,
       observed_at: normalized.observed_at
     };
-  } catch (error) {
-    throw new CommitAmbiguousError(
+  } catch {
+    throw internalCommitAmbiguity(
       "Authorized execution completed but its atomic consumption receipt was invalid; automatic retry is forbidden",
       {
         authorization_id: binding.one_use_authorization_id,
         binding_hash: binding.binding_hash,
-        cause: String(error?.message ?? error).slice(0, 1e3)
+        cause: "authorization_consumption_receipt_invalid"
       }
     );
   }
@@ -61908,10 +62343,11 @@ async function commitPreparedArtifact(input = {}, options = {}) {
         }
       });
     } catch (error) {
-      if (error instanceof DistributedAuthorityAmbiguousError) {
-        throw new CommitAmbiguousError(
+      const ambiguityEvidence = getDistributedAuthorityAmbiguityEvidence(error);
+      if (ambiguityEvidence !== null) {
+        throw internalCommitAmbiguity(
           "Distributed commit effect is unresolved; automatic retry is forbidden",
-          cloneJson(error.evidence ?? {})
+          cloneJson(ambiguityEvidence)
         );
       }
       throw error;
@@ -61930,18 +62366,18 @@ async function commitPreparedArtifact(input = {}, options = {}) {
       });
       finalizeAuthority(proof, parent2.prepared_at, { revalidate: false });
       mutationNow = parent2.completed_at;
-    } catch (error) {
-      throw new CommitAmbiguousError(
+    } catch {
+      throw internalCommitAmbiguity(
         "Distributed mutation committed but its authoritative receipt was invalid; automatic retry is forbidden",
         {
           artifact_hash: artifact.artifact_hash,
-          cause: String(error?.message ?? error).slice(0, 1e3)
+          cause: "distributed_commit_receipt_invalid"
         }
       );
     }
     if (binding) {
       if (parent2.authorization_id !== binding.one_use_authorization_id || !safeEqual(parent2.authorization_binding_hash, binding.binding_hash)) {
-        throw new CommitAmbiguousError(
+        throw internalCommitAmbiguity(
           "Distributed authorization consumption receipt did not bind the exact action",
           { artifact_hash: artifact.artifact_hash }
         );
@@ -62068,10 +62504,10 @@ async function commitPreparedArtifact(input = {}, options = {}) {
   let parent;
   try {
     parent = normalizeParentTransaction(parentResult, expectedParentStateHash, mutationResult);
-  } catch (error) {
-    throw new CommitAmbiguousError(
+  } catch {
+    throw internalCommitAmbiguity(
       "Parent mutation completed but its authoritative transaction receipt was invalid; automatic retry is forbidden",
-      { artifact_hash: artifact.artifact_hash, cause: String(error?.message ?? error).slice(0, 1e3) }
+      { artifact_hash: artifact.artifact_hash, cause: "parent_commit_receipt_invalid" }
     );
   }
   return {
@@ -62451,7 +62887,7 @@ function requireProviderCapability(provider, capability) {
 
 // risk-fork-hosted-mcp/.build/upstream/risk-fork/src/host-boundary.mjs
 import { randomUUID as randomUUID4 } from "node:crypto";
-import { types as utilTypes2 } from "node:util";
+import { types as utilTypes3 } from "node:util";
 
 // risk-fork-hosted-mcp/.build/upstream/risk-fork/src/skillspector-admission.mjs
 import { createHash as createHash3 } from "node:crypto";
@@ -62610,7 +63046,7 @@ var REASON_CODES = Object.freeze([
 ]);
 var MAX_REPORT_BYTES = 8 * 1024 * 1024;
 var MAX_REPORT_ITEMS = 2e4;
-var MAX_STATIC_COMPLETED_WORK = MAX_REPORT_ITEMS * REVIEWED_STATIC_ANALYZER_IDS.size;
+var MAX_STATIC_COMPLETED_WORK = 1e4;
 var SKILLSPECTOR_FINDING_OUTPUT_RECORD_LIMIT = 1e4;
 var MAX_VALIDITY_MS = 24 * 60 * 60 * 1e3;
 var SEVERITIES = Object.freeze(["NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL"]);
@@ -62820,12 +63256,12 @@ function hashSkillSpectorRulesManifest(value) {
       assertPlainObject(entry, field);
       assertAllowedKeys(entry, ["path", "hash"], field);
       requireFields(entry, ["path", "hash"], field);
-      const path8 = requireString(entry.path, `${field}.path`, { maxLength: 500 });
-      if (!/^skillspector\/(?:nodes\/analyzers\/static_[A-Za-z0-9_.-]+\.py|yara_rules\/[A-Za-z0-9_.-]+)$/.test(path8)) {
+      const path9 = requireString(entry.path, `${field}.path`, { maxLength: 500 });
+      if (!/^skillspector\/(?:nodes\/analyzers\/static_[A-Za-z0-9_.-]+\.py|yara_rules\/[A-Za-z0-9_.-]+)$/.test(path9)) {
         throw new TypeError("SkillSpector rules manifest path is outside the reviewed rule surfaces");
       }
       return {
-        path: path8,
+        path: path9,
         hash: requireSha256Ref(entry.hash, `${field}.hash`)
       };
     }).sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0);
@@ -63894,6 +64330,7 @@ function verifySkillSpectorAdmissionEvidence(value, expected = {}) {
       "component_manifest_hash",
       "report_ref",
       "report_hash",
+      "normalized_report_hash",
       "network_enforcement",
       "requested_at"
     ], "SkillSpector expected binding");
@@ -63910,7 +64347,8 @@ function verifySkillSpectorAdmissionEvidence(value, expected = {}) {
       ["runtime_closure_hash", normalized.scanner.runtime_closure_hash, requireSha256Ref],
       ["component_manifest_hash", normalized.coverage.component_manifest_hash, requireSha256Ref],
       ["report_ref", normalized.report.ref, requireOpaqueRef],
-      ["report_hash", normalized.report.raw_hash, requireSha256Ref]
+      ["report_hash", normalized.report.raw_hash, requireSha256Ref],
+      ["normalized_report_hash", normalized.report.normalized_hash, requireSha256Ref]
     ];
     for (const [key, actual, normalize] of comparisons) {
       if (expected[key] === void 0) continue;
@@ -63957,7 +64395,7 @@ var RISK_FORK_HOST_BOUNDARY_SCHEMA = "agoragentic.risk-fork.host-pre-effect-boun
 var RISK_FORK_TRUSTED_DESCRIPTOR_REQUEST_SCHEMA = "agoragentic.risk-fork.trusted-descriptor-request.v1";
 var RISK_FORK_TRUSTED_DESCRIPTOR_SCHEMA = "agoragentic.risk-fork.trusted-descriptor.v1";
 var RISK_FORK_IMPORT_ENVELOPE_SCHEMA = "agoragentic.risk-fork.import-envelope.v1";
-var RISK_FORK_SKILLSPECTOR_VERIFIER_SCHEMA = "agoragentic.risk-fork.skillspector-admission-verifier.v1";
+var RISK_FORK_SKILLSPECTOR_VERIFIER_SCHEMA = "agoragentic.risk-fork.skillspector-admission-verifier.v2";
 var RISK_FORK_HOST_DIAGNOSTIC_CODES = Object.freeze({
   INVALID_BOUNDARY_INPUT: "RISK_FORK_HOST_BOUNDARY_INVALID_INPUT",
   CALLER_RISK_LABEL_REJECTED: "RISK_FORK_CALLER_RISK_LABEL_REJECTED",
@@ -64118,18 +64556,19 @@ var CALLER_ADMISSION_EVIDENCE_FINGERPRINTS = /* @__PURE__ */ new Set([
   "waive",
   "waiver"
 ]);
-var SKILLSPECTOR_EXPECTED_BINDING_KEYS = Object.freeze([
+var SKILLSPECTOR_HOST_REPORT_KEYS = Object.freeze([
+  "report_bytes",
   "package_ref",
   "package_hash",
   "prepared_artifact_hash",
   "source_revision",
-  "configuration_hash",
   "rules_hash",
   "runtime_closure_hash",
   "component_manifest_hash",
   "report_ref",
-  "report_hash",
-  "network_enforcement"
+  "invocation",
+  "network_enforcement",
+  "valid_until"
 ]);
 var SENSITIVE_IMPORT_KEY_PATTERN = /(?:^|_)(?:api_?key|access_?token|refresh_?token|id_?token|session_?token|token|auth|authorization|authorisation|bearer|credential|credentials|password|passwd|passphrase|secret|client_?secret|private_?key|signing_?key|seed_?phrase|mnemonic|wallet_?(?:key|secret)|capability_?(?:grant|token))(?:$|_)/i;
 var SENSITIVE_IMPORT_VALUE_PATTERNS = Object.freeze([
@@ -64161,7 +64600,7 @@ function keyFingerprints(value) {
 function assertNoCallerRiskLabels(value, field = "operation", { rejectAdmissionEvidence = false } = {}) {
   function walk(current) {
     if (!current || typeof current !== "object") return;
-    if (utilTypes2.isProxy(current)) {
+    if (utilTypes3.isProxy(current)) {
       throw boundaryError(
         RISK_FORK_HOST_DIAGNOSTIC_CODES.INVALID_BOUNDARY_INPUT,
         `${field} must be ordinary JSON`
@@ -64234,7 +64673,7 @@ function assertBoundedCanonicalJson(value, {
       }
       return;
     }
-    if (typeof current !== "object" || utilTypes2.isProxy(current)) {
+    if (typeof current !== "object" || utilTypes3.isProxy(current)) {
       throw boundaryError(
         dlp ? RISK_FORK_HOST_DIAGNOSTIC_CODES.IMPORT_INVALID : RISK_FORK_HOST_DIAGNOSTIC_CODES.INVALID_BOUNDARY_INPUT,
         `${field} must contain only ordinary JSON values`
@@ -64886,58 +65325,37 @@ function createTrustedRiskDescriptorSource(resolveDescriptor) {
   trustedDescriptorSourceCallbacks.set(source, resolveDescriptor);
   return source;
 }
-function createTrustedSkillSpectorAdmissionVerifier(verifyBindings) {
-  if (typeof verifyBindings !== "function") {
+function createTrustedSkillSpectorAdmissionVerifier(resolveHostReport) {
+  if (typeof resolveHostReport !== "function") {
     throw new TypeError("Trusted SkillSpector admission verifier requires a host callback");
   }
   const verifier = Object.freeze({
     schema: RISK_FORK_SKILLSPECTOR_VERIFIER_SCHEMA,
     trust_mode: "host_callback_identity"
   });
-  trustedSkillSpectorVerifierCallbacks.set(verifier, verifyBindings);
+  trustedSkillSpectorVerifierCallbacks.set(verifier, resolveHostReport);
   return verifier;
 }
-function normalizeSkillSpectorExpectedBindings(value) {
+function normalizeSkillSpectorHostReport(value, request) {
   assertCanonicalJson(value);
-  assertPlainObject(value, "trusted SkillSpector expected bindings");
+  assertPlainObject(value, "trusted SkillSpector host report");
   assertAllowedKeys(
     value,
-    SKILLSPECTOR_EXPECTED_BINDING_KEYS,
-    "trusted SkillSpector expected bindings"
+    SKILLSPECTOR_HOST_REPORT_KEYS,
+    "trusted SkillSpector host report"
   );
-  for (const key of SKILLSPECTOR_EXPECTED_BINDING_KEYS) {
+  for (const key of SKILLSPECTOR_HOST_REPORT_KEYS) {
     if (!Object.hasOwn(value, key)) {
-      throw new TypeError("Trusted SkillSpector expected bindings are incomplete");
+      throw new TypeError("Trusted SkillSpector host report is incomplete");
     }
   }
-  return deepFreeze({
-    package_ref: requireOpaqueRef(value.package_ref, "expected SkillSpector package_ref"),
-    package_hash: requireSha256Ref(value.package_hash, "expected SkillSpector package_hash"),
-    prepared_artifact_hash: requireSha256Ref(
-      value.prepared_artifact_hash,
-      "expected SkillSpector prepared_artifact_hash"
-    ),
-    source_revision: requireOpaqueRef(
-      value.source_revision,
-      "expected SkillSpector source_revision",
-      { maxLength: 200 }
-    ),
-    configuration_hash: requireSha256Ref(
-      value.configuration_hash,
-      "expected SkillSpector configuration_hash"
-    ),
-    rules_hash: requireSha256Ref(value.rules_hash, "expected SkillSpector rules_hash"),
-    runtime_closure_hash: requireSha256Ref(
-      value.runtime_closure_hash,
-      "expected SkillSpector runtime_closure_hash"
-    ),
-    component_manifest_hash: requireSha256Ref(
-      value.component_manifest_hash,
-      "expected SkillSpector component_manifest_hash"
-    ),
-    report_ref: requireOpaqueRef(value.report_ref, "expected SkillSpector report_ref"),
-    report_hash: requireSha256Ref(value.report_hash, "expected SkillSpector report_hash"),
-    network_enforcement: value.network_enforcement
+  const evidence = adaptSkillSpectorReport({
+    ...value,
+    descriptor_request_hash: request.request_hash,
+    operation_hash: request.operation_hash
+  });
+  return verifySkillSpectorAdmissionEvidence(evidence, {
+    requested_at: request.requested_at
   });
 }
 function normalizePrepareInput(value, { skillspectorAdmissionEnabled = false } = {}) {
@@ -65104,21 +65522,19 @@ function createRiskForkHostBoundary(input = {}) {
         }
         if (record.skillspectorAdmissionEnabled) {
           try {
-            const expectedBindings = normalizeSkillSpectorExpectedBindings(
+            const hostEvidence = normalizeSkillSpectorHostReport(
               await record.verifySkillSpectorBindings(deepFreeze({
-                schema: "agoragentic.risk-fork.skillspector-admission-verification-request.v1",
+                schema: "agoragentic.risk-fork.skillspector-admission-verification-request.v2",
                 descriptor_request_hash: frozenRequest.request_hash,
                 operation_hash: frozenRequest.operation_hash,
                 requested_at: frozenRequest.requested_at,
                 evidence: descriptor.skillspector_admission
-              }))
+              })),
+              frozenRequest
             );
-            verifySkillSpectorAdmissionEvidence(descriptor.skillspector_admission, {
-              ...expectedBindings,
-              descriptor_request_hash: frozenRequest.request_hash,
-              operation_hash: frozenRequest.operation_hash,
-              requested_at: frozenRequest.requested_at
-            });
+            if (canonicalize(descriptor.skillspector_admission) !== canonicalize(hostEvidence)) {
+              throw new TypeError("SkillSpector evidence differs from the host-derived raw report");
+            }
           } catch {
             throw boundaryError(
               RISK_FORK_HOST_DIAGNOSTIC_CODES.SKILLSPECTOR_VERIFICATION_FAILED,
@@ -65968,6 +66384,26 @@ function markPreparationStageFailed(lifecycle, at) {
   }
   return lifecycle;
 }
+function preparationFailureCode(state) {
+  switch (state) {
+    case "SAVEPOINTING":
+      return "RISK_FORK_SAVEPOINT_STAGE_FAILED";
+    case "SAVEPOINT_READY":
+    case "FORK_STARTING":
+      return "RISK_FORK_FORK_STAGE_FAILED";
+    case "FORK_READY":
+    case "EXECUTING":
+      return "RISK_FORK_EXECUTION_STAGE_FAILED";
+    case "TAINTED":
+    case "VALIDATING":
+      return "RISK_FORK_VALIDATION_STAGE_FAILED";
+    case "COMMIT_READY":
+    case "PRECOMMIT_DESTROYING":
+      return "RISK_FORK_CLEANUP_STAGE_FAILED";
+    default:
+      return "RISK_FORK_PREPARATION_STAGE_FAILED";
+  }
+}
 var RiskForkPreparationError = class extends Error {
   constructor(message, evidence = {}) {
     super(message);
@@ -65980,9 +66416,9 @@ var RiskForkCommitError = class extends Error {
   constructor(message, { lifecycle, cause }) {
     super(message);
     this.name = "RiskForkCommitError";
-    this.code = cause instanceof CommitAmbiguousError ? "RISK_FORK_COMMIT_AMBIGUOUS" : "RISK_FORK_COMMIT_FAILED";
+    this.code = isCommitAmbiguousError(cause) ? "RISK_FORK_COMMIT_AMBIGUOUS" : "RISK_FORK_COMMIT_FAILED";
     this.lifecycle = lifecycle;
-    this.cause_code = String(cause?.code ?? cause?.name ?? "error").slice(0, 200);
+    this.cause_code = isCommitAmbiguousError(cause) ? "RISK_FORK_COMMIT_AMBIGUOUS" : "RISK_FORK_CLEAN_COMMIT_FAILED";
   }
 };
 var RiskForkController = class {
@@ -66095,19 +66531,19 @@ var RiskForkController = class {
           reason: "risk_fork_clean_boundary",
           cleanup_request: result.fork_cleanup_request
         });
-      } catch (error) {
-        result.fork_request = { status: "failed", code: String(error?.code ?? "destroy_failed") };
+      } catch {
+        result.fork_request = { status: "failed", code: "destroy_failed" };
       }
       try {
         result.fork_verification = await this.provider.verifyDestroyed({
           fork_ref: forkRef,
           cleanup_request: result.fork_cleanup_request
         });
-      } catch (error) {
+      } catch {
         result.fork_verification = {
           status: "unknown",
           outcome: "unknown",
-          code: String(error?.code ?? "verify_destroyed_failed")
+          code: "verify_destroyed_failed"
         };
       }
     }
@@ -66124,19 +66560,19 @@ var RiskForkController = class {
           savepoint_ref: savepointRef,
           cleanup_request: result.savepoint_cleanup_request
         });
-      } catch (error) {
-        result.savepoint_request = { status: "failed", code: String(error?.code ?? "delete_failed") };
+      } catch {
+        result.savepoint_request = { status: "failed", code: "delete_failed" };
       }
       try {
         result.savepoint_verification = await this.provider.verifySavepointDestroyed({
           savepoint_ref: savepointRef,
           cleanup_request: result.savepoint_cleanup_request
         });
-      } catch (error) {
+      } catch {
         result.savepoint_verification = {
           status: "unknown",
           outcome: "unknown",
-          code: String(error?.code ?? "verify_delete_failed")
+          code: "verify_delete_failed"
         };
       }
     }
@@ -66260,6 +66696,7 @@ var RiskForkController = class {
     let savepointCreationAttempted = false;
     let forkCreationAttempted = false;
     let cleanupResult = null;
+    let cleanupFailure = null;
     const measurements = {};
     try {
       lifecycle = advance(lifecycle, "SAVEPOINTING", { at: requireIsoDate(this.clock(), "clock result") });
@@ -66415,13 +66852,14 @@ var RiskForkController = class {
             }
           )
         });
-        throw new RiskForkPreparationError("Risk Fork cleanup was not verified; commit is blocked", {
+        cleanupFailure = new RiskForkPreparationError("Risk Fork cleanup was not verified; commit is blocked", {
           lifecycle,
           cleanup: {
             fork: forkClaim,
             savepoint: savepointClaim
           }
         });
+        throw cleanupFailure;
       }
       const combinedCleanupHash = sha256Ref({
         fork_evidence_hash: requireSha256Ref(forkClaim.evidence_hash, "fork destruction evidence_hash"),
@@ -66471,7 +66909,8 @@ var RiskForkController = class {
       });
       return prepared;
     } catch (error) {
-      if (error instanceof RiskForkPreparationError) throw error;
+      if (cleanupFailure !== null && error === cleanupFailure) throw error;
+      const failureCode = preparationFailureCode(lifecycle.state);
       const failedAt = requireIsoDate(this.clock(), "clock result");
       lifecycle = markPreparationStageFailed(lifecycle, failedAt);
       const cleanup = cleanupResult ?? await this.#destroyResources({ forkRef, savepointRef });
@@ -66565,7 +67004,7 @@ var RiskForkController = class {
           fork: forkClaim,
           savepoint: savepointClaim
         },
-        cause_code: String(error?.code ?? error?.name ?? "error").slice(0, 200)
+        cause_code: failureCode
       });
     }
   }
@@ -66623,14 +67062,15 @@ var RiskForkController = class {
       });
       return deepFreeze({ ...result, lifecycle });
     } catch (error) {
+      const ambiguous = isCommitAmbiguousError(error);
       lifecycle = advance(
         lifecycle,
-        error instanceof CommitAmbiguousError ? "COMMIT_AMBIGUOUS" : "COMMIT_FAILED",
+        ambiguous ? "COMMIT_AMBIGUOUS" : "COMMIT_FAILED",
         {
           at: requireIsoDate(this.clock(), "clock result"),
           evidence: lifecycleEvidence(
-            error instanceof CommitAmbiguousError ? "commit_ambiguous" : "commit_failed",
-            error instanceof CommitAmbiguousError ? "unknown" : "failed"
+            ambiguous ? "commit_ambiguous" : "commit_failed",
+            ambiguous ? "unknown" : "failed"
           )
         }
       );
@@ -67504,9 +67944,9 @@ function fieldPath(value, label) {
   }
   return Object.freeze([...value]);
 }
-function ownPath(value, path8) {
+function ownPath(value, path9) {
   let current = value;
-  for (const key of path8) {
+  for (const key of path9) {
     const descriptor = current && typeof current === "object" ? Object.getOwnPropertyDescriptor(current, key) : null;
     if (!descriptor || !Object.hasOwn(descriptor, "value")) {
       throw handleError(
@@ -67987,9 +68427,9 @@ function collectMcpParameterHeaderSpecs(inputSchema) {
   visitUnknown(root, true, []);
   return Object.freeze(found);
 }
-function valueAtOwnPath(value, path8) {
+function valueAtOwnPath(value, path9) {
   let current = value;
-  for (const key of path8) {
+  for (const key of path9) {
     if (!current || typeof current !== "object" || !Object.hasOwn(current, key)) {
       return Object.freeze({ present: false, value: void 0 });
     }
@@ -69509,7 +69949,7 @@ function isRiskForkMcpHostAdapter(value) {
 // risk-fork-hosted-mcp/.build/upstream/risk-fork/src/e2b-qualification.mjs
 import {
   KeyObject,
-  createHash as createHash4,
+  createHash as createHash5,
   createPublicKey,
   verify as verifySignature
 } from "node:crypto";
@@ -69522,15 +69962,967 @@ import {
 } from "node:fs/promises";
 import { constants } from "node:fs";
 import { createRequire } from "node:module";
-import path3 from "node:path";
+import path4 from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { isProxy } from "node:util/types";
+
+// risk-fork-hosted-mcp/.build/upstream/risk-fork/src/e2b-sdk-process.mjs
+import { spawn } from "node:child_process";
+import { createHash as createHash4, randomUUID as randomUUID8 } from "node:crypto";
+import path3 from "node:path";
+var BOUNDARIES = /* @__PURE__ */ new WeakSet();
+var FRAME_BYTES = 2 * 1024 * 1024;
+var CHUNK_BYTES = 64 * 1024;
+var MAX_PROCESSES = 8;
+var MAX_PROVIDER_TIMEOUT_MS = 24 * 60 * 60 * 1e3;
+var EFFECTFUL_OPERATIONS = /* @__PURE__ */ new Set(["create", "kill", "write_commit", "file_remove", "child_kill", "set_timeout", "command_run"]);
+var PROCESS_SANDBOX_CLASS_SCOPES = /* @__PURE__ */ new WeakMap();
+var PROCESS_PRE_ENTRY_FAILURES = /* @__PURE__ */ new WeakMap();
+var retainedProcesses = 0;
+function isE2BRuntimeSdkProcessSandboxClass(value) {
+  return typeof value === "function" && PROCESS_SANDBOX_CLASS_SCOPES.has(value);
+}
+function isE2BRuntimeSdkProcessPreEntryFailure(error, SandboxClass) {
+  const scope = PROCESS_SANDBOX_CLASS_SCOPES.get(SandboxClass);
+  const association = error && typeof error === "object" ? PROCESS_PRE_ENTRY_FAILURES.get(error) : null;
+  return Boolean(scope && association?.scope === scope && association.operation === "create");
+}
+function failure(code = "E2B_SDK_PROCESS_OUTCOME_UNKNOWN") {
+  const error = new Error("E2B SDK process boundary failed; provider outcome is not established");
+  error.name = "E2BSdkProcessBoundaryError";
+  error.code = code;
+  error.retryable = false;
+  error.production_qualified = false;
+  error.provider_outcome = "unknown";
+  return error;
+}
+async function checkReadonlyCustody(config, runtimeFiles = []) {
+  const fs = await import("node:fs/promises");
+  const { constants: constants4 } = await import("node:fs");
+  const crypto2 = await import("node:crypto");
+  const posix = (await import("node:path")).posix;
+  if (process.platform !== "linux" || typeof process.getuid !== "function" || process.getuid() === 0 || process.getgid() === 0) throw new Error("unsupported custody");
+  const status = await fs.readFile("/proc/self/status", "utf8");
+  for (const key of ["CapEff", "CapPrm", "CapAmb"]) {
+    if (!new RegExp(`^${key}:\\s+0+$`, "m").test(status)) throw new Error("capability custody");
+  }
+  if (!/^NoNewPrivs:\s+1$/m.test(status) || process.getgroups().includes(0)) {
+    throw new Error("privilege custody");
+  }
+  const mounts = (await fs.readFile("/proc/self/mountinfo", "utf8")).trim().split("\n").map((line) => {
+    const fields = line.split(" ");
+    if (fields.length < 10 || !fields.includes("-")) throw new Error("mount observation");
+    const mount = fields[4].replace(/\\([0-7]{3})/g, (_, value) => String.fromCharCode(parseInt(value, 8)));
+    return { mount, readonly: fields[5].split(",").includes("ro") };
+  });
+  for (const entry of [config.runtimeArtifactPath, config.packageDirectory, config.nodePath, ...runtimeFiles]) {
+    if (!posix.isAbsolute(entry) || await fs.realpath(entry) !== entry) throw new Error("canonical custody");
+    const applicable = mounts.filter(({ mount }) => entry === mount || entry.startsWith(mount === "/" ? "/" : `${mount}/`)).sort((left, right) => right.mount.length - left.mount.length);
+    if (!applicable[0]?.readonly) throw new Error("writable custody");
+  }
+  const hash = async (file, expected) => {
+    const handle = await fs.open(file, constants4.O_RDONLY | constants4.O_NOFOLLOW | constants4.O_NONBLOCK);
+    try {
+      const before = await handle.stat();
+      if (!before.isFile() || before.nlink !== 1 || before.size > 512 * 1024 * 1024) throw new Error("artifact custody");
+      const digest = crypto2.createHash("sha256");
+      const buffer = Buffer.alloc(256 * 1024);
+      let total = 0;
+      while (true) {
+        const { bytesRead } = await handle.read(buffer, 0, buffer.length, null);
+        if (!bytesRead) break;
+        total += bytesRead;
+        if (total > before.size) throw new Error("artifact drift");
+        digest.update(buffer.subarray(0, bytesRead));
+      }
+      const after = await handle.stat();
+      const named = await fs.lstat(file);
+      if (total !== before.size || before.dev !== after.dev || before.ino !== after.ino || before.size !== after.size || before.mtimeMs !== after.mtimeMs || before.ctimeMs !== after.ctimeMs || named.isSymbolicLink() || named.dev !== after.dev || named.ino !== after.ino || `sha256:${digest.digest("hex")}` !== expected) throw new Error("artifact pin");
+    } finally {
+      await handle.close();
+    }
+  };
+  await hash(config.runtimeArtifactPath, config.runtimeArtifactHash);
+  await hash(config.nodePath, config.nodeArtifactHash);
+  if (process.execPath !== config.nodePath) throw new Error("runtime identity");
+  return { uid: process.getuid(), gid: process.getgid(), readonly: true };
+}
+async function assertE2BRuntimeSdkReadonlyCustody(profile, runtimeFiles) {
+  return checkReadonlyCustody(profile, runtimeFiles);
+}
+async function sdkProcessMain(checkCustody) {
+  const crypto2 = await import("node:crypto");
+  const { pathToFileURL: pathToFileURL2 } = await import("node:url");
+  const MAX_PROVIDER_TIMEOUT_MS2 = 24 * 60 * 60 * 1e3;
+  const LIMIT = 2 * 1024 * 1024;
+  const CHUNK = 64 * 1024;
+  const WRITE_LIMIT = 32 * 1024 * 1024;
+  const READ_LIMIT = 4 * 1024 * 1024;
+  const frame = Buffer.alloc(LIMIT);
+  let used = 0;
+  let initialized = false;
+  let verifier;
+  let binding;
+  let sdk;
+  let Sandbox;
+  let inflight = 0;
+  let creating = 0;
+  let openingReads = 0;
+  let sequence = 0;
+  let writeBytes = 0;
+  const children = /* @__PURE__ */ new Map();
+  const lists = /* @__PURE__ */ new Map();
+  const writes = /* @__PURE__ */ new Map();
+  const reads = /* @__PURE__ */ new Map();
+  const mutations = /* @__PURE__ */ new WeakSet();
+  const retiring = /* @__PURE__ */ new WeakSet();
+  class ReadRetired extends Error {
+  }
+  const send = (value) => {
+    const bytes = Buffer.from(`${JSON.stringify(value)}
+`);
+    if (bytes.length > LIMIT) throw new Error("output bound");
+    process.stdout.write(bytes);
+  };
+  const closed = (value, keys) => {
+    if (!value || typeof value !== "object" || Array.isArray(value) || Object.keys(value).some((key) => !keys.includes(key))) throw new Error("closed wire");
+  };
+  const string = (value, max = 500) => {
+    if (typeof value !== "string" || !value.length || value.length > max || /[\0\r\n]/.test(value)) throw new Error("string bound");
+    return value;
+  };
+  const integer = (value, max, min = 0) => {
+    if (!Number.isSafeInteger(value) || value < min || value > max) throw new Error("integer bound");
+    return value;
+  };
+  const plain = (value, depth = 0, count = { value: 0 }) => {
+    if (++count.value > 8192 || depth > 20) throw new Error("data bound");
+    if (value instanceof Date) return value.toISOString();
+    if (value === null || typeof value === "boolean" || typeof value === "string") {
+      if (typeof value === "string" && Buffer.byteLength(value) > 128 * 1024) throw new Error("text bound");
+      return value;
+    }
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (Array.isArray(value)) {
+      if (value.length > 1e3) throw new Error("array bound");
+      return value.map((entry) => plain(entry, depth + 1, count));
+    }
+    if (!value || typeof value !== "object" || ![null, Object.prototype].includes(Object.getPrototypeOf(value))) throw new Error("data shape");
+    const output = /* @__PURE__ */ Object.create(null);
+    for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
+      if (!descriptor.enumerable || !Object.hasOwn(descriptor, "value") || ["__proto__", "constructor", "prototype"].includes(key)) throw new Error("data descriptor");
+      output[key] = plain(descriptor.value, depth + 1, count);
+    }
+    return output;
+  };
+  const info = (value) => {
+    const result = /* @__PURE__ */ Object.create(null);
+    for (const key of [
+      "sandboxId",
+      "sandboxID",
+      "templateId",
+      "templateID",
+      "metadata",
+      "state",
+      "allowInternetAccess",
+      "network",
+      "lifecycle",
+      "volumeMounts",
+      "startedAt",
+      "endAt"
+    ]) {
+      if (Object.hasOwn(value, key)) result[key] = plain(value[key]);
+    }
+    string(result.sandboxId ?? result.sandboxID);
+    string(result.templateId ?? result.templateID);
+    return result;
+  };
+  const child = (handle) => {
+    const value = children.get(string(handle));
+    if (!value) throw new Error("unknown child handle");
+    return value;
+  };
+  const base64 = (value) => {
+    if (typeof value !== "string" || value.length > 4 * Math.ceil(CHUNK / 3)) throw new Error("binary bound");
+    const bytes = Buffer.from(value, "base64");
+    if (bytes.length > CHUNK || bytes.toString("base64") !== value) throw new Error("binary encoding");
+    return bytes;
+  };
+  const mutate = async (value, enter, action) => {
+    if (mutations.has(value) || retiring.has(value)) throw new Error("child mutation already entered or retired");
+    mutations.add(value);
+    try {
+      enter();
+      const result = await action();
+      if (retiring.has(value)) throw new Error("effect completed after retirement began");
+      return result;
+    } finally {
+      mutations.delete(value);
+    }
+  };
+  const retireChild = (value) => {
+    for (const [handle, owned] of children) if (owned === value) children.delete(handle);
+    for (const [handle, entry] of writes) if (entry.child === value) {
+      writes.delete(handle);
+      writeBytes -= entry.bytes.length;
+    }
+    for (const [handle, entry] of reads) if (entry.child === value) {
+      reads.delete(handle);
+      entry.cancelled = true;
+      entry.controller.abort();
+      void entry.reader.cancel().catch(() => {
+      });
+    }
+  };
+  const dispatch = async (operation, args, enter) => {
+    if (operation === "load") {
+      closed(args, ["expected"]);
+      if (sdk) {
+        if (JSON.stringify(args.expected) !== JSON.stringify(binding)) throw new Error("loaded binding");
+      } else {
+        const loaded = await verifier.load(args.expected);
+        sdk = loaded.module;
+        Sandbox = sdk.Sandbox ?? sdk.default?.Sandbox ?? sdk.default;
+        if (typeof Sandbox !== "function" || ["create", "getInfo", "list", "kill"].some((key) => typeof Sandbox[key] !== "function")) throw new Error("SDK contract");
+      }
+      return { binding };
+    }
+    if (!sdk) throw new Error("SDK not loaded");
+    if (operation === "create") {
+      closed(args, ["template", "options"]);
+      string(args.template);
+      closed(args.options, ["timeoutMs", "secure", "allowInternetAccess", "network", "lifecycle", "metadata", "envs", "iam", "volumeMounts"]);
+      if (children.size + creating >= 32) throw new Error("child capacity");
+      plain(args.options);
+      creating += 1;
+      let value;
+      try {
+        enter();
+        value = await Sandbox.create(args.template, args.options);
+      } finally {
+        creating -= 1;
+      }
+      const sandboxId = string(value?.sandboxId);
+      const handle = crypto2.randomUUID();
+      children.set(handle, value);
+      return { handle, sandboxId };
+    }
+    if (operation === "get_info" || operation === "kill") {
+      closed(args, ["sandboxId"]);
+      string(args.sandboxId);
+      enter();
+      if (operation === "get_info") return info(await Sandbox.getInfo(args.sandboxId));
+      for (const value of children.values()) if (value.sandboxId === args.sandboxId) retiring.add(value);
+      const acknowledged = await Sandbox.kill(args.sandboxId) === true;
+      if (acknowledged) for (const value of children.values()) {
+        if (value.sandboxId === args.sandboxId) retireChild(value);
+      }
+      return { acknowledged };
+    }
+    if (operation === "list_open") {
+      closed(args, ["options"]);
+      closed(args.options, ["query"]);
+      closed(args.options.query, ["state", "metadata"]);
+      plain(args.options);
+      if (lists.size >= 32) throw new Error("list capacity");
+      const paginator = Sandbox.list(args.options);
+      if (typeof paginator?.nextItems !== "function" || typeof paginator.hasNext !== "boolean") throw new Error("list contract");
+      const handle = crypto2.randomUUID();
+      if (paginator.hasNext) lists.set(handle, { paginator, pages: 0, busy: false });
+      return { handle, hasNext: paginator.hasNext };
+    }
+    if (operation === "list_close") {
+      closed(args, ["handle"]);
+      string(args.handle);
+      lists.delete(args.handle);
+      return { completed: true };
+    }
+    if (operation === "list_next") {
+      closed(args, ["handle"]);
+      const entry = lists.get(string(args.handle));
+      if (!entry || entry.busy || ++entry.pages > 100) throw new Error("list state");
+      entry.busy = true;
+      try {
+        enter();
+        const items = await entry.paginator.nextItems();
+        if (!Array.isArray(items) || items.length > 1e3 || typeof entry.paginator.hasNext !== "boolean") throw new Error("list bound");
+        const hasNext = entry.paginator.hasNext;
+        const result = { items: items.map(info), hasNext };
+        if (!hasNext) lists.delete(args.handle);
+        return result;
+      } finally {
+        entry.busy = false;
+      }
+    }
+    if (operation === "write_begin") {
+      closed(args, ["handle", "path", "size", "hash"]);
+      child(args.handle);
+      string(args.path, 4096);
+      integer(args.size, WRITE_LIMIT);
+      if (!/^sha256:[a-f0-9]{64}$/.test(args.hash) || writes.size >= 8 || writeBytes + args.size > WRITE_LIMIT) throw new Error("write capacity");
+      const handle = crypto2.randomUUID();
+      writes.set(handle, { child: child(args.handle), path: args.path, bytes: Buffer.alloc(args.size), hash: args.hash, used: 0 });
+      writeBytes += args.size;
+      return { handle };
+    }
+    if (operation === "write_chunk") {
+      closed(args, ["handle", "offset", "bytes"]);
+      const entry = writes.get(string(args.handle));
+      const bytes = base64(args.bytes);
+      if (!entry || args.offset !== entry.used || bytes.length > entry.bytes.length - entry.used) throw new Error("write state");
+      bytes.copy(entry.bytes, entry.used);
+      entry.used += bytes.length;
+      return { accepted: bytes.length };
+    }
+    if (operation === "write_abort") {
+      closed(args, ["handle"]);
+      const entry = writes.get(string(args.handle));
+      if (entry) {
+        writes.delete(args.handle);
+        writeBytes -= entry.bytes.length;
+      }
+      return { completed: true };
+    }
+    if (operation === "write_commit") {
+      closed(args, ["handle"]);
+      const entry = writes.get(string(args.handle));
+      if (!entry || entry.used !== entry.bytes.length || `sha256:${crypto2.createHash("sha256").update(entry.bytes).digest("hex")}` !== entry.hash) throw new Error("write integrity");
+      return mutate(entry.child, enter, async () => {
+        writes.delete(args.handle);
+        try {
+          await entry.child.files.write(entry.path, entry.bytes);
+          return { completed: true };
+        } finally {
+          writeBytes -= entry.bytes.length;
+        }
+      });
+    }
+    if (operation === "file_remove" || operation === "child_kill" || operation === "set_timeout" || operation === "command_run") {
+      const keys = { file_remove: ["handle", "path"], child_kill: ["handle"], set_timeout: ["handle", "timeoutMs"], command_run: ["handle", "command", "timeoutMs"] };
+      closed(args, keys[operation]);
+      const value = child(args.handle);
+      if (operation === "file_remove") {
+        const target = string(args.path, 4096);
+        return mutate(value, enter, async () => {
+          await value.files.remove(target);
+          return { completed: true };
+        });
+      }
+      if (operation === "child_kill") {
+        retiring.add(value);
+        enter();
+        const acknowledged = await value.kill() === true;
+        if (acknowledged) retireChild(value);
+        return { acknowledged };
+      }
+      integer(args.timeoutMs, MAX_PROVIDER_TIMEOUT_MS2, 1);
+      if (operation === "set_timeout") return mutate(value, enter, async () => {
+        await value.setTimeout(args.timeoutMs);
+        return { completed: true };
+      });
+      const command = string(args.command, 8192);
+      return mutate(value, enter, async () => {
+        const result = await value.commands.run(command, { timeoutMs: args.timeoutMs });
+        integer(result?.exitCode, 255);
+        if (result.error != null || typeof result.stdout !== "string" || typeof result.stderr !== "string" || Buffer.byteLength(result.stdout) + Buffer.byteLength(result.stderr) > 128 * 1024) throw new Error("command output bound");
+        return { exitCode: result.exitCode, stdout: result.stdout, stderr: result.stderr };
+      });
+    }
+    if (operation === "read_open") {
+      closed(args, ["handle", "path", "timeoutMs", "idleTimeoutMs"]);
+      if (reads.size + openingReads >= 8) throw new Error("reader capacity");
+      integer(args.timeoutMs, MAX_PROVIDER_TIMEOUT_MS2, 1);
+      integer(args.idleTimeoutMs, MAX_PROVIDER_TIMEOUT_MS2, 1);
+      const controller = new AbortController();
+      const value = child(args.handle);
+      const target = string(args.path, 4096);
+      openingReads += 1;
+      let stream;
+      try {
+        enter();
+        stream = await value.files.read(target, {
+          format: "stream",
+          requestTimeoutMs: args.timeoutMs,
+          streamIdleTimeoutMs: args.idleTimeoutMs,
+          signal: controller.signal
+        });
+      } finally {
+        openingReads -= 1;
+      }
+      if (retiring.has(value)) {
+        await stream.cancel().catch(() => {
+        });
+        throw new ReadRetired();
+      }
+      const reader = stream.getReader();
+      const handle = crypto2.randomUUID();
+      reads.set(handle, { child: value, reader, controller, pending: null, offset: 0, bytes: 0, busy: false, cancelled: false });
+      return { handle };
+    }
+    if (operation === "read_next" || operation === "read_cancel") {
+      closed(args, ["handle"]);
+      const entry = reads.get(string(args.handle));
+      if (!entry) {
+        if (operation === "read_cancel") return { completed: true };
+        throw new Error("reader state");
+      }
+      if (operation === "read_cancel") {
+        reads.delete(args.handle);
+        entry.cancelled = true;
+        entry.controller.abort();
+        await entry.reader.cancel();
+        return { completed: true };
+      }
+      if (entry.busy) throw new Error("reader state");
+      entry.busy = true;
+      try {
+        while (!entry.pending || entry.offset === entry.pending.length) {
+          const next = await entry.reader.read();
+          if (entry.cancelled) throw new ReadRetired();
+          if (next.done === true) {
+            reads.delete(args.handle);
+            return { done: true, bytes: "" };
+          }
+          if (!(next.value instanceof Uint8Array) || next.value.byteLength > READ_LIMIT - entry.bytes) throw new Error("read bound");
+          entry.bytes += next.value.byteLength;
+          entry.pending = Buffer.from(next.value);
+          entry.offset = 0;
+        }
+        const end = Math.min(entry.offset + CHUNK, entry.pending.length);
+        const bytes = entry.pending.subarray(entry.offset, end).toString("base64");
+        entry.offset = end;
+        return { done: false, bytes };
+      } catch (error) {
+        reads.delete(args.handle);
+        entry.controller.abort();
+        void entry.reader.cancel().catch(() => {
+        });
+        throw error;
+      } finally {
+        entry.busy = false;
+      }
+    }
+    throw new Error("unsupported operation");
+  };
+  const accept = async (message) => {
+    if (!initialized) {
+      initialized = true;
+      closed(message, ["config", "nonce"]);
+      const config = message.config;
+      closed(config, ["runtimeArtifactPath", "runtimeArtifactHash", "packageDirectory", "nodePath", "nodeArtifactHash", "lifetimeMs"]);
+      const custody = await checkCustody(config);
+      const runtime = await import(pathToFileURL2(config.runtimeArtifactPath).href);
+      verifier = runtime.createE2BRuntimeSdkIntegrityVerifier({
+        packageDirectory: config.packageDirectory,
+        readOnlyRuntime: {
+          runtimeArtifactPath: config.runtimeArtifactPath,
+          runtimeArtifactHash: config.runtimeArtifactHash,
+          nodeArtifactHash: config.nodeArtifactHash
+        }
+      });
+      binding = await verifier.inspect();
+      setTimeout(() => process.exit(1), integer(config.lifetimeMs, MAX_PROVIDER_TIMEOUT_MS2, 1e3));
+      send({ id: 0, result: { binding, pid: process.pid, nonce: message.nonce, custody } });
+      return;
+    }
+    closed(message, ["id", "operation", "args"]);
+    if (!verifier || message.id !== ++sequence || inflight >= 4) throw new Error("request state");
+    string(message.operation, 64);
+    inflight += 1;
+    let entered = false;
+    try {
+      send({ id: message.id, result: await dispatch(message.operation, message.args, () => {
+        entered = true;
+      }) });
+    } catch (error) {
+      let kind = entered ? "unknown" : "not_entered";
+      if (error instanceof ReadRetired) kind = "read_retired";
+      if (message.operation === "get_info" && typeof sdk?.SandboxNotFoundError === "function" && error instanceof sdk.SandboxNotFoundError) kind = "sandbox_not_found";
+      if (["read_open", "file_remove"].includes(message.operation) && typeof sdk?.FileNotFoundError === "function" && error instanceof sdk.FileNotFoundError) kind = "file_not_found";
+      send({ id: message.id, error: kind });
+    } finally {
+      inflight -= 1;
+    }
+  };
+  process.stdin.on("data", (chunk) => {
+    for (const byte of chunk) {
+      if (byte === 10) {
+        const message = JSON.parse(frame.subarray(0, used).toString("utf8"));
+        used = 0;
+        void accept(message).catch(() => process.exit(1));
+      } else {
+        if (used >= LIMIT) process.exit(1);
+        frame[used++] = byte;
+      }
+    }
+  });
+  process.stdin.on("end", () => process.exit(1));
+}
+function isE2BRuntimeSdkProcessBoundary(value) {
+  return BOUNDARIES.has(value);
+}
+function createE2BRuntimeSdkProcessBoundary(options = {}) {
+  assertPlainObject(options, "SDK process options");
+  assertAllowedKeys(options, ["runtimeArtifactPath", "runtimeArtifactHash", "packageDirectory", "nodeArtifactHash", "providerApiKey", "deadlineMs", "lifetimeMs"], "SDK process options");
+  const absolute = (value, field) => {
+    const result = requireString(value, field);
+    if (!path3.isAbsolute(result) || result !== path3.resolve(result)) throw new TypeError(`${field} must be canonical absolute`);
+    return result;
+  };
+  const config = Object.freeze({
+    runtimeArtifactPath: absolute(options.runtimeArtifactPath, "runtimeArtifactPath"),
+    runtimeArtifactHash: requireSha256Ref(options.runtimeArtifactHash, "runtimeArtifactHash"),
+    packageDirectory: absolute(options.packageDirectory, "packageDirectory"),
+    nodePath: process.execPath,
+    nodeArtifactHash: requireSha256Ref(options.nodeArtifactHash, "nodeArtifactHash"),
+    lifetimeMs: boundedInteger(options.lifetimeMs ?? 3e5, "lifetimeMs", { min: 1e3, max: MAX_PROVIDER_TIMEOUT_MS })
+  });
+  const deadlineMs = boundedInteger(options.deadlineMs ?? 3e4, "deadlineMs", { min: 100, max: 6e5 });
+  const env = /* @__PURE__ */ Object.create(null);
+  if (options.providerApiKey != null) env["E2B_API_KEY"] = requireString(options.providerApiKey, "providerApiKey", {
+    maxLength: 8192,
+    pattern: /^[\x21-\x7e]+$/
+  });
+  let child;
+  let startup;
+  let loaded;
+  let pin;
+  let retired = false;
+  let exited = false;
+  let sequence = 0;
+  let exitPromise;
+  const metrics = {
+    requests_started: 0,
+    requests_completed: 0,
+    requests_rejected_before_sdk: 0,
+    effectful_outcomes_unknown: 0,
+    request_deadlines_exceeded: 0,
+    process_starts: 0,
+    process_exits_observed: 0
+  };
+  const pending = /* @__PURE__ */ new Map();
+  const terminate = () => {
+    retired = true;
+    for (const entry of pending.values()) {
+      clearTimeout(entry.timer);
+      if (EFFECTFUL_OPERATIONS.has(entry.operation)) metrics.effectful_outcomes_unknown += 1;
+      entry.reject(failure());
+    }
+    pending.clear();
+    if (child && !exited && child.exitCode === null && child.signalCode === null) {
+      try {
+        process.kill(-child.pid, "SIGKILL");
+      } catch {
+      }
+      try {
+        child.kill("SIGKILL");
+      } catch {
+      }
+    }
+  };
+  const request = (operation, args, timeoutMs = deadlineMs, preEntryScope = null) => {
+    if (retired || !child || exited || pending.size >= 4) return Promise.reject(failure());
+    const id = sequence + 1;
+    const bytes2 = Buffer.from(`${canonicalize({ id, operation, args })}
+`);
+    if (bytes2.length > FRAME_BYTES) return Promise.reject(failure());
+    sequence = id;
+    metrics.requests_started += 1;
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        metrics.request_deadlines_exceeded += 1;
+        terminate();
+        reject(failure());
+      }, timeoutMs);
+      pending.set(id, { resolve, reject, timer, operation, preEntryScope });
+      child.stdin.write(bytes2, (error) => {
+        if (error) terminate();
+      });
+    });
+  };
+  const start = async () => {
+    if (retired) throw failure();
+    if (startup) return startup;
+    startup = (async () => {
+      try {
+        await checkReadonlyCustody(config);
+      } catch {
+        throw failure("E2B_SDK_PROCESS_PROFILE_UNVERIFIED");
+      }
+      if (retired || retainedProcesses >= MAX_PROCESSES) throw failure();
+      retainedProcesses += 1;
+      const source = `(${sdkProcessMain.toString()})(${checkReadonlyCustody.toString()}).catch(() => process.exit(1));`;
+      try {
+        child = spawn(config.nodePath, ["--max-old-space-size=256", "--input-type=module", "--eval", source], {
+          cwd: path3.dirname(config.runtimeArtifactPath),
+          env,
+          shell: false,
+          detached: true,
+          windowsHide: true,
+          stdio: ["pipe", "pipe", "pipe"]
+        });
+      } catch {
+        retainedProcesses -= 1;
+        throw failure();
+      }
+      child.once("spawn", () => {
+        metrics.process_starts += 1;
+      });
+      const frame = Buffer.alloc(FRAME_BYTES);
+      let used = 0;
+      let diagnosticBytes = 0;
+      exitPromise = new Promise((resolve) => {
+        child.once("close", () => {
+          exited = true;
+          if (Number.isSafeInteger(child.pid)) metrics.process_exits_observed += 1;
+          retainedProcesses -= 1;
+          terminate();
+          resolve();
+        });
+      });
+      child.once("error", terminate);
+      child.stdin.on("error", terminate);
+      child.stdout.on("data", (chunk) => {
+        try {
+          for (const byte of chunk) {
+            if (byte !== 10) {
+              if (used >= FRAME_BYTES) throw failure();
+              frame[used++] = byte;
+              continue;
+            }
+            const value = JSON.parse(frame.subarray(0, used).toString("utf8"));
+            used = 0;
+            assertPlainObject(value, "SDK response");
+            assertAllowedKeys(value, ["id", "result", "error"], "SDK response");
+            const entry = pending.get(value.id);
+            if (!entry || Object.hasOwn(value, "result") === Object.hasOwn(value, "error")) throw failure();
+            pending.delete(value.id);
+            clearTimeout(entry.timer);
+            if (value.error) {
+              if (value.error === "sandbox_not_found" && entry.operation === "get_info") {
+                const error = failure();
+                error.name = "SandboxNotFoundError";
+                error.code = "SANDBOX_NOT_FOUND";
+                entry.reject(error);
+              } else if (value.error === "file_not_found" && ["read_open", "file_remove"].includes(entry.operation)) {
+                const error = failure();
+                error.name = "FileNotFoundError";
+                error.code = "ENOENT";
+                entry.reject(error);
+              } else if (value.error === "not_entered") {
+                metrics.requests_rejected_before_sdk += 1;
+                const error = failure("E2B_SDK_PROCESS_NOT_ENTERED");
+                if (entry.operation === "create" && entry.preEntryScope) {
+                  PROCESS_PRE_ENTRY_FAILURES.set(error, Object.freeze({
+                    scope: entry.preEntryScope,
+                    operation: entry.operation
+                  }));
+                }
+                entry.reject(error);
+              } else if (value.error === "read_retired" && entry.operation === "read_next") entry.reject(failure("E2B_SDK_PROCESS_READ_RETIRED"));
+              else {
+                if (EFFECTFUL_OPERATIONS.has(entry.operation)) metrics.effectful_outcomes_unknown += 1;
+                entry.reject(failure());
+                if (EFFECTFUL_OPERATIONS.has(entry.operation) || entry.operation === "load") terminate();
+              }
+            } else {
+              if (value.id !== 0) metrics.requests_completed += 1;
+              entry.resolve(value.result);
+            }
+          }
+        } catch {
+          terminate();
+        }
+      });
+      child.stderr.on("data", (chunk) => {
+        diagnosticBytes += chunk.length;
+        if (diagnosticBytes > 32 * 1024) terminate();
+      });
+      const ready = new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+          terminate();
+          reject(failure());
+        }, deadlineMs);
+        pending.set(0, { resolve, reject, timer, operation: "inspect" });
+      });
+      const nonce = randomUUID8();
+      child.stdin.write(`${canonicalize({ config, nonce })}
+`);
+      const observed = await ready;
+      assertPlainObject(observed, "SDK startup");
+      assertAllowedKeys(observed, ["binding", "pid", "nonce", "custody"], "SDK startup");
+      if (observed.pid !== child.pid || observed.nonce !== nonce || observed.custody?.readonly !== true || observed.custody.uid !== process.getuid() || observed.custody.gid !== process.getgid()) throw failure();
+      assertPlainObject(observed.binding, "SDK binding");
+      assertAllowedKeys(observed.binding, ["package", "version", "integrity_hash"], "SDK binding");
+      if (observed.binding.package !== "e2b" || observed.binding.version !== "2.39.0") throw failure();
+      requireSha256Ref(observed.binding.integrity_hash, "SDK integrity hash");
+      pin = Object.freeze({ ...observed.binding });
+      return pin;
+    })().catch((error) => {
+      terminate();
+      throw error;
+    });
+    return startup;
+  };
+  const expect = (value, keys) => {
+    assertPlainObject(value, "SDK result");
+    assertAllowedKeys(value, keys, "SDK result");
+    return value;
+  };
+  const handle = (value) => requireString(value, "SDK handle", { maxLength: 100, pattern: /^[a-f0-9-]{36}$/ });
+  const bytes = (value) => {
+    if (typeof value !== "string" || value.length > 4 * Math.ceil(CHUNK_BYTES / 3)) throw failure();
+    const result = Buffer.from(value, "base64");
+    if (result.length > CHUNK_BYTES || result.toString("base64") !== value) throw failure();
+    return result;
+  };
+  const sandboxFacade = (record) => {
+    expect(record, ["handle", "sandboxId"]);
+    const owned = handle(record.handle);
+    const sandboxId = requireString(record.sandboxId, "sandboxId", { maxLength: 500 });
+    const files = Object.freeze({
+      async write(target, content) {
+        requireString(target, "file path");
+        if (typeof content !== "string" && !(content instanceof Uint8Array)) throw new TypeError("SDK write requires text or bytes");
+        const data = Buffer.from(content);
+        if (data.length > 32 * 1024 * 1024) throw new TypeError("SDK file write exceeds 32 MiB");
+        const begun = expect(await request("write_begin", { handle: owned, path: target, size: data.length, hash: `sha256:${createHash4("sha256").update(data).digest("hex")}` }), ["handle"]);
+        const write = handle(begun.handle);
+        try {
+          for (let offset = 0; offset < data.length; offset += CHUNK_BYTES) {
+            const chunk = data.subarray(offset, offset + CHUNK_BYTES);
+            const accepted = expect(await request("write_chunk", { handle: write, offset, bytes: chunk.toString("base64") }), ["accepted"]);
+            if (accepted.accepted !== chunk.length) {
+              terminate();
+              throw failure();
+            }
+          }
+          const result = expect(await request("write_commit", { handle: write }), ["completed"]);
+          if (result.completed !== true) {
+            terminate();
+            throw failure();
+          }
+        } finally {
+          if (!retired) await request("write_abort", { handle: write }).catch(() => {
+            terminate();
+          });
+        }
+      },
+      async remove(target) {
+        requireString(target, "file path");
+        await request("file_remove", { handle: owned, path: target });
+      },
+      async read(target, readOptions = {}) {
+        requireString(target, "file path");
+        assertPlainObject(readOptions, "SDK read options");
+        assertAllowedKeys(readOptions, ["format", "requestTimeoutMs", "streamIdleTimeoutMs", "signal"], "SDK read options");
+        if (readOptions.format !== "stream") throw new TypeError("SDK process files.read requires stream format");
+        const total = boundedInteger(readOptions.requestTimeoutMs ?? deadlineMs, "read deadline", { min: 1, max: 6e5 });
+        const idle = boundedInteger(readOptions.streamIdleTimeoutMs ?? total, "read idle deadline", { min: 1, max: total });
+        if (readOptions.signal != null && !(readOptions.signal instanceof AbortSignal)) throw new TypeError("SDK read signal must be an AbortSignal");
+        if (readOptions.signal?.aborted) throw failure();
+        const opened = expect(await request("read_open", { handle: owned, path: target, timeoutMs: total, idleTimeoutMs: idle }, total), ["handle"]);
+        const reader = handle(opened.handle);
+        let ended = false;
+        let received = 0;
+        let controller;
+        const detach = () => readOptions.signal?.removeEventListener("abort", abort);
+        const abort = () => {
+          if (!ended) {
+            ended = true;
+            detach();
+            controller.error(failure());
+            void request("read_cancel", { handle: reader }).catch(() => {
+            });
+          }
+        };
+        return new ReadableStream({
+          start(value) {
+            controller = value;
+            readOptions.signal?.addEventListener("abort", abort, { once: true });
+            if (readOptions.signal?.aborted) abort();
+          },
+          async pull(value) {
+            if (ended) return;
+            try {
+              const next = expect(await request("read_next", { handle: reader }, idle), ["done", "bytes"]);
+              if (ended) return;
+              if (typeof next.done !== "boolean") throw failure();
+              const data = bytes(next.bytes);
+              if (data.length > 4 * 1024 * 1024 - received || next.done && data.length) throw failure();
+              received += data.length;
+              if (next.done) {
+                ended = true;
+                detach();
+                value.close();
+              } else value.enqueue(data);
+            } catch (error) {
+              if (!ended) {
+                ended = true;
+                detach();
+                value.error(error);
+                void request("read_cancel", { handle: reader }).catch(() => {
+                  terminate();
+                });
+              }
+            }
+          },
+          async cancel() {
+            if (!ended) {
+              ended = true;
+              detach();
+              await request("read_cancel", { handle: reader });
+            }
+          }
+        }, { highWaterMark: 0 });
+      }
+    });
+    return Object.freeze({
+      sandboxId,
+      files,
+      commands: Object.freeze({ async run(command, commandOptions = {}) {
+        requireString(command, "SDK command", { maxLength: 8192 });
+        assertPlainObject(commandOptions, "SDK command options");
+        assertAllowedKeys(commandOptions, ["timeoutMs"], "SDK command options");
+        const timeoutMs = boundedInteger(commandOptions.timeoutMs, "command timeout", { min: 1, max: 6e5 });
+        return expect(await request("command_run", { handle: owned, command, timeoutMs }, Math.min(deadlineMs, timeoutMs)), ["exitCode", "stdout", "stderr"]);
+      } }),
+      async setTimeout(timeoutMs) {
+        boundedInteger(timeoutMs, "SDK timeout", { min: 1, max: MAX_PROVIDER_TIMEOUT_MS });
+        await request("set_timeout", { handle: owned, timeoutMs });
+      },
+      async kill() {
+        const result = expect(await request("child_kill", { handle: owned }), ["acknowledged"]);
+        return result.acknowledged === true;
+      }
+    });
+  };
+  const boundary = Object.freeze({
+    metrics() {
+      return Object.freeze({
+        ...metrics,
+        sdk_process_retired: retired,
+        sdk_process_exit_observed: exited,
+        production_qualified: false,
+        provider_cleanup_verified: false
+      });
+    },
+    async inspect() {
+      return start();
+    },
+    async load(expected) {
+      const current = await start();
+      if (canonicalize(expected) !== canonicalize(current)) throw failure();
+      if (loaded) return loaded;
+      loaded = (async () => {
+        const observed = expect(await request("load", { expected: current }), ["binding"]);
+        if (canonicalize(observed.binding) !== canonicalize(current)) throw failure();
+        class SandboxFacade {
+          constructor() {
+            throw new TypeError("SDK process sandbox instances are host-owned");
+          }
+          static async create(template, createOptions) {
+            requireString(template, "SDK template", { maxLength: 500 });
+            assertPlainObject(createOptions, "SDK create options");
+            return sandboxFacade(await request("create", { template, options: createOptions }, deadlineMs, PROCESS_SANDBOX_CLASS_SCOPES.get(SandboxFacade)));
+          }
+          static async getInfo(sandboxId) {
+            requireString(sandboxId, "sandboxId", { maxLength: 500 });
+            return request("get_info", { sandboxId });
+          }
+          static async kill(sandboxId) {
+            requireString(sandboxId, "sandboxId", { maxLength: 500 });
+            const result = expect(await request("kill", { sandboxId }), ["acknowledged"]);
+            return result.acknowledged === true;
+          }
+          static list(listOptions) {
+            assertPlainObject(listOptions, "SDK list options");
+            const snapshot = JSON.parse(canonicalize(listOptions));
+            let hasNext = true;
+            let cursor;
+            let active = false;
+            let closed = false;
+            return Object.freeze({ get hasNext() {
+              return hasNext;
+            }, async close() {
+              closed = true;
+              hasNext = false;
+              if (cursor) await request("list_close", { handle: cursor });
+            }, async nextItems() {
+              if (active || !hasNext) throw failure();
+              active = true;
+              try {
+                if (!cursor) {
+                  const opened = expect(await request("list_open", { options: snapshot }), ["handle", "hasNext"]);
+                  cursor = handle(opened.handle);
+                  if (typeof opened.hasNext !== "boolean") throw failure();
+                  hasNext = opened.hasNext;
+                }
+                if (closed) {
+                  hasNext = false;
+                  await request("list_close", { handle: cursor });
+                  return [];
+                }
+                if (hasNext === false) return [];
+                const next = expect(await request("list_next", { handle: cursor }), ["items", "hasNext"]);
+                if (!Array.isArray(next.items) || typeof next.hasNext !== "boolean") throw failure();
+                hasNext = !closed && next.hasNext;
+                return next.items;
+              } finally {
+                active = false;
+              }
+            } });
+          }
+        }
+        PROCESS_SANDBOX_CLASS_SCOPES.set(SandboxFacade, Object.freeze({}));
+        Object.freeze(SandboxFacade.prototype);
+        Object.freeze(SandboxFacade);
+        return Object.freeze({ module: Object.freeze({ Sandbox: SandboxFacade }), ...current });
+      })().catch((error) => {
+        terminate();
+        throw error;
+      });
+      return loaded;
+    },
+    async close() {
+      terminate();
+      if (exitPromise && !exited) {
+        let timer;
+        await Promise.race([exitPromise, new Promise((resolve) => {
+          timer = setTimeout(resolve, deadlineMs);
+        })]);
+        clearTimeout(timer);
+      }
+      return Object.freeze({
+        sdk_process_terminated: !child || exited,
+        sdk_process_tree_cleanup_verified: false,
+        provider_cleanup_verified: false,
+        provider_outcome: "unknown"
+      });
+    }
+  });
+  BOUNDARIES.add(boundary);
+  return boundary;
+}
+
+// risk-fork-hosted-mcp/.build/upstream/risk-fork/src/e2b-qualification.mjs
 var E2B_QUALIFICATION_SCHEMA = "agoragentic.risk-fork.e2b-qualification-evidence.v1";
 var E2B_QUALIFICATION_TRUST_SCHEMA = "agoragentic.risk-fork.e2b-qualification-trust.v1";
 var E2B_EXTERNAL_QUALIFICATION_OBSERVATION_SCHEMA = "agoragentic.risk-fork.e2b-external-qualification-observation.v1";
 var E2B_RUNTIME_SDK_INTEGRITY_SCHEMA = "agoragentic.risk-fork.e2b-runtime-sdk-dependency-closure.v2";
+var E2B_ADAPTER_ARTIFACT_EVIDENCE_REF = "evidence:e2b-risk-fork-adapter-artifact";
 var QUALIFICATION_TRUST_VERIFIERS = /* @__PURE__ */ new WeakSet();
 var EXTERNAL_QUALIFICATION_OBSERVATION_VERIFIERS = /* @__PURE__ */ new WeakSet();
 var RUNTIME_SDK_INTEGRITY_VERIFIERS = /* @__PURE__ */ new WeakSet();
+var RUNTIME_SDK_PROCESS_VERIFIERS = /* @__PURE__ */ new WeakSet();
+var RUNTIME_SDK_LOADED_ENTRIES = /* @__PURE__ */ new Map();
+var RUNTIME_SDK_CACHE_PROVENANCE = /* @__PURE__ */ new Map();
+var RUNTIME_SDK_COMMONJS_CACHE = createRequire(import.meta.url).cache;
+var MAX_RUNTIME_SDK_LOADED_ENTRIES = 32;
+var MAX_RUNTIME_SDK_CACHE_PROVENANCE = 32768;
+var runtimeSdkLoadTail = Promise.resolve();
+var CLEANUP_OBSERVATION_VERIFIERS = /* @__PURE__ */ new WeakMap();
+var CLEANUP_TRUST_VERIFIERS = /* @__PURE__ */ new WeakMap();
 var MAX_RUNTIME_SDK_PACKAGES = 128;
 var MAX_RUNTIME_SDK_FILES_PER_PACKAGE = 2048;
 var MAX_RUNTIME_SDK_FILES = 8192;
@@ -70028,7 +71420,43 @@ function normalizeEvidence3(value, { includeComputedFields }) {
     evidence_hash: includeComputedFields ? requireSha256Ref(value.evidence_hash, "E2B qualification evidence.evidence_hash") : null
   };
 }
+function normalizeExpectedBindings(value) {
+  const field = "expected E2B bindings";
+  if (!value || typeof value !== "object" || isProxy(value) || Array.isArray(value)) {
+    throw new TypeError(`${field} must be a non-Proxy plain object`);
+  }
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null || Object.getOwnPropertySymbols(value).length !== 0) {
+    throw new TypeError(`${field} must contain only own string-keyed data`);
+  }
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  const keys = [
+    "templateId",
+    "templateHash",
+    "bootstrapArtifactHash",
+    "runnerArtifactHash",
+    "adapterArtifactHash"
+  ];
+  const normalized = /* @__PURE__ */ Object.create(null);
+  for (const [key, descriptor] of Object.entries(descriptors)) {
+    if (!keys.includes(key) || !descriptor.enumerable || !Object.hasOwn(descriptor, "value")) {
+      throw new TypeError(`${field} contains unsupported or non-data fields`);
+    }
+    const entry = descriptor.value;
+    if (entry == null) continue;
+    const validated = key === "templateId" ? requireOpaqueRef(entry, `${field}.templateId`, { maxLength: 500 }) : requireSha256Ref(entry, `${field}.${key}`);
+    if (validated !== entry) throw new TypeError(`${field} must use canonical pin values`);
+    normalized[key] = validated;
+  }
+  return Object.freeze(normalized);
+}
 function assertExpectedBindings(evidence, expected) {
+  if (expected.adapterArtifactHash != null) {
+    const artifact = evidence.evidence_refs.find((entry) => entry.ref === E2B_ADAPTER_ARTIFACT_EVIDENCE_REF);
+    if (!artifact || !safeEqual(artifact.hash, expected.adapterArtifactHash)) {
+      throw new Error("E2B qualification adapter artifact binding mismatch");
+    }
+  }
   const bindings = [
     ["template_id_hash", expected.templateId == null ? null : sha256Ref(expected.templateId)],
     ["template_evidence_hash", expected.templateHash],
@@ -70234,7 +71662,7 @@ function normalizeObservationTimes(value, field) {
   }
   return { observed_at: observedAt, issued_at: issuedAt, expires_at: expiresAt };
 }
-function assertExternalObservationCurrent(times, policy) {
+function assertExternalObservationHistorical(times, policy) {
   const observedMs = Date.parse(times.observed_at);
   const issuedMs = Date.parse(times.issued_at);
   const expiresMs = Date.parse(times.expires_at);
@@ -70245,8 +71673,15 @@ function assertExternalObservationCurrent(times, policy) {
   if (issuedMs > nowMs) {
     throw new Error("E2B external qualification observation is future-issued");
   }
+  return nowMs;
+}
+function assertExternalObservationCurrent(times, policy) {
+  const nowMs = assertExternalObservationHistorical(times, policy);
+  const expiresMs = Date.parse(times.expires_at);
   if (nowMs >= expiresMs) {
-    throw new Error("E2B external qualification observation is expired");
+    const error = new Error("E2B external qualification observation is expired");
+    error.code = "E2B_QUALIFICATION_OBSERVATION_EXPIRED";
+    throw error;
   }
 }
 function normalizeStatusEvidence(value, field) {
@@ -70426,7 +71861,7 @@ function normalizeExternalNetwork(value) {
     )
   };
 }
-function externalObservationPayload(evidence, input, observer, policy) {
+function externalObservationPayload(evidence, input, observer, policy, assertTime = assertExternalObservationCurrent) {
   assertExternalObservationProvisional(evidence);
   assertPlainObject(input, "E2B external qualification observation input");
   assertAllowedKeys(input, [
@@ -70450,7 +71885,7 @@ function externalObservationPayload(evidence, input, observer, policy) {
   }
   const audience = externalObservationAudience(evidence);
   assertExternalObservationAudience(audience, policy.audience);
-  assertExternalObservationCurrent(times, policy);
+  assertTime(times, policy);
   const normalizedObserver = normalizeObserverIdentity(observer);
   const observerBoundary = normalizeExternalObserverBoundary(input.observer_boundary);
   const payload = {
@@ -70564,20 +71999,20 @@ function sameFileIdentity(left, right) {
   return left.isFile() && right.isFile() && left.dev === right.dev && left.ino === right.ino && left.size === right.size && left.mtimeMs === right.mtimeMs && left.ctimeMs === right.ctimeMs && left.nlink === right.nlink;
 }
 function isContainedPath(root, target) {
-  const relative = path3.relative(root, target);
-  return relative === "" || !relative.startsWith(`..${path3.sep}`) && relative !== ".." && !path3.isAbsolute(relative);
+  const relative = path4.relative(root, target);
+  return relative === "" || !relative.startsWith(`..${path4.sep}`) && relative !== ".." && !path4.isAbsolute(relative);
 }
 async function resolveE2BPackageDirectory() {
   const entry = fileURLToPath(import.meta.resolve("e2b"));
-  let directory = path3.dirname(entry);
+  let directory = path4.dirname(entry);
   for (let depth = 0; depth < 8; depth += 1) {
     try {
-      const manifest = JSON.parse(await readFile3(path3.join(directory, "package.json"), "utf8"));
+      const manifest = JSON.parse(await readFile3(path4.join(directory, "package.json"), "utf8"));
       if (manifest.name === "e2b") return directory;
     } catch (error) {
       if (error?.code !== "ENOENT") throw error;
     }
-    const parent = path3.dirname(directory);
+    const parent = path4.dirname(directory);
     if (parent === directory) break;
     directory = parent;
   }
@@ -70606,7 +72041,7 @@ async function readStableRegularFile(file, root, maxBytes, limitMessage) {
     }
     if (opened.size > maxBytes) throw new Error(limitMessage);
     const resolved = await realpath(file);
-    if (path3.relative(path3.resolve(file), resolved) !== "" || !isContainedPath(root, resolved)) {
+    if (path4.relative(path4.resolve(file), resolved) !== "" || !isContainedPath(root, resolved)) {
       throw new Error("E2B runtime SDK package file escapes its canonical package directory");
     }
     const bytes = await readOpenedFileExact(handle, {
@@ -70618,7 +72053,7 @@ async function readStableRegularFile(file, root, maxBytes, limitMessage) {
     const after = await handle.stat();
     const pathAfter = await lstat(file);
     const resolvedAfter = await realpath(file);
-    if (!sameFileIdentity(opened, after) || pathAfter.isSymbolicLink() || !sameFileIdentity(after, pathAfter) || path3.relative(path3.resolve(file), resolvedAfter) !== "" || !isContainedPath(root, resolvedAfter) || bytes.byteLength !== after.size) {
+    if (!sameFileIdentity(opened, after) || pathAfter.isSymbolicLink() || !sameFileIdentity(after, pathAfter) || path4.relative(path4.resolve(file), resolvedAfter) !== "" || !isContainedPath(root, resolvedAfter) || bytes.byteLength !== after.size) {
       throw new Error("E2B runtime SDK package file changed during inspection");
     }
     return bytes;
@@ -70718,21 +72153,21 @@ function runtimeDependencyDeclarations(manifest, field) {
   });
 }
 async function canonicalRealDirectory(directory, field) {
-  const requested = path3.resolve(directory);
+  const requested = path4.resolve(directory);
   const info = await lstat(requested);
   if (info.isSymbolicLink() || !info.isDirectory()) {
     throw new Error(`${field} must be a real directory`);
   }
   const resolved = await realpath(requested);
-  if (path3.relative(requested, resolved) !== "") {
+  if (path4.relative(requested, resolved) !== "") {
     throw new Error(`${field} must be canonical and must not traverse a link`);
   }
   return resolved;
 }
 function canonicalClosureLocation(anchor, target, field) {
   if (!isContainedPath(anchor, target)) throw new Error(`${field} escapes the closure anchor`);
-  const relative = path3.relative(anchor, target).split(path3.sep).join("/");
-  if (relative === "" || relative.startsWith("../") || path3.posix.isAbsolute(relative)) {
+  const relative = path4.relative(anchor, target).split(path4.sep).join("/");
+  if (relative === "" || relative.startsWith("../") || path4.posix.isAbsolute(relative)) {
     throw new Error(`${field} is not a canonical relative package location`);
   }
   return relative;
@@ -70744,8 +72179,8 @@ async function locateDependencyPackage(fromRoot, requestedName, anchor) {
   const segments = dependencyPathSegments(requestedName);
   let cursor = fromRoot;
   while (isContainedPath(anchor, cursor)) {
-    const modulesDirectory = path3.basename(cursor) === "node_modules" ? cursor : path3.join(cursor, "node_modules");
-    const candidate = path3.join(modulesDirectory, ...segments);
+    const modulesDirectory = path4.basename(cursor) === "node_modules" ? cursor : path4.join(cursor, "node_modules");
+    const candidate = path4.join(modulesDirectory, ...segments);
     if (isContainedPath(anchor, candidate)) {
       try {
         return await canonicalRealDirectory(
@@ -70757,7 +72192,7 @@ async function locateDependencyPackage(fromRoot, requestedName, anchor) {
       }
     }
     if (cursor === anchor) break;
-    const parent = path3.dirname(cursor);
+    const parent = path4.dirname(cursor);
     if (parent === cursor || !isContainedPath(anchor, parent)) break;
     cursor = parent;
   }
@@ -70780,7 +72215,7 @@ async function inspectRuntimePackageTree(root, anchor, state) {
     const entries = await readdir(canonicalDirectory, { withFileTypes: true });
     entries.sort((left, right) => left.name === right.name ? 0 : left.name < right.name ? -1 : 1);
     for (const entry of entries) {
-      const target = path3.join(canonicalDirectory, entry.name);
+      const target = path4.join(canonicalDirectory, entry.name);
       const info = await lstat(target);
       if (info.isSymbolicLink()) {
         throw new Error("E2B runtime SDK dependency closure contains a symlink");
@@ -70828,7 +72263,7 @@ async function inspectRuntimePackageTree(root, anchor, state) {
           `E2B runtime dependency closure exceeds ${MAX_RUNTIME_SDK_BYTES} bytes`
         );
       }
-      const relative = path3.relative(root, target).split(path3.sep).join("/");
+      const relative = path4.relative(root, target).split(path4.sep).join("/");
       files.push({
         path: relative,
         size: bytes.byteLength,
@@ -70864,10 +72299,10 @@ async function inspectRuntimePackageTree(root, anchor, state) {
   };
 }
 async function inspectRuntimeSdkPackage(packageDirectory) {
-  const requestedRoot = path3.resolve(packageDirectory ?? await resolveE2BPackageDirectory());
+  const requestedRoot = path4.resolve(packageDirectory ?? await resolveE2BPackageDirectory());
   const root = await canonicalRealDirectory(requestedRoot, "E2B runtime SDK package root");
   const anchor = await canonicalRealDirectory(
-    path3.dirname(root),
+    path4.dirname(root),
     "E2B runtime SDK dependency closure anchor"
   );
   const state = { fileCount: 0, totalBytes: 0 };
@@ -70930,7 +72365,7 @@ async function inspectRuntimeSdkPackage(packageDirectory) {
       const target = await visit(targetRoot, dependency.expected_package_name);
       let resolvedEntry;
       try {
-        resolvedEntry = createRequire(path3.join(canonicalRoot, "package.json")).resolve(
+        resolvedEntry = createRequire(path4.join(canonicalRoot, "package.json")).resolve(
           dependency.requested_name
         );
       } catch {
@@ -70938,13 +72373,13 @@ async function inspectRuntimeSdkPackage(packageDirectory) {
           `E2B runtime dependency ${dependency.requested_name} has no resolvable executable entry`
         );
       }
-      const canonicalEntry = await realpath(path3.resolve(resolvedEntry));
-      if (path3.relative(path3.resolve(resolvedEntry), canonicalEntry) !== "" || !isContainedPath(target.root, canonicalEntry)) {
+      const canonicalEntry = await realpath(path4.resolve(resolvedEntry));
+      if (path4.relative(path4.resolve(resolvedEntry), canonicalEntry) !== "" || !isContainedPath(target.root, canonicalEntry)) {
         throw new Error(
           `E2B runtime dependency ${dependency.requested_name} executable entry escapes its package`
         );
       }
-      const entryPath = path3.relative(target.root, canonicalEntry).split(path3.sep).join("/");
+      const entryPath = path4.relative(target.root, canonicalEntry).split(path4.sep).join("/");
       if (!target.filePaths.has(entryPath)) {
         throw new Error(
           `E2B runtime dependency ${dependency.requested_name} executable entry is not integrity-bound`
@@ -70970,6 +72405,9 @@ async function inspectRuntimeSdkPackage(packageDirectory) {
   if (sdk.manifest.main !== "dist/index.js" || !sdk.filePaths.has(sdk.manifest.main)) {
     throw new Error("E2B runtime SDK package entrypoint is not the reviewed dist/index.js");
   }
+  if (sdk.manifest.type != null && sdk.manifest.type !== "commonjs") {
+    throw new Error("E2B runtime SDK entry requires the reviewed CommonJS package profile");
+  }
   const packages = [...packagesByRoot.values()].map((entry) => entry.record).sort((left, right) => left.location === right.location ? 0 : left.location < right.location ? -1 : 1);
   edges.sort((left, right) => {
     const leftKey = `${left.from_location}\0${left.requested_name}`;
@@ -70990,7 +72428,11 @@ async function inspectRuntimeSdkPackage(packageDirectory) {
   });
   return {
     binding,
-    entry: path3.join(root, sdk.manifest.main)
+    entry: path4.join(root, sdk.manifest.main),
+    runtimeFiles: [...packagesByRoot.values()].flatMap((entry) => entry.record.files.map((file) => ({
+      path: path4.join(entry.root, ...file.path.split("/")),
+      hash: file.hash
+    })))
   };
 }
 function assertRuntimeSdkBindingMatches(observed, expected) {
@@ -70998,30 +72440,128 @@ function assertRuntimeSdkBindingMatches(observed, expected) {
     throw new Error("E2B runtime SDK integrity binding mismatch");
   }
 }
+function runtimeSdkCachedModule(file) {
+  const descriptor = Object.getOwnPropertyDescriptor(RUNTIME_SDK_COMMONJS_CACHE, file);
+  if (descriptor && !Object.hasOwn(descriptor, "value")) {
+    throw new Error("E2B runtime SDK cached module has unverified provenance; restart required");
+  }
+  return descriptor?.value;
+}
+function assertRuntimeSdkCacheProvenance(files) {
+  for (const file of files) {
+    const cached = runtimeSdkCachedModule(file.path);
+    const known = RUNTIME_SDK_CACHE_PROVENANCE.get(file.path);
+    if (cached && (!known || known.module !== cached || !safeEqual(known.hash, file.hash))) {
+      throw new Error("E2B runtime SDK cached module has unverified or changed provenance; restart required");
+    }
+    if (known && (!cached || known.module !== cached || !safeEqual(known.hash, file.hash))) {
+      throw new Error("E2B runtime SDK loaded module binding changed; restart required");
+    }
+  }
+}
+async function loadRuntimeSdkWithCacheFence(expected, inspect) {
+  const before = await inspect();
+  assertRuntimeSdkBindingMatches(before.binding, expected);
+  let loaded = RUNTIME_SDK_LOADED_ENTRIES.get(before.entry);
+  if (loaded && (loaded.state !== "verified" || !safeEqual(loaded.hash, before.binding.integrity_hash))) {
+    throw new Error("E2B runtime SDK loaded binding changed or failed; restart required");
+  }
+  assertRuntimeSdkCacheProvenance(before.runtimeFiles);
+  if (!loaded) {
+    if (RUNTIME_SDK_LOADED_ENTRIES.size >= MAX_RUNTIME_SDK_LOADED_ENTRIES || RUNTIME_SDK_CACHE_PROVENANCE.size + before.runtimeFiles.length > MAX_RUNTIME_SDK_CACHE_PROVENANCE) {
+      throw new Error("E2B runtime SDK cache provenance capacity reached; restart required");
+    }
+    loaded = { hash: before.binding.integrity_hash, state: "loading", module: null };
+    RUNTIME_SDK_LOADED_ENTRIES.set(before.entry, loaded);
+  }
+  try {
+    const module = await import(pathToFileURL(before.entry).href);
+    const after = await inspect();
+    assertRuntimeSdkBindingMatches(after.binding, expected);
+    if (!safeEqual(before.binding.integrity_hash, after.binding.integrity_hash)) {
+      throw new Error("E2B runtime SDK package changed while it was loaded");
+    }
+    if (loaded.module && loaded.module !== module) {
+      throw new Error("E2B runtime SDK cached namespace changed; restart required");
+    }
+    const additions = [];
+    for (const file of after.runtimeFiles) {
+      const cached = runtimeSdkCachedModule(file.path);
+      const known = RUNTIME_SDK_CACHE_PROVENANCE.get(file.path);
+      if (known && (!cached || known.module !== cached || !safeEqual(known.hash, file.hash))) {
+        throw new Error("E2B runtime SDK cached provenance changed during load; restart required");
+      }
+      if (cached && !known) additions.push([file.path, { hash: file.hash, module: cached }]);
+    }
+    for (const [file, provenance] of additions) RUNTIME_SDK_CACHE_PROVENANCE.set(file, provenance);
+    loaded.module = module;
+    loaded.state = "verified";
+    return Object.freeze({ module, ...after.binding });
+  } catch (error) {
+    loaded.state = "failed";
+    throw error;
+  }
+}
 function createE2BRuntimeSdkIntegrityVerifier(options = {}) {
   assertPlainObject(options, "E2B runtime SDK integrity verifier options");
-  assertAllowedKeys(options, ["packageDirectory"], "E2B runtime SDK integrity verifier options");
-  const packageDirectory = options.packageDirectory == null ? null : path3.resolve(requireString(
+  assertAllowedKeys(options, ["packageDirectory", "processBoundary", "readOnlyRuntime"], "E2B runtime SDK integrity verifier options");
+  if (options.processBoundary !== void 0) {
+    if (!isE2BRuntimeSdkProcessBoundary(options.processBoundary) || options.packageDirectory !== void 0 || options.readOnlyRuntime !== void 0) {
+      throw new TypeError("E2B SDK process verifier requires only an original host-owned process boundary");
+    }
+    const boundary = options.processBoundary;
+    const verifier2 = Object.freeze({
+      async inspect() {
+        return normalizeRuntimeSdkBinding(await boundary.inspect());
+      },
+      async load(value) {
+        return boundary.load(normalizeRuntimeSdkBinding(value));
+      }
+    });
+    RUNTIME_SDK_INTEGRITY_VERIFIERS.add(verifier2);
+    RUNTIME_SDK_PROCESS_VERIFIERS.add(verifier2);
+    return verifier2;
+  }
+  const packageDirectory = options.packageDirectory == null ? null : path4.resolve(requireString(
     options.packageDirectory,
     "E2B runtime SDK packageDirectory",
     { maxLength: 4e3 }
   ));
+  let readOnlyRuntime = null;
+  if (options.readOnlyRuntime !== void 0) {
+    assertAllowedKeys(options.readOnlyRuntime, ["runtimeArtifactPath", "runtimeArtifactHash", "nodeArtifactHash"], "E2B read-only runtime profile");
+    const runtimeArtifactPath = requireString(options.readOnlyRuntime.runtimeArtifactPath, "runtimeArtifactPath");
+    if (!packageDirectory || !path4.isAbsolute(runtimeArtifactPath) || runtimeArtifactPath !== path4.resolve(runtimeArtifactPath)) {
+      throw new TypeError("E2B read-only runtime requires explicit canonical artifact and package paths");
+    }
+    readOnlyRuntime = Object.freeze({
+      packageDirectory,
+      runtimeArtifactPath,
+      nodePath: process.execPath,
+      runtimeArtifactHash: requireSha256Ref(options.readOnlyRuntime.runtimeArtifactHash, "runtimeArtifactHash"),
+      nodeArtifactHash: requireSha256Ref(options.readOnlyRuntime.nodeArtifactHash, "nodeArtifactHash")
+    });
+  }
+  const inspect = async () => {
+    const inspected = await inspectRuntimeSdkPackage(packageDirectory);
+    if (readOnlyRuntime) {
+      await assertE2BRuntimeSdkReadonlyCustody(readOnlyRuntime, inspected.runtimeFiles.map((file) => file.path));
+    }
+    return inspected;
+  };
   const verifier = {
     async inspect() {
-      const inspected = await inspectRuntimeSdkPackage(packageDirectory);
+      const inspected = await inspect();
       return inspected.binding;
     },
     async load(value) {
       const expected = normalizeRuntimeSdkBinding(value);
-      const before = await inspectRuntimeSdkPackage(packageDirectory);
-      assertRuntimeSdkBindingMatches(before.binding, expected);
-      const module = await import(pathToFileURL(before.entry).href);
-      const after = await inspectRuntimeSdkPackage(packageDirectory);
-      assertRuntimeSdkBindingMatches(after.binding, expected);
-      if (!safeEqual(before.binding.integrity_hash, after.binding.integrity_hash)) {
-        throw new Error("E2B runtime SDK package changed while it was loaded");
-      }
-      return Object.freeze({ module, ...after.binding });
+      const pending = runtimeSdkLoadTail.then(() => loadRuntimeSdkWithCacheFence(
+        expected,
+        inspect
+      ));
+      runtimeSdkLoadTail = pending.then(() => void 0, () => void 0);
+      return pending;
     }
   };
   RUNTIME_SDK_INTEGRITY_VERIFIERS.add(verifier);
@@ -71029,6 +72569,9 @@ function createE2BRuntimeSdkIntegrityVerifier(options = {}) {
 }
 function isE2BRuntimeSdkIntegrityVerifier(value) {
   return Boolean(value && RUNTIME_SDK_INTEGRITY_VERIFIERS.has(value));
+}
+function isE2BRuntimeSdkProcessIntegrityVerifier(value) {
+  return Boolean(value && RUNTIME_SDK_PROCESS_VERIFIERS.has(value));
 }
 async function loadVerifiedE2BRuntimeSdk(value, verifier) {
   if (!isE2BRuntimeSdkIntegrityVerifier(verifier)) {
@@ -71115,6 +72658,48 @@ function createE2BExternalQualificationObservationVerifier(options = {}) {
     ),
     audience: deepFreeze(normalizeExternalObservationAudience(options.audience))
   });
+  function verifyObservation(value, observation, assertTime) {
+    const evidence = validateE2BQualificationEvidence(value);
+    const normalizedObservation = normalizeExternalObservationReceipt(observation);
+    if (!safeEqual(normalizedObservation.observer.public_key_hash, keyHash) || normalizedObservation.observer.public_key_spki_base64url !== observer.public_key_spki_base64url) {
+      throw new Error("E2B external qualification observer does not match pinned policy");
+    }
+    assertExternalObservationAudience(normalizedObservation.audience, policy.audience);
+    const payload = externalObservationPayload(evidence, {
+      observed_at: normalizedObservation.observed_at,
+      issued_at: normalizedObservation.issued_at,
+      expires_at: normalizedObservation.expires_at,
+      observer_boundary: normalizedObservation.observer_boundary,
+      birth_controls: normalizedObservation.birth_controls,
+      first_instruction_ipv4_egress_denied: normalizedObservation.network.first_instruction_ipv4_egress_denied,
+      first_instruction_ipv6_egress_denied: normalizedObservation.network.first_instruction_ipv6_egress_denied,
+      ipv6_provider_denial: normalizedObservation.network.ipv6_provider_denial,
+      provider_controls: normalizedObservation.provider_controls,
+      cost: {
+        provider_cap: normalizedObservation.cost.provider_cap,
+        derived_estimate: normalizedObservation.cost.derived_estimate,
+        aggregate_console_delta: normalizedObservation.cost.aggregate_console_delta,
+        actual_sandbox: normalizedObservation.cost.actual_sandbox
+      }
+    }, observer, policy, assertTime);
+    const { signature: signatureValue, ...actualPayload } = normalizedObservation;
+    if (canonicalize(actualPayload) !== canonicalize(payload)) {
+      throw new Error("E2B external qualification observation binding mismatch");
+    }
+    const signature = requireEd25519Signature(
+      signatureValue,
+      "E2B external qualification observation signature"
+    );
+    if (!verifySignature(
+      null,
+      Buffer.from(canonicalize(payload), "utf8"),
+      publicKey,
+      signature
+    )) {
+      throw new Error("E2B external qualification observation signature is invalid");
+    }
+    return normalizedObservation;
+  }
   const verifier = {
     key_hash: keyHash,
     observer,
@@ -71125,49 +72710,11 @@ function createE2BExternalQualificationObservationVerifier(options = {}) {
       return externalObservationPayload(evidence, input, observer, policy);
     },
     verify(value, observation) {
-      const evidence = validateE2BQualificationEvidence(value);
-      const normalizedObservation = normalizeExternalObservationReceipt(observation);
-      if (!safeEqual(normalizedObservation.observer.public_key_hash, keyHash) || normalizedObservation.observer.public_key_spki_base64url !== observer.public_key_spki_base64url) {
-        throw new Error("E2B external qualification observer does not match pinned policy");
-      }
-      assertExternalObservationAudience(normalizedObservation.audience, policy.audience);
-      const payload = externalObservationPayload(evidence, {
-        observed_at: normalizedObservation.observed_at,
-        issued_at: normalizedObservation.issued_at,
-        expires_at: normalizedObservation.expires_at,
-        observer_boundary: normalizedObservation.observer_boundary,
-        birth_controls: normalizedObservation.birth_controls,
-        first_instruction_ipv4_egress_denied: normalizedObservation.network.first_instruction_ipv4_egress_denied,
-        first_instruction_ipv6_egress_denied: normalizedObservation.network.first_instruction_ipv6_egress_denied,
-        ipv6_provider_denial: normalizedObservation.network.ipv6_provider_denial,
-        provider_controls: normalizedObservation.provider_controls,
-        cost: {
-          provider_cap: normalizedObservation.cost.provider_cap,
-          derived_estimate: normalizedObservation.cost.derived_estimate,
-          aggregate_console_delta: normalizedObservation.cost.aggregate_console_delta,
-          actual_sandbox: normalizedObservation.cost.actual_sandbox
-        }
-      }, observer, policy);
-      const { signature: signatureValue, ...actualPayload } = normalizedObservation;
-      if (canonicalize(actualPayload) !== canonicalize(payload)) {
-        throw new Error("E2B external qualification observation binding mismatch");
-      }
-      const signature = requireEd25519Signature(
-        signatureValue,
-        "E2B external qualification observation signature"
-      );
-      if (!verifySignature(
-        null,
-        Buffer.from(canonicalize(payload), "utf8"),
-        publicKey,
-        signature
-      )) {
-        throw new Error("E2B external qualification observation signature is invalid");
-      }
-      return normalizedObservation;
+      return verifyObservation(value, observation, assertExternalObservationCurrent);
     }
   };
   EXTERNAL_QUALIFICATION_OBSERVATION_VERIFIERS.add(verifier);
+  CLEANUP_OBSERVATION_VERIFIERS.set(verifier, (value, observation) => verifyObservation(value, observation, assertExternalObservationHistorical));
   return Object.freeze(verifier);
 }
 function verifyE2BExternalQualificationObservation(value, observation, verifier) {
@@ -71202,6 +72749,29 @@ function createE2BQualificationTrustVerifier(options = {}) {
   if (!safeEqual(keyHash, expectedKeyHash)) {
     throw new Error("E2B qualification trust verifier public key hash mismatch");
   }
+  function verifyBoundTrust(evidence, trust) {
+    assertDistinctQualificationTrustKey(evidence, keyHash);
+    assertPlainObject(trust, "E2B qualification trust");
+    assertAllowedKeys(
+      trust,
+      ["schema", "evidence_hash", "verifier_key_hash", "signature"],
+      "E2B qualification trust"
+    );
+    const payload = qualificationTrustPayload(evidence, keyHash);
+    if (trust.schema !== payload.schema || !safeEqual(trust.evidence_hash, payload.evidence_hash) || !safeEqual(trust.verifier_key_hash, payload.verifier_key_hash)) {
+      throw new Error("E2B qualification trust binding mismatch");
+    }
+    const signature = requireEd25519Signature(trust.signature);
+    if (!verifySignature(
+      null,
+      Buffer.from(canonicalize(payload), "utf8"),
+      publicKey,
+      signature
+    )) {
+      throw new Error("E2B qualification trust signature is invalid");
+    }
+    return deepFreeze({ ...payload, signature: trust.signature });
+  }
   const verifier = {
     key_hash: keyHash,
     createPayload(value, expected = {}, externalObservationVerifier = null) {
@@ -71214,35 +72784,15 @@ function createE2BQualificationTrustVerifier(options = {}) {
       return qualificationTrustPayload(evidence, keyHash);
     },
     verify(value, trust, expected = {}, externalObservationVerifier = null) {
-      const evidence = validateE2BQualificationEvidence(
+      return verifyBoundTrust(validateE2BQualificationEvidence(
         value,
         expected,
         externalObservationVerifier
-      );
-      assertDistinctQualificationTrustKey(evidence, keyHash);
-      assertPlainObject(trust, "E2B qualification trust");
-      assertAllowedKeys(
-        trust,
-        ["schema", "evidence_hash", "verifier_key_hash", "signature"],
-        "E2B qualification trust"
-      );
-      const payload = qualificationTrustPayload(evidence, keyHash);
-      if (trust.schema !== payload.schema || !safeEqual(trust.evidence_hash, payload.evidence_hash) || !safeEqual(trust.verifier_key_hash, payload.verifier_key_hash)) {
-        throw new Error("E2B qualification trust binding mismatch");
-      }
-      const signature = requireEd25519Signature(trust.signature);
-      if (!verifySignature(
-        null,
-        Buffer.from(canonicalize(payload), "utf8"),
-        publicKey,
-        signature
-      )) {
-        throw new Error("E2B qualification trust signature is invalid");
-      }
-      return deepFreeze({ ...payload, signature: trust.signature });
+      ), trust);
     }
   };
   QUALIFICATION_TRUST_VERIFIERS.add(verifier);
+  CLEANUP_TRUST_VERIFIERS.set(verifier, verifyBoundTrust);
   return Object.freeze(verifier);
 }
 function verifyE2BQualificationTrust(value, trust, verifier, expected = {}, externalObservationVerifier = null) {
@@ -71412,14 +72962,15 @@ function finalizeE2BQualificationEvidence(evidence, verified) {
     external_observation_receipt: verified
   });
 }
-function assertFinalizedEvidenceMatchesReceipt(evidence, externalObservationVerifier) {
+function assertFinalizedEvidenceMatchesReceipt(evidence, externalObservationVerifier, cleanupOnly = false) {
   if (!externalObservationVerifier || !EXTERNAL_QUALIFICATION_OBSERVATION_VERIFIERS.has(externalObservationVerifier)) {
     throw new TypeError(
       "Finalized E2B qualification evidence requires a caller-pinned external observation verifier"
     );
   }
   const provisional = provisionalEvidenceFromFinalized(evidence);
-  const verified = externalObservationVerifier.verify(
+  const verifyObservation = cleanupOnly ? CLEANUP_OBSERVATION_VERIFIERS.get(externalObservationVerifier) : (value, observation) => externalObservationVerifier.verify(value, observation);
+  const verified = verifyObservation(
     provisional,
     evidence.external_observation_receipt
   );
@@ -71437,7 +72988,8 @@ function createE2BQualificationEvidence(input = {}) {
   }
   return evidence;
 }
-function validateE2BQualificationEvidence(value, expected = {}, externalObservationVerifier = null) {
+function validateQualificationEvidence(value, expected = {}, externalObservationVerifier = null, cleanupOnly = false) {
+  const expectedBindings = normalizeExpectedBindings(expected);
   const normalized = normalizeEvidence3(value, { includeComputedFields: true });
   const expectedHash = sha256Ref({ ...normalized, evidence_hash: null });
   if (!safeEqual(normalized.evidence_hash, expectedHash)) {
@@ -71446,11 +72998,31 @@ function validateE2BQualificationEvidence(value, expected = {}, externalObservat
   if (canonicalize(normalized) !== canonicalize(value)) {
     throw new Error("E2B qualification evidence is not canonical and closed");
   }
-  assertExpectedBindings(normalized, expected);
+  assertExpectedBindings(normalized, expectedBindings);
   if (normalized.external_observation_receipt !== null) {
-    assertFinalizedEvidenceMatchesReceipt(normalized, externalObservationVerifier);
+    assertFinalizedEvidenceMatchesReceipt(normalized, externalObservationVerifier, cleanupOnly);
   }
   return deepFreeze(normalized);
+}
+function validateE2BQualificationEvidence(value, expected = {}, externalObservationVerifier = null) {
+  return validateQualificationEvidence(value, expected, externalObservationVerifier);
+}
+function verifyE2BCleanupQualificationProvenance(value, trust, verifier, expected = {}, externalObservationVerifier = null) {
+  const evidence = validateQualificationEvidence(value, expected, externalObservationVerifier, true);
+  const verifyTrust = CLEANUP_TRUST_VERIFIERS.get(verifier);
+  if (!verifyTrust) {
+    throw new TypeError("E2B cleanup provenance requires a trusted qualification trust verifier");
+  }
+  if (evidence.status !== "verified" || evidence.external_observation_receipt === null) {
+    throw new Error("E2B cleanup provenance requires finalized signed qualified historical evidence");
+  }
+  return Object.freeze({
+    evidence,
+    trust: verifyTrust(evidence, trust),
+    cleanup_only: true,
+    grants_new_effects: false,
+    production_activation_granted: false
+  });
 }
 function isE2BQualificationEvidenceCanonical(value, expected = {}, externalObservationVerifier = null) {
   try {
@@ -71462,7 +73034,7 @@ function isE2BQualificationEvidenceCanonical(value, expected = {}, externalObser
 }
 function sha256BytesRef(value) {
   const bytes = value instanceof Uint8Array ? value : Buffer.from(value);
-  return `sha256:${createHash4("sha256").update(bytes).digest("hex")}`;
+  return `sha256:${createHash5("sha256").update(bytes).digest("hex")}`;
 }
 async function sha256FileRef(file) {
   const nonBlock = Number.isInteger(constants.O_NONBLOCK) ? constants.O_NONBLOCK : 0;
@@ -71485,12 +73057,12 @@ async function sha256FileRef(file) {
 }
 
 // risk-fork-hosted-mcp/.build/upstream/risk-fork/src/adapters/e2b.mjs
-import { randomUUID as randomUUID9 } from "node:crypto";
+import { randomUUID as randomUUID10 } from "node:crypto";
 import { readFile as readFile6 } from "node:fs/promises";
-import path6 from "node:path";
+import path7 from "node:path";
 import { performance as performance2 } from "node:perf_hooks";
 import { fileURLToPath as fileURLToPath2 } from "node:url";
-import { types as utilTypes3 } from "node:util";
+import { types as utilTypes4 } from "node:util";
 
 // risk-fork-hosted-mcp/.build/upstream/risk-fork/e2b-template/lib/runtime-contract.mjs
 var BOOT_EVIDENCE_SCHEMA = "agoragentic.risk-fork.e2b-boot-evidence.v1";
@@ -71995,7 +73567,7 @@ function validateE2BBirthAttestation(value, options = {}) {
 }
 
 // risk-fork-hosted-mcp/.build/upstream/risk-fork/src/adapters/e2b-cleanup-journal.mjs
-import { randomUUID as randomUUID8 } from "node:crypto";
+import { randomUUID as randomUUID9 } from "node:crypto";
 import {
   mkdir as mkdir2,
   open as open3,
@@ -72004,7 +73576,7 @@ import {
   rename as rename2,
   unlink as unlink2
 } from "node:fs/promises";
-import path4 from "node:path";
+import path5 from "node:path";
 var JOURNAL_SCHEMA = "agoragentic.risk-fork.e2b-cleanup-journal.v1";
 var SANDBOX_STATES = Object.freeze([
   "not_requested",
@@ -72125,7 +73697,7 @@ async function syncDirectory(directory) {
 }
 var E2BCleanupJournal = class {
   constructor(options = {}) {
-    this.directory = path4.resolve(requireString(options.directory, "cleanup journal directory"));
+    this.directory = path5.resolve(requireString(options.directory, "cleanup journal directory"));
     this.clock = options.clock ?? (() => /* @__PURE__ */ new Date());
     if (typeof this.clock !== "function") throw new TypeError("cleanup journal clock must be a function");
     this.initialized = false;
@@ -72139,7 +73711,7 @@ var E2BCleanupJournal = class {
   }
   #path(recordId) {
     const digest = sha256Ref(requireOpaqueRef(recordId, "cleanup journal record id")).slice(7);
-    return path4.join(this.directory, `${digest}.json`);
+    return path5.join(this.directory, `${digest}.json`);
   }
   async #read(recordId) {
     await this.initialize();
@@ -72158,7 +73730,7 @@ var E2BCleanupJournal = class {
     await this.initialize();
     const normalized = normalizeRecord(record);
     const target = this.#path(normalized.record_id);
-    const temp = path4.join(this.directory, `.${path4.basename(target)}.${randomUUID8()}.tmp`);
+    const temp = path5.join(this.directory, `.${path5.basename(target)}.${randomUUID9()}.tmp`);
     let handle;
     try {
       handle = await open3(temp, "wx", 384);
@@ -72325,9 +73897,9 @@ var E2BCleanupJournal = class {
     const names = (await readdir2(this.directory)).filter((name) => /^[a-f0-9]{64}\.json$/.test(name)).sort();
     const records = [];
     for (const name of names) {
-      const parsed = JSON.parse(await readFile4(path4.join(this.directory, name), "utf8"));
+      const parsed = JSON.parse(await readFile4(path5.join(this.directory, name), "utf8"));
       const record = normalizeRecord(parsed);
-      if (path4.basename(this.#path(record.record_id)) !== name) {
+      if (path5.basename(this.#path(record.record_id)) !== name) {
         throw new Error("cleanup journal filename does not match record identity");
       }
       records.push(record);
@@ -72352,7 +73924,7 @@ import {
   realpath as realpath2,
   rm
 } from "node:fs/promises";
-import path5 from "node:path";
+import path6 from "node:path";
 import { TextDecoder as TextDecoder2 } from "node:util";
 var EXPORT_SCHEMA = "agoragentic.risk-fork.immutable-workspace-export.v1";
 var SECRET_PATH_PATTERN = /(?:^|\/)(?:\.env(?:\..*)?|\.aws|\.azure|\.config\/gcloud|\.docker\/config\.json|\.git-credentials|\.netrc|\.npmrc|\.pypirc|\.ssh|credentials?(?:\.[^/]*)?|id_(?:rsa|dsa|ecdsa|ed25519)(?:\.pub)?|private[_-]?key(?:\.[^/]*)?|secrets?(?:\.[^/]*)?|wallet(?:\.[^/]*)?)(?:$|\/)/i;
@@ -72890,9 +74462,9 @@ function requireExportId(value) {
   return exportId;
 }
 function ownedExportPath(exportRoot, exportId) {
-  const root = path5.resolve(requireString(exportRoot, "workspace export root"));
-  const target = path5.resolve(root, requireExportId(exportId));
-  if (target === root || !target.startsWith(`${root}${path5.sep}`)) {
+  const root = path6.resolve(requireString(exportRoot, "workspace export root"));
+  const target = path6.resolve(root, requireExportId(exportId));
+  if (target === root || !target.startsWith(`${root}${path6.sep}`)) {
     throw new Error("workspace export path escapes its configured root");
   }
   return { root, target };
@@ -72935,9 +74507,9 @@ function stableIdentity(info) {
   };
 }
 function assertWithinRealRoot(rootReal, candidateReal, field) {
-  const relative = path5.relative(rootReal, candidateReal);
+  const relative = path6.relative(rootReal, candidateReal);
   if (relative === "") return;
-  if (relative === ".." || relative.startsWith(`..${path5.sep}`) || path5.isAbsolute(relative)) {
+  if (relative === ".." || relative.startsWith(`..${path6.sep}`) || path6.isAbsolute(relative)) {
     throw new Error(`${field} escapes the workspace root`);
   }
 }
@@ -73053,7 +74625,7 @@ async function enumerateWorkspace(root, { maxFiles, maxBytes, includeContent }) 
         );
       }
       seenCaseFolded.set(folded, { raw_relative: rawRelative, normalized_relative: relative });
-      const absolute = path5.join(directory, entry.name);
+      const absolute = path6.join(directory, entry.name);
       const info = await lstat2(absolute, { bigint: true });
       if (info.isSymbolicLink()) throw new Error(`Symlinks are forbidden: ${relative}`);
       if (info.isDirectory()) {
@@ -73113,7 +74685,7 @@ async function writeExclusive(target, content, mode = 256) {
 async function makeTreeReadOnly(directory) {
   const entries = await readdir3(directory, { withFileTypes: true });
   for (const entry of entries) {
-    const target = path5.join(directory, entry.name);
+    const target = path6.join(directory, entry.name);
     if (entry.isDirectory()) {
       await makeTreeReadOnly(target);
       await chmod(target, 320);
@@ -73172,7 +74744,7 @@ async function validateOwnedTreeForCleanup(directory, rootReal, state, depth = 0
     throw new Error("Immutable workspace export cleanup exceeds its entry bound");
   }
   for (const entry of entries) {
-    const target = path5.join(directory, entry.name);
+    const target = path6.join(directory, entry.name);
     let handle;
     try {
       handle = await open4(target, readOnlyNoFollowNonBlockingFlags());
@@ -73246,7 +74818,7 @@ async function makeOwnedTreeWritable(directory, rootReal, state, depth = 0) {
     throw new Error("Immutable workspace export cleanup exceeds its entry bound");
   }
   for (const entry of entries) {
-    const target = path5.join(directory, entry.name);
+    const target = path6.join(directory, entry.name);
     let handle;
     try {
       handle = await open4(target, readOnlyNoFollowNonBlockingFlags());
@@ -73312,7 +74884,7 @@ async function makeOwnedTreeWritable(directory, rootReal, state, depth = 0) {
   }
 }
 async function validateOwnedCleanupManifest(target, exportId, rootReal) {
-  const manifestPath = path5.join(target, "manifest.json");
+  const manifestPath = path6.join(target, "manifest.json");
   let handle;
   try {
     handle = await open4(manifestPath, readOnlyNoFollowNonBlockingFlags());
@@ -73456,7 +75028,7 @@ function validateManifest(manifest, expected = {}) {
   return manifest;
 }
 async function createImmutableWorkspaceExport(input = {}) {
-  const sourceWorkspace = path5.resolve(requireString(input.source_workspace, "source_workspace"));
+  const sourceWorkspace = path6.resolve(requireString(input.source_workspace, "source_workspace"));
   const sourceInfo = await lstat2(sourceWorkspace);
   if (sourceInfo.isSymbolicLink() || !sourceInfo.isDirectory()) {
     throw new TypeError("source_workspace must be a real directory, not a symlink");
@@ -73466,7 +75038,7 @@ async function createImmutableWorkspaceExport(input = {}) {
   const { root, target } = ownedExportPath(input.export_root, exportId);
   await mkdir3(root, { recursive: true, mode: 448 });
   const rootReal = await realpath2(root);
-  if (rootReal === sourceReal || rootReal.startsWith(`${sourceReal}${path5.sep}`) || sourceReal.startsWith(`${rootReal}${path5.sep}`)) {
+  if (rootReal === sourceReal || rootReal.startsWith(`${sourceReal}${path6.sep}`) || sourceReal.startsWith(`${rootReal}${path6.sep}`)) {
     throw new Error("workspace source and export root must be disjoint");
   }
   if (await pathExists(target)) throw new Error(`Workspace export already exists: ${exportId}`);
@@ -73490,7 +75062,7 @@ async function createImmutableWorkspaceExport(input = {}) {
   if (!safeEqual(source.workspace_digest, expectedWorkspaceDigest)) {
     throw new Error("Source workspace digest does not match the Savepoint Capsule");
   }
-  const payloadDirectory = path5.join(target, "payload");
+  const payloadDirectory = path6.join(target, "payload");
   let targetCreated = false;
   try {
     await mkdir3(target, { mode: 448 });
@@ -73499,8 +75071,8 @@ async function createImmutableWorkspaceExport(input = {}) {
     assertWithinRealRoot(rootReal, targetReal, "Workspace export target");
     await mkdir3(payloadDirectory, { mode: 448 });
     for (const record of source.records) {
-      const destination = path5.join(payloadDirectory, ...record.path.split("/"));
-      await mkdir3(path5.dirname(destination), { recursive: true, mode: 448 });
+      const destination = path6.join(payloadDirectory, ...record.path.split("/"));
+      await mkdir3(path6.dirname(destination), { recursive: true, mode: 448 });
       await writeExclusive(destination, record.content);
     }
     const copied = await enumerateWorkspace(payloadDirectory, {
@@ -73517,7 +75089,7 @@ async function createImmutableWorkspaceExport(input = {}) {
     if (manifestBytes.byteLength > MAX_CLEANUP_MANIFEST_BYTES) {
       throw new Error("Workspace export manifest exceeds its bounded cleanup allowance");
     }
-    await writeExclusive(path5.join(target, "manifest.json"), manifestBytes);
+    await writeExclusive(path6.join(target, "manifest.json"), manifestBytes);
     await makeTreeReadOnly(target);
     return deepFreeze({
       export_id: exportId,
@@ -73547,14 +75119,14 @@ async function readImmutableWorkspaceExport(input = {}) {
   const exportId = requireExportId(input.export_id);
   const { target } = ownedExportPath(input.export_root, exportId);
   const manifest = validateManifest(
-    JSON.parse(await readFile5(path5.join(target, "manifest.json"), "utf8")),
+    JSON.parse(await readFile5(path6.join(target, "manifest.json"), "utf8")),
     {
       exportId,
       manifestHash: input.manifest_hash,
       workspaceDigest: input.workspace_digest
     }
   );
-  const payloadDirectory = path5.join(target, "payload");
+  const payloadDirectory = path6.join(target, "payload");
   const current = await enumerateWorkspace(payloadDirectory, {
     maxFiles: Math.max(1, manifest.file_count),
     maxBytes: Math.max(1, manifest.total_bytes),
@@ -73617,6 +75189,7 @@ var MAX_RESULT_BYTES = 4 * 1024 * 1024;
 var MAX_ATTESTATION_BYTES = 128 * 1024;
 var DEFAULT_BIRTH_ATTESTATION_TIMEOUT_MS = 1e4;
 var MAX_RESULT_STREAM_IDLE_TIMEOUT_MS = 5e3;
+var SDK_PROCESS_WRITE_LIMIT_BYTES = 32 * 1024 * 1024;
 var MIN_RESULT_STREAM_IDLE_TIMEOUT_MS = 50;
 var MAX_JSON_NODES = 2e4;
 var MAX_JSON_DEPTH = 50;
@@ -73671,7 +75244,7 @@ function createDetachedArray4(...values) {
   return output;
 }
 function buildE2BCleanSandboxCreateOptions(input = {}) {
-  if (input && typeof input === "object" && utilTypes3.isProxy(input)) {
+  if (input && typeof input === "object" && utilTypes4.isProxy(input)) {
     throw new TypeError("E2B clean sandbox creation input must not be a Proxy");
   }
   assertPlainObject(input, "E2B clean sandbox creation input");
@@ -73703,7 +75276,7 @@ function buildE2BCleanSandboxCreateOptions(input = {}) {
     }
   );
   const rawMetadata = inputDescriptors.metadata.value;
-  if (rawMetadata && typeof rawMetadata === "object" && utilTypes3.isProxy(rawMetadata)) {
+  if (rawMetadata && typeof rawMetadata === "object" && utilTypes4.isProxy(rawMetadata)) {
     throw new TypeError("E2B clean sandbox metadata must not be a Proxy");
   }
   assertPlainObject(rawMetadata, "E2B clean sandbox metadata");
@@ -73729,7 +75302,7 @@ function buildE2BCleanSandboxCreateOptions(input = {}) {
     if (!E2B_CLEAN_METADATA_KEYS.has(normalizedKey)) {
       throw new TypeError("E2B clean sandbox metadata contains an unsupported key");
     }
-    if (value && typeof value === "object" && utilTypes3.isProxy(value)) {
+    if (value && typeof value === "object" && utilTypes4.isProxy(value)) {
       throw new TypeError(`E2B clean sandbox metadata ${normalizedKey} must not be a Proxy`);
     }
     const normalizedValue = requireString(value, `E2B clean sandbox metadata ${normalizedKey}`, {
@@ -73830,16 +75403,16 @@ async function defaultSdkLoader() {
 }
 async function defaultSdkVersionLoader() {
   const entry = fileURLToPath2(import.meta.resolve("e2b"));
-  let directory = path6.dirname(entry);
+  let directory = path7.dirname(entry);
   for (let depth = 0; depth < 8; depth += 1) {
-    const manifestPath = path6.join(directory, "package.json");
+    const manifestPath = path7.join(directory, "package.json");
     try {
       const manifest = JSON.parse(await readFile6(manifestPath, "utf8"));
       if (manifest.name === "e2b") return manifest.version;
     } catch (error) {
       if (error?.code !== "ENOENT") throw error;
     }
-    const parent = path6.dirname(directory);
+    const parent = path7.dirname(directory);
     if (parent === directory) break;
     directory = parent;
   }
@@ -73932,7 +75505,7 @@ async function readBoundedResultBytes(files, target, options) {
   const retained = Buffer.alloc(maxBytes);
   let retainedBytes = 0;
   let reader;
-  let failure;
+  let failure2;
   const remainingTotalMs = () => Math.floor(
     totalTimeoutMs - (performance2.now() - startedAt)
   );
@@ -74013,13 +75586,13 @@ async function readBoundedResultBytes(files, target, options) {
     }
     return retained.subarray(0, retainedBytes);
   } catch (error) {
-    failure = error;
+    failure2 = error;
     throw error;
   } finally {
-    if (failure) {
-      controller.abort(failure);
+    if (failure2) {
+      controller.abort(failure2);
       if (reader && typeof reader.cancel === "function") {
-        const cancellation = Promise.resolve().then(() => reader.cancel(failure)).catch(() => {
+        const cancellation = Promise.resolve().then(() => reader.cancel(failure2)).catch(() => {
         });
         let cancellationTimer;
         await Promise.race([
@@ -74320,7 +75893,7 @@ async function performE2BSandboxBirthHandshake(options = {}) {
     expires_at: new Date(
       allocationStartedAt.getTime() + E2B_BIRTH_MAX_VALIDITY_MS
     ).toISOString(),
-    birth_nonce: randomUUID9()
+    birth_nonce: randomUUID10()
   });
   const paths = e2bBirthRequestPaths(request.request_hash);
   for (const target of [
@@ -74717,6 +76290,10 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
   #sdkVersionVerified;
   #sdkIntegrityVerifier;
   #sdkIntegrityVerified;
+  #sdkProcessBoundary;
+  #qualificationState;
+  #qualificationExpiryObserved;
+  #cleanupPolicy;
   constructor(options = {}) {
     const templateProvenanceCandidate = options.cleanTemplateProvenanceHash ?? options.qualificationEvidence?.template?.provenance_hash;
     const profileValues = [
@@ -74735,14 +76312,55 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
     if (!configured && options.qualificationEvidence != null) {
       throw new TypeError("E2B qualification evidence requires the complete clean-template profile");
     }
-    const qualificationEvidence = options.qualificationEvidence == null ? null : validateE2BQualificationEvidence(options.qualificationEvidence, {
+    const hasQualificationTrust = options.qualificationTrust != null;
+    const hasQualificationVerifier = options.qualificationTrustVerifier != null;
+    if (hasQualificationTrust !== hasQualificationVerifier) {
+      throw new TypeError("E2B qualification trust and its verifier are required together");
+    }
+    if (options.trustedAdapterArtifactHash != null && (options.qualificationEvidence == null || !hasQualificationTrust)) {
+      throw new TypeError("trustedAdapterArtifactHash requires qualification evidence and signed trust");
+    }
+    const expectedBindings = Object.freeze({
       templateId: options.cleanTemplateId,
       templateHash: options.cleanTemplateHash,
       bootstrapArtifactHash: options.trustedBootstrapArtifactHash,
-      runnerArtifactHash: options.trustedRunnerArtifactHash
-    }, options.externalQualificationObservationVerifier ?? null);
-    const hasQualificationTrust = options.qualificationTrust != null;
-    const hasQualificationVerifier = options.qualificationTrustVerifier != null;
+      runnerArtifactHash: options.trustedRunnerArtifactHash,
+      ...options.trustedAdapterArtifactHash == null ? {} : { adapterArtifactHash: options.trustedAdapterArtifactHash }
+    });
+    let cleanupProvenance = null;
+    let qualificationCurrent = true;
+    let qualificationEvidence = null;
+    let qualificationTrust = null;
+    try {
+      if (options.qualificationEvidence != null) {
+        qualificationEvidence = validateE2BQualificationEvidence(
+          options.qualificationEvidence,
+          expectedBindings,
+          options.externalQualificationObservationVerifier ?? null
+        );
+        if (hasQualificationTrust) {
+          qualificationTrust = verifyE2BQualificationTrust(
+            qualificationEvidence,
+            options.qualificationTrust,
+            options.qualificationTrustVerifier,
+            expectedBindings,
+            options.externalQualificationObservationVerifier ?? null
+          );
+        }
+      }
+    } catch (error) {
+      if (error?.code !== "E2B_QUALIFICATION_OBSERVATION_EXPIRED" || !hasQualificationTrust) throw error;
+      cleanupProvenance = verifyE2BCleanupQualificationProvenance(
+        options.qualificationEvidence,
+        options.qualificationTrust,
+        options.qualificationTrustVerifier,
+        expectedBindings,
+        options.externalQualificationObservationVerifier ?? null
+      );
+      qualificationEvidence = cleanupProvenance.evidence;
+      qualificationTrust = cleanupProvenance.trust;
+      qualificationCurrent = false;
+    }
     if (!qualificationEvidence && (hasQualificationTrust || hasQualificationVerifier)) {
       throw new TypeError("E2B qualification trust requires qualification evidence");
     }
@@ -74751,29 +76369,20 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
         "E2B external qualification observation verifier requires qualification evidence"
       );
     }
-    if (hasQualificationTrust !== hasQualificationVerifier) {
-      throw new TypeError("E2B qualification trust and its verifier are required together");
-    }
-    const qualificationTrust = hasQualificationTrust ? verifyE2BQualificationTrust(
-      qualificationEvidence,
-      options.qualificationTrust,
-      options.qualificationTrustVerifier,
-      {
-        templateId: options.cleanTemplateId,
-        templateHash: options.cleanTemplateHash,
-        bootstrapArtifactHash: options.trustedBootstrapArtifactHash,
-        runnerArtifactHash: options.trustedRunnerArtifactHash
-      },
-      options.externalQualificationObservationVerifier ?? null
-    ) : null;
-    const qualificationEligible = qualificationEvidence?.status === "verified" && qualificationTrust !== null;
+    const qualificationEligible = qualificationEvidence?.status === "verified" && qualificationTrust !== null && qualificationCurrent;
     if (qualificationEvidence && templateProvenanceCandidate !== qualificationEvidence.template.provenance_hash) {
       throw new TypeError("cleanTemplateProvenanceHash does not match qualification evidence");
     }
+    const offlineConformance = options.offlineConformance === true;
+    const defaultProviderId = configured ? "e2b-clean-template-v1" : "e2b-snapshot-v1";
+    const providerId = options.providerId ?? defaultProviderId;
     super({
-      id: configured ? "e2b-clean-template-v1" : "e2b-snapshot-v1",
+      id: providerId,
       capabilities: makeCapabilities(configured, qualificationEligible)
     });
+    if (!offlineConformance && options.providerId !== void 0) {
+      throw new TypeError("providerId overrides are restricted to offlineConformance fixtures");
+    }
     if (typeof options.verifyAuthorityFreeSource !== "function") {
       throw new TypeError("verifyAuthorityFreeSource must be an external clean-controller verifier");
     }
@@ -74783,7 +76392,6 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
     if (options.offlineConformance !== void 0 && typeof options.offlineConformance !== "boolean") {
       throw new TypeError("offlineConformance must be boolean");
     }
-    const offlineConformance = options.offlineConformance === true;
     if (offlineConformance && typeof options.SandboxClass !== "function") {
       throw new TypeError("offlineConformance requires an injected SandboxClass");
     }
@@ -74804,8 +76412,11 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
         "sdkIntegrityVerifier must be created by createE2BRuntimeSdkIntegrityVerifier"
       );
     }
-    if (!qualificationEligible && options.sdkIntegrityVerifier !== void 0) {
+    if (!qualificationEligible && !cleanupProvenance && options.sdkIntegrityVerifier !== void 0) {
       throw new TypeError("sdkIntegrityVerifier is only valid with signed qualified evidence");
+    }
+    if (options.sdkProcessOptions !== void 0 && (!(qualificationEligible || cleanupProvenance) || options.sdkIntegrityVerifier !== void 0)) {
+      throw new TypeError("sdkProcessOptions requires signed qualification provenance and cannot be combined with an injected verifier");
     }
     if (qualificationEligible && [
       options.SandboxClass,
@@ -74832,14 +76443,18 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
     this.externalQualificationObservationVerifier = options.externalQualificationObservationVerifier ?? null;
     this.qualificationTrust = qualificationTrust;
     this.qualificationTrustVerifier = options.qualificationTrustVerifier ?? null;
-    this.qualificationExpectedBindings = configured ? Object.freeze({
-      templateId: options.cleanTemplateId,
-      templateHash: options.cleanTemplateHash,
-      bootstrapArtifactHash: options.trustedBootstrapArtifactHash,
-      runnerArtifactHash: options.trustedRunnerArtifactHash
-    }) : Object.freeze({});
+    this.qualificationExpectedBindings = configured ? expectedBindings : Object.freeze({});
     this.qualificationEligible = qualificationEligible;
     this.qualified = E2B_LIVE_FORK_SOURCE_ENABLED && qualificationEligible;
+    this.#qualificationState = Object.freeze({
+      evidence: qualificationEvidence,
+      trust: qualificationTrust,
+      cleanupOnly: !qualificationCurrent,
+      trustVerifier: options.qualificationTrustVerifier ?? null,
+      observationVerifier: options.externalQualificationObservationVerifier ?? null,
+      expectedBindings
+    });
+    this.#qualificationExpiryObserved = !qualificationCurrent;
     this.#offlineConformance = offlineConformance;
     this.verifyAuthorityFreeSource = options.verifyAuthorityFreeSource;
     this.#SandboxClass = options.SandboxClass ?? null;
@@ -74847,8 +76462,12 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
     this.#sdkVersion = options.sdkVersion ?? null;
     this.#sdkVersionLoader = options.sdkVersionLoader ?? defaultSdkVersionLoader;
     this.#sdkVersionVerified = false;
-    this.#sdkIntegrityVerifier = qualificationEligible ? options.sdkIntegrityVerifier ?? createE2BRuntimeSdkIntegrityVerifier() : null;
+    this.#sdkIntegrityVerifier = qualificationEligible || cleanupProvenance ? options.sdkIntegrityVerifier ?? null : null;
     this.#sdkIntegrityVerified = false;
+    this.#sdkProcessBoundary = options.sdkProcessOptions === void 0 ? null : createE2BRuntimeSdkProcessBoundary(options.sdkProcessOptions);
+    if (this.#sdkProcessBoundary) {
+      this.#sdkIntegrityVerifier = createE2BRuntimeSdkIntegrityVerifier({ processBoundary: this.#sdkProcessBoundary });
+    }
     this.clock = options.clock ?? (() => /* @__PURE__ */ new Date());
     if (typeof this.clock !== "function") throw new TypeError("clock must be a function");
     this.bootstrapCommand = requireFixedCommand(
@@ -74877,12 +76496,12 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
       "birthAttestationTimeoutMs",
       { min: 50, max: E2B_BIRTH_MAX_VALIDITY_MS }
     );
-    this.workspaceExportDirectory = configured ? path6.resolve(requireString(options.workspaceExportDirectory, "workspaceExportDirectory")) : null;
+    this.workspaceExportDirectory = configured ? path7.resolve(requireString(options.workspaceExportDirectory, "workspaceExportDirectory")) : null;
     this.maxFiles = boundedInteger(options.maxFiles ?? 2e3, "maxFiles", {
       min: 1,
       max: 1e5
     });
-    this.maxBytes = boundedInteger(options.maxBytes ?? 32 * 1024 * 1024, "maxBytes", {
+    this.maxBytes = boundedInteger(options.maxBytes ?? SDK_PROCESS_WRITE_LIMIT_BYTES, "maxBytes", {
       min: 1,
       max: 1024 * 1024 * 1024
     });
@@ -74890,12 +76509,30 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
       directory: options.cleanupJournalDirectory,
       clock: this.clock
     }) : null;
+    this.#cleanupPolicy = Object.freeze({
+      providerId: this.id,
+      templateId: this.cleanTemplateId,
+      templateIdHash: configured ? sha256Ref(this.cleanTemplateId) : null,
+      exportRoot: this.workspaceExportDirectory
+    });
     this.savepoints = /* @__PURE__ */ new Map();
     this.forks = /* @__PURE__ */ new Map();
     this.ownedRecordIds = /* @__PURE__ */ new Set();
     this.reconciliationEligibleRecordIds = /* @__PURE__ */ new Set();
     this.initialization = null;
     this.initialized = false;
+  }
+  async closeSdkProcess() {
+    if (this.#sdkProcessBoundary) return this.#sdkProcessBoundary.close();
+    return Object.freeze({
+      sdk_process_terminated: true,
+      sdk_process_tree_cleanup_verified: false,
+      provider_cleanup_verified: false,
+      provider_outcome: "unknown"
+    });
+  }
+  sdkProcessMetrics() {
+    return this.#sdkProcessBoundary?.metrics() ?? null;
   }
   #requireConfigured(operation) {
     if (!this.configured) throw secureSnapshotProfileUnavailable(operation);
@@ -74906,19 +76543,34 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
     }
   }
   #revalidateQualificationTrust() {
-    if (!this.qualificationEvidence) return null;
-    const evidence = validateE2BQualificationEvidence(
-      this.qualificationEvidence,
-      this.qualificationExpectedBindings,
-      this.externalQualificationObservationVerifier
-    );
-    const trust = verifyE2BQualificationTrust(
-      evidence,
-      this.qualificationTrust,
-      this.qualificationTrustVerifier,
-      this.qualificationExpectedBindings,
-      this.externalQualificationObservationVerifier
-    );
+    const pinned = this.#qualificationState;
+    if (!pinned.evidence) return null;
+    if (pinned.cleanupOnly || this.#qualificationExpiryObserved) {
+      throw new Error("E2B adapter constructed from expired evidence is cleanup-only; new effects require a new currently qualified adapter");
+    }
+    let evidence;
+    let trust;
+    try {
+      evidence = validateE2BQualificationEvidence(
+        pinned.evidence,
+        pinned.expectedBindings,
+        pinned.observationVerifier
+      );
+      trust = verifyE2BQualificationTrust(
+        evidence,
+        pinned.trust,
+        pinned.trustVerifier,
+        pinned.expectedBindings,
+        pinned.observationVerifier
+      );
+    } catch (error) {
+      if (error?.code === "E2B_QUALIFICATION_OBSERVATION_EXPIRED") {
+        this.#qualificationExpiryObserved = true;
+        this.qualificationEligible = false;
+        this.qualified = false;
+      }
+      throw error;
+    }
     if (evidence.status !== "verified" || !trust) {
       throw new Error("E2B qualification evidence and trust are no longer valid");
     }
@@ -74926,11 +76578,50 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
     this.qualificationTrust = trust;
     return Object.freeze({ evidence, trust });
   }
+  #revalidateCleanupProvenance() {
+    const pinned = this.#qualificationState;
+    if (!pinned.evidence) return null;
+    if (!pinned.cleanupOnly && !this.#qualificationExpiryObserved) {
+      try {
+        this.#revalidateQualificationTrust();
+      } catch (error) {
+        if (error?.code !== "E2B_QUALIFICATION_OBSERVATION_EXPIRED") throw error;
+      }
+    }
+    return verifyE2BCleanupQualificationProvenance(
+      pinned.evidence,
+      pinned.trust,
+      pinned.trustVerifier,
+      pinned.expectedBindings,
+      pinned.observationVerifier
+    );
+  }
+  #assertCleanupRecordBinding(record) {
+    if (record.provider_id !== this.#cleanupPolicy.providerId || !safeEqual(record.template_id_hash, this.#cleanupPolicy.templateIdHash)) {
+      const error = new Error("E2B cleanup journal provider/template binding mismatch");
+      error.code = "E2B_CLEANUP_RECORD_BINDING_MISMATCH";
+      throw error;
+    }
+  }
+  #assertCleanupSandboxBinding(info, record, sandboxId) {
+    this.#assertCleanupRecordBinding(record);
+    if ((info?.sandboxId ?? info?.sandboxID) !== sandboxId || (info?.templateId ?? info?.templateID) !== this.#cleanupPolicy.templateId || info?.metadata?.["agoragentic.risk_fork.profile"] !== PROFILE_METADATA_SCHEMA || info?.metadata?.["agoragentic.risk_fork.cleanup_ref"] !== record.cleanup_ref || !safeEqual(sha256Ref(info.metadata), record.metadata_hash)) {
+      const error = new Error("E2B cleanup sandbox identity/metadata binding mismatch");
+      error.code = "E2B_CLEANUP_SANDBOX_BINDING_MISMATCH";
+      throw error;
+    }
+  }
+  #isTrustedPreEntryNonallocationOutcome(error, Sandbox) {
+    return isE2BRuntimeSdkProcessSandboxClass(Sandbox) && isE2BRuntimeSdkProcessPreEntryFailure(error, Sandbox);
+  }
   async #sandboxClass(operation = "providerIo") {
     this.#requireForkRuntimeEnabled(operation);
-    if (this.qualificationEligible && !this.#sdkIntegrityVerified) {
+    if (this.#qualificationState.evidence && !this.#sdkIntegrityVerified) {
+      if (!isE2BRuntimeSdkProcessIntegrityVerifier(this.#sdkIntegrityVerifier)) {
+        throw new Error("Qualified and historical-cleanup E2B SDK effects require a host-owned fresh process verifier");
+      }
       const verified = await loadVerifiedE2BRuntimeSdk(
-        this.qualificationEvidence.sdk,
+        this.#qualificationState.evidence.sdk,
         this.#sdkIntegrityVerifier
       );
       this.#SandboxClass = normalizeSandboxClass(verified.module);
@@ -75046,6 +76737,7 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
     return false;
   }
   async #listByCleanupRef(Sandbox, record) {
+    this.#assertCleanupRecordBinding(record);
     const query = {
       state: ["running", "paused"],
       metadata: {
@@ -75059,26 +76751,30 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
     }
     const matches = [];
     let pages = 0;
-    while (paginator.hasNext === true) {
-      pages += 1;
-      if (pages > MAX_LIST_PAGES) throw new Error("E2B sandbox listing exceeded the page bound");
-      const items = await paginator.nextItems();
-      if (!Array.isArray(items)) throw new TypeError("E2B sandbox list page must be an array");
-      for (const item of items) {
-        const metadata = item?.metadata;
-        const templateId = item?.templateId ?? item?.templateID;
-        if (metadata?.["agoragentic.risk_fork.profile"] !== PROFILE_METADATA_SCHEMA || metadata?.["agoragentic.risk_fork.cleanup_ref"] !== record.cleanup_ref || !safeEqual(sha256Ref(metadata), record.metadata_hash) || templateId !== this.cleanTemplateId) {
-          throw new Error("E2B cleanup listing returned an item outside the exact metadata binding");
+    try {
+      while (paginator.hasNext === true) {
+        pages += 1;
+        if (pages > MAX_LIST_PAGES) throw new Error("E2B sandbox listing exceeded the page bound");
+        const items = await paginator.nextItems();
+        if (!Array.isArray(items)) throw new TypeError("E2B sandbox list page must be an array");
+        for (const item of items) {
+          const metadata = item?.metadata;
+          const templateId = item?.templateId ?? item?.templateID;
+          if (metadata?.["agoragentic.risk_fork.profile"] !== PROFILE_METADATA_SCHEMA || metadata?.["agoragentic.risk_fork.cleanup_ref"] !== record.cleanup_ref || !safeEqual(sha256Ref(metadata), record.metadata_hash) || templateId !== this.#cleanupPolicy.templateId) {
+            throw new Error("E2B cleanup listing returned an item outside the exact metadata binding");
+          }
+          matches.push(requireString(
+            item.sandboxId ?? item.sandboxID,
+            "reconciled E2B sandbox id",
+            { maxLength: 500 }
+          ));
         }
-        matches.push(requireString(
-          item.sandboxId ?? item.sandboxID,
-          "reconciled E2B sandbox id",
-          { maxLength: 500 }
-        ));
+        if (typeof paginator.hasNext !== "boolean") {
+          throw new TypeError("E2B sandbox paginator stopped reporting hasNext");
+        }
       }
-      if (typeof paginator.hasNext !== "boolean") {
-        throw new TypeError("E2B sandbox paginator stopped reporting hasNext");
-      }
+    } finally {
+      if (typeof paginator.close === "function") await paginator.close();
     }
     const sandboxIds = [...new Set(matches)].sort();
     const observation = {
@@ -75097,6 +76793,10 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
     let record;
     try {
       record = await this.cleanupJournal.get(recordId);
+      this.#assertCleanupRecordBinding(record);
+      if (record.sandbox_id !== null && record.sandbox_id !== sandboxId) {
+        throw new Error("E2B absence target differs from its persisted sandbox identity");
+      }
     } catch {
       this.#poisonAllocationUntilReconciled(recordId);
       return { status: "unknown", outcome: "unknown", sandbox_id: sandboxId };
@@ -75168,6 +76868,11 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
         }
       }
       try {
+        const current = await this.cleanupJournal.get(recordId);
+        this.#assertCleanupRecordBinding(current);
+        if (current.cleanup_ref !== record.cleanup_ref || current.metadata_hash !== record.metadata_hash || current.sandbox_id !== null && current.sandbox_id !== sandboxId) {
+          throw new Error("E2B absence binding changed during verification");
+        }
         await this.cleanupJournal.markSandboxVerifiedAbsent(recordId, sandboxId);
       } catch {
         this.#poisonAllocationUntilReconciled(recordId);
@@ -75189,35 +76894,64 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
       };
     }
   }
-  async #destroyAndVerifySandbox({ Sandbox, recordId, sandboxId, sandbox = null }) {
+  async #killBoundSandbox({ Sandbox, recordId, sandboxId, expectedRecord = null, discoveredSandboxIds = null }) {
     this.#poisonAllocationUntilReconciled(recordId);
-    await this.cleanupJournal.markSandboxCleanupRequested(recordId, sandboxId).catch(() => {
-    });
     try {
-      if (sandbox && typeof sandbox.kill === "function") await sandbox.kill();
-      else await Sandbox.kill(sandboxId);
+      const record = await this.cleanupJournal.get(recordId);
+      this.#assertCleanupRecordBinding(record);
+      const assertTarget = (current) => {
+        this.#assertCleanupRecordBinding(current);
+        const expected = expectedRecord ?? record;
+        if (current.cleanup_ref !== expected.cleanup_ref || current.metadata_hash !== expected.metadata_hash || current.export_id !== expected.export_id || (discoveredSandboxIds ? !discoveredSandboxIds.includes(sandboxId) || current.sandbox_id !== null && !discoveredSandboxIds.includes(current.sandbox_id) : current.sandbox_id !== sandboxId && current.sandbox_id !== null || expected.sandbox_id !== null && expected.sandbox_id !== sandboxId)) {
+          const error = new Error("E2B cleanup target changed from its persisted or exact-list binding");
+          error.code = "E2B_CLEANUP_TARGET_BINDING_MISMATCH";
+          throw error;
+        }
+      };
+      assertTarget(record);
+      let info;
+      try {
+        info = await Sandbox.getInfo(sandboxId);
+      } catch (error) {
+        if (!isSandboxNotFound(error)) throw error;
+        return this.#verifySandboxAbsent(Sandbox, recordId, sandboxId);
+      }
+      this.#assertCleanupSandboxBinding(info, record, sandboxId);
+      assertTarget(await this.cleanupJournal.get(recordId));
+      await this.cleanupJournal.markSandboxCleanupRequested(recordId, sandboxId);
+      await Sandbox.kill(sandboxId);
     } catch (error) {
       this.#poisonAllocationUntilReconciled(recordId);
       await this.cleanupJournal.markSandboxUnknown(
         recordId,
-        errorCode(error, "E2B_KILL_FAILED"),
-        sandboxId
+        errorCode(error, "E2B_KILL_FAILED")
       ).catch(() => {
       });
       return { status: "unknown", outcome: "unknown", sandbox_id: sandboxId };
     }
+    return { status: "observed", outcome: "success", sandbox_id: sandboxId };
+  }
+  async #destroyAndVerifySandbox(input) {
+    const { Sandbox, recordId, sandboxId } = input;
+    const requested = await this.#killBoundSandbox(input);
+    if (requested.status !== "observed") return requested;
     return this.#verifySandboxAbsent(Sandbox, recordId, sandboxId);
   }
   async #cleanupExportRecord(record) {
     this.#poisonAllocationUntilReconciled(record.record_id);
     try {
+      const persisted = await this.cleanupJournal.get(record.record_id);
+      this.#assertCleanupRecordBinding(persisted);
+      if (record.export_id !== persisted.export_id) {
+        throw new Error("E2B cleanup export changed from its persisted binding");
+      }
       await this.cleanupJournal.markExportCleanupRequested(record.record_id);
       await destroyImmutableWorkspaceExport({
-        export_root: this.workspaceExportDirectory,
+        export_root: this.#cleanupPolicy.exportRoot,
         export_id: record.export_id
       });
       const absent = await verifyImmutableWorkspaceExportDestroyed({
-        export_root: this.workspaceExportDirectory,
+        export_root: this.#cleanupPolicy.exportRoot,
         export_id: record.export_id
       });
       if (!absent) {
@@ -75244,10 +76978,16 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
     }
     const pending = (await this.cleanupJournal.listPending()).filter((record) => !excludeOwned || !this.ownedRecordIds.has(record.record_id) || includeEligibleOwned && this.reconciliationEligibleRecordIds.has(record.record_id));
     if (pending.length === 0) return { reconciled: [], unresolved: [] };
-    const Sandbox = await this.#sandboxClass();
     const reconciled = [];
     const unresolved = [];
     for (const initial of pending) {
+      try {
+        this.#assertCleanupRecordBinding(initial);
+      } catch {
+        this.#poisonAllocationUntilReconciled(initial.record_id);
+        unresolved.push(initial.record_id);
+        continue;
+      }
       let exportOk = initial.export_absence_verified;
       if (!exportOk) exportOk = await this.#cleanupExportRecord(initial);
       let sandboxOk = initial.sandbox_absence_verified;
@@ -75258,6 +76998,7 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
             await this.cleanupJournal.markSandboxVerifiedAbsent(initial.record_id);
             sandboxOk = true;
           } else {
+            const Sandbox = await this.#sandboxClass("reconcilePendingCleanup");
             if (sandboxIds.length === 0) {
               const listing = await this.#listByCleanupRef(Sandbox, initial);
               sandboxIds = listing.sandbox_ids;
@@ -75274,7 +77015,9 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
                 outcomes.push(await this.#destroyAndVerifySandbox({
                   Sandbox,
                   recordId: initial.record_id,
-                  sandboxId
+                  sandboxId,
+                  expectedRecord: initial,
+                  discoveredSandboxIds: initial.sandbox_id ? null : sandboxIds
                 }));
               }
               sandboxOk = outcomes.every((outcome) => outcome.status === "verified");
@@ -75315,8 +77058,7 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
   }
   async reconcilePendingCleanup() {
     this.#requireConfigured("reconcilePendingCleanup");
-    this.#requireForkRuntimeEnabled("reconcilePendingCleanup");
-    this.#revalidateQualificationTrust();
+    this.#revalidateCleanupProvenance();
     await this.cleanupJournal.initialize();
     return this.#reconcilePendingCleanup({
       excludeOwned: true,
@@ -75329,9 +77071,9 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
     assertAllowedKeys(input, ["capsule", "source_workspace"], "E2B createSavepoint input");
     verifySavepointCapsule(input.capsule, { now: this.clock() });
     await this.#initialize();
-    const recordId = `e2b_cleanup_${randomUUID9()}`;
-    const cleanupRef = `e2b_cleanup_ref_${randomUUID9()}`;
-    const exportId = `e2b_export_${randomUUID9()}`;
+    const recordId = `e2b_cleanup_${randomUUID10()}`;
+    const cleanupRef = `e2b_cleanup_ref_${randomUUID10()}`;
+    const exportId = `e2b_export_${randomUUID10()}`;
     const metadataCoreHash = sha256Ref({
       profile: PROFILE_METADATA_SCHEMA,
       cleanup_ref: cleanupRef,
@@ -75489,8 +77231,25 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
       timeoutMs: createTimeoutMs,
       metadata
     });
-    savepoint.allocation_attempted = true;
     const Sandbox = await this.#sandboxClass();
+    if (savepoint.allocation_attempted) {
+      const error = new Error(
+        "E2B allocation was already attempted; the one-use Savepoint is poisoned and cannot be retried"
+      );
+      error.code = "E2B_ONE_USE_SAVEPOINT_ALLOCATION_ALREADY_ATTEMPTED";
+      throw error;
+    }
+    if (isE2BRuntimeSdkProcessSandboxClass(Sandbox)) {
+      const oversizedFile = savepoint.export_record.files.find(
+        (file) => file.bytes > SDK_PROCESS_WRITE_LIMIT_BYTES
+      );
+      if (oversizedFile) {
+        throw new TypeError(
+          `sdkProcessOptions cannot upload ${oversizedFile.path}: each file must be at most ${SDK_PROCESS_WRITE_LIMIT_BYTES} bytes`
+        );
+      }
+    }
+    savepoint.allocation_attempted = true;
     const createStartedAt = this.clock();
     await this.cleanupJournal.markAllocationRequested(savepoint.record_id, sha256Ref(metadata));
     if (this.reconciliationEligibleRecordIds.size > 0) {
@@ -75587,7 +77346,7 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
           ...commonBootstrap,
           phase,
           expected_workspace_digest: workspaceDigest,
-          bootstrap_nonce: randomUUID9(),
+          bootstrap_nonce: randomUUID10(),
           request_hash: null
         };
         payload.request_hash = sha256Ref({ ...payload, request_hash: null });
@@ -75720,6 +77479,10 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
             "E2B child creation failed and cleanup absence was not verified"
           );
         }
+      } else if (this.#isTrustedPreEntryNonallocationOutcome(error, Sandbox)) {
+        await this.cleanupJournal.markSandboxVerifiedAbsent(savepoint.record_id);
+        await this.#clearAllocationPoisonIfFullyAbsent(savepoint.record_id);
+        savepoint.allocation_attempted = false;
       } else {
         this.#poisonAllocationUntilReconciled(savepoint.record_id);
         await this.cleanupJournal.markSandboxUnknown(
@@ -75841,7 +77604,7 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
     });
     const remainingMs = Date.parse(record.expires_at) - this.clock().getTime();
     if (timeoutMs > remainingMs) throw new Error("Execution timeout exceeds the child hard deadline");
-    const jobId = `rfj_${randomUUID9().replaceAll("-", "")}`;
+    const jobId = `rfj_${randomUUID10().replaceAll("-", "")}`;
     const jobPath = `${JOB_PATH}.${jobId}.json`;
     const resultPath = `${RESULT_PATH}.${jobId}.json`;
     const job = {
@@ -76089,7 +77852,7 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
   async destroyFork(input = {}) {
     this.#requireConfigured("destroyFork");
     this.#requireForkRuntimeEnabled("destroyFork");
-    this.#revalidateQualificationTrust();
+    this.#revalidateCleanupProvenance();
     assertAllowedKeys(
       input,
       ["fork_ref", "reason", "cleanup_request"],
@@ -76112,10 +77875,27 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
     }
     record.destruction_status = "destroy_requested";
     this.#poisonAllocationUntilReconciled(record.record_id);
-    await this.#sandboxClass();
+    const Sandbox = await this.#sandboxClass();
     try {
-      await this.cleanupJournal.markSandboxCleanupRequested(record.record_id, record.sandbox_id);
-      await record.sandbox.kill();
+      const outcome = await this.#killBoundSandbox({
+        Sandbox,
+        recordId: record.record_id,
+        sandboxId: record.sandbox_id
+      });
+      if (outcome.status !== "observed" && outcome.status !== "verified") {
+        throw new Error("E2B bound cleanup request could not be verified");
+      }
+      if (outcome.status === "verified") {
+        record.destroyed_verified = true;
+        record.destruction_status = "verified_destroyed";
+        record.status = "destroyed";
+        return deepFreeze({
+          fork_ref: record.ref,
+          status: "already_destroyed_verified",
+          evidence_status: "verified",
+          evidence_hash: outcome.evidence_hash
+        });
+      }
       record.destruction_status = "kill_observed";
       return deepFreeze({
         fork_ref: record.ref,
@@ -76146,7 +77926,7 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
   async verifyDestroyed(input = {}) {
     this.#requireConfigured("verifyDestroyed");
     this.#requireForkRuntimeEnabled("verifyDestroyed");
-    this.#revalidateQualificationTrust();
+    this.#revalidateCleanupProvenance();
     assertAllowedKeys(
       input,
       ["fork_ref", "cleanup_request"],
@@ -76162,7 +77942,7 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
       resource_kind: "fork",
       resource_ref: record.ref,
       requested_at: this.clock(),
-      request_nonce: randomUUID9()
+      request_nonce: randomUUID10()
     });
     this.#poisonAllocationUntilReconciled(record.record_id);
     const Sandbox = await this.#sandboxClass();
@@ -76190,7 +77970,7 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
   }
   async destroySavepoint(input = {}) {
     this.#requireConfigured("destroySavepoint");
-    this.#revalidateQualificationTrust();
+    this.#revalidateCleanupProvenance();
     assertAllowedKeys(
       input,
       ["savepoint_ref", "cleanup_request"],
@@ -76213,9 +77993,14 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
     }
     this.#poisonAllocationUntilReconciled(record.record_id);
     try {
+      const persisted = await this.cleanupJournal.get(record.record_id);
+      this.#assertCleanupRecordBinding(persisted);
+      if (persisted.export_id !== record.export_record.export_id) {
+        throw new Error("E2B cleanup savepoint export binding mismatch");
+      }
       await this.cleanupJournal.markExportCleanupRequested(record.record_id);
       await destroyImmutableWorkspaceExport({
-        export_root: this.workspaceExportDirectory,
+        export_root: this.#cleanupPolicy.exportRoot,
         export_id: record.export_record.export_id
       });
       return deepFreeze({
@@ -76244,7 +78029,7 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
   }
   async verifySavepointDestroyed(input = {}) {
     this.#requireConfigured("verifySavepointDestroyed");
-    this.#revalidateQualificationTrust();
+    this.#revalidateCleanupProvenance();
     assertAllowedKeys(
       input,
       ["savepoint_ref", "cleanup_request"],
@@ -76260,13 +78045,18 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
       resource_kind: "savepoint",
       resource_ref: record.ref,
       requested_at: this.clock(),
-      request_nonce: randomUUID9()
+      request_nonce: randomUUID10()
     });
     this.#poisonAllocationUntilReconciled(record.record_id);
     let absent;
     try {
+      const persisted = await this.cleanupJournal.get(record.record_id);
+      this.#assertCleanupRecordBinding(persisted);
+      if (persisted.export_id !== record.export_record.export_id) {
+        throw new Error("E2B cleanup savepoint export binding mismatch");
+      }
       absent = await verifyImmutableWorkspaceExportDestroyed({
-        export_root: this.workspaceExportDirectory,
+        export_root: this.#cleanupPolicy.exportRoot,
         export_id: record.export_record.export_id
       });
     } catch (error) {
@@ -76339,7 +78129,7 @@ import {
   open as open5,
   realpath as realpath3
 } from "node:fs/promises";
-import path7 from "node:path";
+import path8 from "node:path";
 import { TextDecoder as TextDecoder3 } from "node:util";
 var REQUEST_SCHEMA = "agoragentic.risk-fork.authority-free-source-request.v1";
 var ATTESTATION_SCHEMA = "agoragentic.risk-fork.authority-free-source-attestation.v1";
@@ -77009,7 +78799,7 @@ async function persistEvidence(directory, record) {
   await mkdir4(directory, { recursive: true, mode: 448 });
   await assertRealDirectory(directory, "E2B source evidence directory");
   const name = `e2b-source-${record.request_hash.slice(7, 31)}.json`;
-  const target = path7.join(directory, name);
+  const target = path8.join(directory, name);
   const handle = await open5(
     target,
     constants3.O_WRONLY | constants3.O_CREAT | constants3.O_EXCL,
@@ -77028,7 +78818,7 @@ function createE2BAuthorityFreeSourceVerifier(options = {}) {
     options.verifierArtifactHash,
     "E2B source verifierArtifactHash"
   );
-  const evidenceDirectory = path7.resolve(requireString(
+  const evidenceDirectory = path8.resolve(requireString(
     options.evidenceDirectory,
     "E2B source evidenceDirectory"
   ));
@@ -77070,13 +78860,13 @@ function createE2BAuthorityFreeSourceVerifier(options = {}) {
     const request = validateRequest(requestValue);
     assertPlainObject(context, "E2B source verifier context");
     assertAllowedKeys(context, ["export_directory"], "E2B source verifier context");
-    const exportDirectory = path7.resolve(requireString(
+    const exportDirectory = path8.resolve(requireString(
       context.export_directory,
       "E2B source verifier export_directory"
     ));
     await assertRealDirectory(exportDirectory, "E2B source verifier export_directory");
-    const exportId = path7.basename(exportDirectory);
-    const exportRoot = path7.dirname(exportDirectory);
+    const exportId = path8.basename(exportDirectory);
+    const exportRoot = path8.dirname(exportDirectory);
     const staged = await readImmutableWorkspaceExport({
       export_root: exportRoot,
       export_id: exportId,
@@ -77180,7 +78970,7 @@ function createE2BAuthorityFreeSourceVerifier(options = {}) {
 }
 
 // risk-fork-hosted-mcp/src/index.mjs
-var REVIEWED_SOURCE_INTEGRITY = true ? "sha256:c7a7dc423dc1f5de3fb7e8cec248e382894f3786c98dbc9d88105c6a0cf3cc27" : null;
+var REVIEWED_SOURCE_INTEGRITY = true ? "sha256:a5c1dba6f82ef657c6d3375e0407c3ab4bcd171f721f3c6a29318aa7f71f97ce" : null;
 var HOSTED_MCP_BUNDLE_METADATA = Object.freeze({
   package_name: "@agoragentic/risk-fork-hosted-mcp",
   package_version: "0.1.0-alpha.0",
@@ -77302,6 +79092,7 @@ export {
   importRiskForkProviderResult,
   isE2BQualificationEvidenceCanonical,
   isE2BRuntimeSdkIntegrityVerifier,
+  isE2BRuntimeSdkProcessIntegrityVerifier,
   isMcpPortableHandlePreEffectBoundary,
   isMcpPortableHandleRegistry,
   isPostgresDistributedCommitAuthority,
@@ -77336,7 +79127,7 @@ export {
 };
 /*! Bundled license information:
 
-@modelcontextprotocol/server/dist/src-STyD_Vvf.cjs:
+@modelcontextprotocol/server/dist/src-BhnGYybN.cjs:
   (*!
   * content-type
   * Copyright(c) 2015 Douglas Christopher Wilson
