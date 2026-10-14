@@ -1,0 +1,20 @@
+{
+  "name": "@agoragentic/example-x402-spotcheck-buyer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Optional: the anonymous x402 buyer flow with an x402-spotcheck local pre-payment check. Offline tests only.",
+  "scripts": {
+    "check": "node --check buyer.mjs && node --check buyer.test.mjs",
+    "test": "node --test buyer.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@x402/evm": "2.28.0",
+    "@x402/fetch": "2.28.0",
+    "viem": "^2.21.0",
+    "x402-spotcheck": "github:withgrokbot/x402-spotcheck#v1.0.0"
+  }
+}

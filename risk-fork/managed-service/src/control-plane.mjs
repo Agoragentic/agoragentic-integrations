@@ -6,8 +6,11 @@ import {
   verifyCleanupVerificationEvidence,
   verifyCleanupVerificationRequest,
 } from '../../src/provider.mjs';
-import { verifyManagedAuditChain } from './audit.mjs';
+import { verifyManagedAuditChain, verifyManagedAuditWindow } from './audit.mjs';
+import { normalizeAuditPageRequest, normalizeAuditWindowRequest, verifyAuditInvocationPage } from './audit-read.mjs';
 import { assertManagedPrincipalVerifier } from './auth.mjs';
+import { normalizeManagedBacklogSnapshot } from './backlog-snapshot.mjs';
+import { cancellationRequest } from './cancellation.mjs';
 import {
   assertManagedServiceConfig,
   assertManagedServiceEnabled,
@@ -53,7 +56,10 @@ const REQUIRED_STORE_METHODS = Object.freeze([
   'claimLease',
   'renewLease',
   'transitionInvocation',
+  'recordCleanupIncomplete',
   'settleExecutionOutcome',
+  'requestCancellation',
+  'observeCancellation',
   'listExpiredLeases',
   'releaseExpiredLease',
   'listStaleAdmissions',
@@ -407,6 +413,33 @@ export function createManagedRiskForkControlPlane(options = {}) {
       });
     },
 
+    async requestCancellation(principalValue, input = {}) {
+      enabled();
+      const principal = await normalizePrincipal(principalValue, 'invocations:cancel', requirePrincipal);
+      assertPlainRecord(input, 'cancellation request');
+      assertAllowedKeys(input, ['invocation_ref', 'idempotency_key', 'reason_hash'], 'cancellation request');
+      const invocation = await ownedInvocation(principal, input.invocation_ref);
+      const request = cancellationRequest(invocation, principal.key_id, input);
+      // No provider eligibility requirement: disabling execution must not stop
+      // cancellation or identity-bound cleanup of the historical binding.
+      return store.requestCancellation({ ...request, now: requireIso(clock(), 'clock result') });
+    },
+
+    async observeExecutionCancellation(principalValue, input = {}) {
+      enabled();
+      const principal = await normalizePrincipal(principalValue, workerWriteScope('execution'), requirePrincipal);
+      assertPlainRecord(input, 'cancellation observation');
+      assertAllowedKeys(input, ['invocation_ref', 'lease_token', 'lease_generation'], 'cancellation observation');
+      // Observation is not a lease/capability. It reveals no operation, tokens
+      // or resource refs and cannot authorize a provider effect. The store binds
+      // its snapshot to the current credential and original interrupted attempt.
+      return store.observeCancellation({ tenant_id: principal.tenant_id, claimant_key_id: principal.key_id,
+        invocation_ref: requireInvocationRef(input.invocation_ref),
+        lease_token_hash: hashOpaque('agoragentic-risk-fork-managed-lease-v1', requireLeaseToken(input.lease_token)),
+        lease_generation: requireInteger(input.lease_generation, 'lease_generation', { min: 1, max: 2_147_483_647 }),
+        now: requireIso(clock(), 'clock result') });
+    },
+
     async getInvocation(principalValue, invocationRefValue) {
       enabled();
       const principal = await normalizePrincipal(principalValue, 'invocations:read', requirePrincipal);
@@ -744,6 +777,26 @@ export function createManagedRiskForkControlPlane(options = {}) {
       });
     },
 
+    async recordCleanupIncomplete(principalValue, input = {}) {
+      enabled();
+      const principal = await normalizePrincipal(principalValue, workerWriteScope('cleanup'), requirePrincipal);
+      assertPlainRecord(input, 'cleanup incomplete observation');
+      assertAllowedKeys(input, ['invocation_ref', 'lease_token', 'lease_generation', 'expected_lease_kind'],
+        'cleanup incomplete observation');
+      if (input.expected_lease_kind != null && input.expected_lease_kind !== 'cleanup') {
+        throw managedError('Cleanup route is required', 'LEASE_PREFLIGHT_FAILED', 409);
+      }
+      const invocation = await ownedInvocation(principal, input.invocation_ref, false);
+      // Audit-only observation does not dispatch/verify a provider. A missing or
+      // drifted registry binding must not conceal an otherwise authorized
+      // incomplete attempt; exact current cleanup authority is checked atomically.
+      return store.recordCleanupIncomplete({ tenant_id: principal.tenant_id, claimant_key_id: principal.key_id,
+        invocation_ref: invocation.invocation_ref,
+        lease_token_hash: hashOpaque('agoragentic-risk-fork-managed-lease-v1', requireLeaseToken(input.lease_token)),
+        lease_generation: requireInteger(input.lease_generation, 'lease_generation', { min: 1, max: 2_147_483_647 }),
+        now: requireIso(clock(), 'clock result') });
+    },
+
     async completeCleanup(principalValue, input = {}) {
       enabled();
       const principal = await normalizePrincipal(principalValue, workerWriteScope('cleanup'), requirePrincipal);
@@ -827,7 +880,7 @@ export function createManagedRiskForkControlPlane(options = {}) {
           }),
         }));
       }
-      const successful = invocation.execution_outcome === 'succeeded';
+      const successful = invocation.execution_outcome === 'succeeded' && invocation.cancel_request_hash == null;
       const transitionNow = requireIso(clock(), 'clock result');
       for (const pair of verifiedPairs) {
         verifyCleanupVerificationEvidence(pair.evidence, pair.request, {
@@ -977,6 +1030,45 @@ export function createManagedRiskForkControlPlane(options = {}) {
         now: transitionNow,
         verification_not_after: verificationNotAfter,
       });
+    },
+
+    async readCleanupRecoveryBacklog(principalValue) {
+      enabled();
+      const principal = await normalizePrincipal(principalValue, 'audit:read', requirePrincipal);
+      if (typeof store.readCleanupRecoveryBacklog !== 'function') {
+        throw managedError('Tenant backlog snapshots are unsupported', 'BACKLOG_OBSERVATION_UNSUPPORTED', 503);
+      }
+      const snapshot = await store.readCleanupRecoveryBacklog({ tenant_id: principal.tenant_id,
+        claimant_key_id: principal.key_id }, { clock });
+      // A source/pool wait cannot outlive credential or OAuth-token authority.
+      // Revalidate the original branded principal before releasing the snapshot.
+      await normalizePrincipal(principalValue, 'audit:read', requirePrincipal);
+      return normalizeManagedBacklogSnapshot(snapshot, principal.tenant_id);
+    },
+
+    async listAuditInvocations(principalValue, requestValue = {}) {
+      enabled();
+      const principal = await normalizePrincipal(principalValue, 'audit:read', requirePrincipal);
+      const request = normalizeAuditPageRequest(requestValue);
+      if (typeof store.listAuditInvocations !== 'function') {
+        throw managedError('Bounded audit discovery is unsupported', 'AUDIT_PROJECTION_UNSUPPORTED', 503);
+      }
+      return verifyAuditInvocationPage(
+        await store.listAuditInvocations(principal.tenant_id, request), principal.tenant_id, request,
+      );
+    },
+
+    async readAuditWindow(principalValue, invocationRefValue, requestValue = {}) {
+      enabled();
+      const principal = await normalizePrincipal(principalValue, 'audit:read', requirePrincipal);
+      const invocationRef = requireInvocationRef(invocationRefValue, 'invocation_ref');
+      const request = normalizeAuditWindowRequest(requestValue);
+      if (typeof store.getAuditWindow !== 'function') {
+        throw managedError('Bounded audit windows are unsupported', 'AUDIT_PROJECTION_UNSUPPORTED', 503);
+      }
+      const window = await store.getAuditWindow(principal.tenant_id, invocationRef, request);
+      if (window === null) throw managedError('Invocation was not found', 'INVOCATION_NOT_FOUND', 404);
+      return verifyManagedAuditWindow(window, { tenant_id: principal.tenant_id, invocation_ref: invocationRef, ...request });
     },
 
     async listAuditEvents(principalValue, invocationRefValue) {

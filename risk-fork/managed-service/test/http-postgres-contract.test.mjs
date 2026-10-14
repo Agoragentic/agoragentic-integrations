@@ -489,7 +489,11 @@ test('PostgreSQL source schema binds tenant state, hashes credentials, and makes
 
 test('PostgreSQL health probe is local-pool injectable and reports durability truth', async () => {
   let released = false;
-  let migrationCount = 2;
+  let migrationCount = 4;
+  const queries = [];
+  const snapshotAt = '2026-09-05T12:00:00.000Z';
+  let stateOverrides = {};
+  let tableCount = 8;
   const migrationHash = sha256Ref((await readFile(
     new URL('../migrations/001_managed_control_plane.pg.sql', import.meta.url),
     'utf8',
@@ -497,15 +501,25 @@ test('PostgreSQL health probe is local-pool injectable and reports durability tr
   const purposeMigrationHash = sha256Ref((await readFile(
     new URL('../migrations/002_journal_purpose.pg.sql', import.meta.url), 'utf8',
   )).replace(/\r\n?/g, '\n'));
+  const lockMigrationHash = sha256Ref((await readFile(
+    new URL('../migrations/003_control_plane_lock_helpers.pg.sql', import.meta.url), 'utf8',
+  )).replace(/\r\n?/g, '\n'));
+  let cancellationMigrationHash = sha256Ref((await readFile(
+    new URL('../migrations/008_managed_cancellation.pg.sql', import.meta.url), 'utf8',
+  )).replace(/\r\n?/g, '\n'));
   const pool = {
     async connect() {
       return {
         async query(sql) {
+          queries.push(sql);
+          if (sql.startsWith('BEGIN') || sql.startsWith('SET LOCAL') || sql === 'COMMIT' || sql === 'ROLLBACK') {
+            return { rowCount: 0, rows: [] };
+          }
           if (sql.includes('information_schema.tables')) {
             return {
               rowCount: 1,
               rows: [{
-                table_count: 8,
+                table_count: tableCount,
                 trigger_count: 2,
                 fsync: 'on',
                 synchronous_commit: 'on',
@@ -519,9 +533,16 @@ test('PostgreSQL health probe is local-pool injectable and reports durability tr
             rows: [{
               migration_hash: migrationHash,
               purpose_migration_hash: purposeMigrationHash,
+              lock_migration_hash: lockMigrationHash,
+              cancellation_migration_hash: cancellationMigrationHash,
               migration_count: migrationCount,
+              snapshot_at: snapshotAt,
+              cleanup_pending_count: '0',
               recovery_required_count: 0,
               expired_execution_lease_count: 0,
+              expired_cleanup_lease_count: '0',
+              expired_recovery_lease_count: '0',
+              ...stateOverrides,
             }],
           };
         },
@@ -541,17 +562,55 @@ test('PostgreSQL health probe is local-pool injectable and reports durability tr
     tls_required: false,
     tls_ca_validated: false,
     catalog_verified: true,
+    catalog_verification_scope: 'table_trigger_inventory',
+    exact_catalog_verified: false,
+    runtime_privileges_verified: false,
     migration_verified: true,
-    migration_count: 2,
+    migration_count: 4,
+    snapshot_at: snapshotAt,
+    cleanup_pending_count: 0,
     recovery_required_count: 0,
     expired_execution_lease_count: 0,
+    expired_cleanup_lease_count: 0,
+    expired_recovery_lease_count: 0,
   });
   assert.equal(released, true);
-  migrationCount = 3;
+  assert.equal(queries[0], 'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
+  assert.equal(queries[1], "SET LOCAL statement_timeout = '5000ms'");
+  assert.equal(queries.at(-1), 'COMMIT');
+  const snapshotQuery = queries.find((sql) => sql.includes('managed_schema_migrations'));
+  assert.equal((snapshotQuery.match(/clock_timestamp\(\)/g) ?? []).length, 1);
+  assert.match(snapshotQuery, /health_clock AS MATERIALIZED/);
+  assert.equal(queries.some((sql) => /\b(?:INSERT|UPDATE|DELETE|ALTER)\b/.test(sql)), false);
+  migrationCount = 5;
   const unreviewedMigration = await store.health();
   assert.equal(unreviewedMigration.ready, false);
   assert.equal(unreviewedMigration.migration_verified, false);
-  assert.equal(unreviewedMigration.migration_count, 3);
+  assert.equal(unreviewedMigration.migration_count, 5);
+  migrationCount = 4;
+  cancellationMigrationHash = sha256Ref({ unreviewed_cancellation_migration: true });
+  const tamperedCancellationMigration = await store.health();
+  assert.equal(tamperedCancellationMigration.ready, false);
+  assert.equal(tamperedCancellationMigration.migration_verified, false);
+  assert.equal(tamperedCancellationMigration.migration_count, 4);
+  for (const field of ['cleanup_pending_count', 'recovery_required_count', 'expired_execution_lease_count',
+    'expired_cleanup_lease_count', 'expired_recovery_lease_count']) {
+    for (const value of [null, '-1', '01', '9007199254740992', 0.5]) {
+      stateOverrides = { [field]: value };
+      await assert.rejects(store.health(), TypeError);
+      assert.equal(queries.at(-1), 'ROLLBACK');
+    }
+  }
+  stateOverrides = { snapshot_at: 'invalid' };
+  await assert.rejects(store.health(), TypeError);
+  stateOverrides = {};
+  tableCount = 7;
+  const unavailable = await store.health();
+  assert.equal(unavailable.ready, false);
+  for (const field of ['snapshot_at', 'cleanup_pending_count', 'recovery_required_count',
+    'expired_execution_lease_count', 'expired_cleanup_lease_count', 'expired_recovery_lease_count']) {
+    assert.equal(unavailable[field], null);
+  }
   assert.throws(
     () => new PostgresManagedServiceStore({ pool, requireTls: true }),
     (error) => error.code === 'MANAGED_POSTGRES_TLS_POOL_UNTRUSTED',
@@ -649,7 +708,7 @@ test('PostgreSQL validates caller clock before locks and refreshes DB time after
               rows: [{ managed_now: clockCalls === 1 ? initialNow : afterLockNow }],
             };
           }
-          if (/managed_tenants.*FOR SHARE/s.test(sql)) {
+          if (/lock_managed_tenant_share/.test(sql)) {
             order.push('tenant-lock');
             return { rowCount: 1, rows: [{ status: 'active' }] };
           }
@@ -657,9 +716,9 @@ test('PostgreSQL validates caller clock before locks and refreshes DB time after
             order.push('invocation-lock');
             return { rowCount: 1, rows: [initialRow] };
           }
-          if (/^SELECT 1 FROM .*managed_api_keys\s+WHERE key_id = \$2 AND tenant_id = \$1 FOR SHARE$/s.test(sql)) {
+          if (/lock_managed_api_key_share/.test(sql)) {
             order.push('credential-lock');
-            return { rowCount: 1, rows: [{}] };
+            return { rowCount: 1, rows: [{ locked: true }] };
           }
           if (/SELECT EXISTS[\s\S]*managed_api_keys/s.test(sql)) {
             return { rowCount: 1, rows: [{ active: true }] };
@@ -743,14 +802,14 @@ test('PostgreSQL exact claim retry returns stored work without any mutation', as
           if (sql === 'SELECT clock_timestamp() AS managed_now') {
             return { rowCount: 1, rows: [{ managed_now: now }] };
           }
-          if (/managed_tenants.*FOR SHARE/s.test(sql)) {
+          if (/lock_managed_tenant_share/.test(sql)) {
             return { rowCount: 1, rows: [{ status: 'active' }] };
           }
           if (/SELECT \* .*managed_invocations.*FOR UPDATE/s.test(sql)) {
             return { rowCount: 1, rows: [activeRow] };
           }
-          if (/^SELECT 1 FROM .*managed_api_keys\s+WHERE key_id = \$2 AND tenant_id = \$1 FOR SHARE$/s.test(sql)) {
-            return { rowCount: 1, rows: [{}] };
+          if (/lock_managed_api_key_share/.test(sql)) {
+            return { rowCount: 1, rows: [{ locked: true }] };
           }
           if (/SELECT EXISTS[\s\S]*managed_api_keys/s.test(sql)) {
             return { rowCount: 1, rows: [{ active: true }] };
@@ -805,14 +864,14 @@ test('PostgreSQL rejects a tenant-wide historical lease token before lease mutat
           if (sql === 'SELECT clock_timestamp() AS managed_now') {
             return { rowCount: 1, rows: [{ managed_now: now }] };
           }
-          if (/managed_tenants.*FOR SHARE/s.test(sql)) {
+          if (/lock_managed_tenant_share/.test(sql)) {
             return { rowCount: 1, rows: [{ status: 'active' }] };
           }
           if (/SELECT \* .*managed_invocations.*FOR UPDATE/s.test(sql)) {
             return { rowCount: 1, rows: [row] };
           }
-          if (/^SELECT 1 FROM .*managed_api_keys\s+WHERE key_id = \$2 AND tenant_id = \$1 FOR SHARE$/s.test(sql)) {
-            return { rowCount: 1, rows: [{}] };
+          if (/lock_managed_api_key_share/.test(sql)) {
+            return { rowCount: 1, rows: [{ locked: true }] };
           }
           if (/SELECT EXISTS[\s\S]*managed_api_keys/s.test(sql)) {
             return { rowCount: 1, rows: [{ active: true }] };
@@ -904,7 +963,7 @@ test('PostgreSQL resource journal transition recheck returns its exact durable r
           if (sql === 'SELECT clock_timestamp() AS managed_now') {
             return { rowCount: 1, rows: [{ managed_now: now }] };
           }
-          if (/managed_tenants.*FOR SHARE/s.test(sql)) {
+          if (/lock_managed_tenant_share/.test(sql)) {
             return { rowCount: 1, rows: [{ status: 'active' }] };
           }
           if (/SELECT \* .*managed_invocations.*FOR UPDATE/s.test(sql)) {
@@ -932,8 +991,8 @@ test('PostgreSQL resource journal transition recheck returns its exact durable r
               }],
             };
           }
-          if (/^SELECT 1 FROM .*managed_api_keys\s+WHERE key_id = \$2 AND tenant_id = \$1 FOR SHARE$/s.test(sql)) {
-            return { rowCount: 1, rows: [{}] };
+          if (/lock_managed_api_key_share/.test(sql)) {
+            return { rowCount: 1, rows: [{ locked: true }] };
           }
           if (/SELECT EXISTS[\s\S]*managed_api_keys/s.test(sql)) {
             return { rowCount: 1, rows: [{ active: true }] };
@@ -1006,14 +1065,14 @@ test('PostgreSQL rolls back a mutation when audit time regresses at append', asy
               rows: [{ managed_now: clockCalls === 1 ? initialNow : regressedNow }],
             };
           }
-          if (/managed_tenants.*FOR SHARE/s.test(sql)) {
+          if (/lock_managed_tenant_share/.test(sql)) {
             return { rowCount: 1, rows: [{ status: 'active' }] };
           }
           if (/SELECT \* .*managed_invocations.*FOR UPDATE/s.test(sql)) {
             return { rowCount: 1, rows: [initialRow] };
           }
-          if (/^SELECT 1 FROM .*managed_api_keys\s+WHERE key_id = \$2 AND tenant_id = \$1 FOR SHARE$/s.test(sql)) {
-            return { rowCount: 1, rows: [{}] };
+          if (/lock_managed_api_key_share/.test(sql)) {
+            return { rowCount: 1, rows: [{ locked: true }] };
           }
           if (/SELECT EXISTS[\s\S]*managed_api_keys/s.test(sql)) {
             return { rowCount: 1, rows: [{ active: true }] };
@@ -1085,14 +1144,14 @@ test('PostgreSQL renewal fails when the lease expires at its decisive update', a
             clockCalls += 1;
             return { rowCount: 1, rows: [{ managed_now: clockCalls < 3 ? now : expiredNow }] };
           }
-          if (/managed_tenants.*FOR SHARE/s.test(sql)) {
+          if (/lock_managed_tenant_share/.test(sql)) {
             return { rowCount: 1, rows: [{ status: 'active' }] };
           }
           if (/SELECT \* .*managed_invocations.*FOR UPDATE/s.test(sql)) {
             return { rowCount: 1, rows: [row] };
           }
-          if (/^SELECT 1 FROM .*managed_api_keys\s+WHERE key_id = \$2 AND tenant_id = \$1 FOR SHARE$/s.test(sql)) {
-            return { rowCount: 1, rows: [{}] };
+          if (/lock_managed_api_key_share/.test(sql)) {
+            return { rowCount: 1, rows: [{ locked: true }] };
           }
           if (/SELECT EXISTS .*managed_api_keys AS claimant/s.test(sql)) {
             return { rowCount: 1, rows: [{ active: true }] };
@@ -1145,14 +1204,14 @@ test('PostgreSQL execution claim rechecks admission age at its decisive update',
               rows: [{ managed_now: clockCalls < 3 ? initialNow : gateNow }],
             };
           }
-          if (/managed_tenants.*FOR SHARE/s.test(sql)) {
+          if (/lock_managed_tenant_share/.test(sql)) {
             return { rowCount: 1, rows: [{ status: 'active' }] };
           }
           if (/SELECT \* .*managed_invocations.*FOR UPDATE/s.test(sql)) {
             return { rowCount: 1, rows: [row] };
           }
-          if (/^SELECT 1 FROM .*managed_api_keys\s+WHERE key_id = \$2 AND tenant_id = \$1 FOR SHARE$/s.test(sql)) {
-            return { rowCount: 1, rows: [{}] };
+          if (/lock_managed_api_key_share/.test(sql)) {
+            return { rowCount: 1, rows: [{ locked: true }] };
           }
           if (/SELECT EXISTS[\s\S]*managed_api_keys/s.test(sql)) {
             return { rowCount: 1, rows: [{ active: true }] };

@@ -15,8 +15,13 @@ import { constants } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { isProxy } from 'node:util/types';
 
 import { canonicalize, sha256Ref } from './canonical.mjs';
+import {
+  assertE2BRuntimeSdkReadonlyCustody,
+  isE2BRuntimeSdkProcessBoundary,
+} from './e2b-sdk-process.mjs';
 import {
   assertAllowedKeys,
   assertPlainObject,
@@ -40,10 +45,28 @@ export const E2B_EXTERNAL_QUALIFICATION_OBSERVATION_SCHEMA =
   'agoragentic.risk-fork.e2b-external-qualification-observation.v1';
 export const E2B_RUNTIME_SDK_INTEGRITY_SCHEMA =
   'agoragentic.risk-fork.e2b-runtime-sdk-dependency-closure.v2';
+// Included in provisional evidence BEFORE observation signing. This identifies
+// a host-pinned artifact; it does not itself measure or prove loaded code bytes.
+export const E2B_ADAPTER_ARTIFACT_EVIDENCE_REF =
+  'evidence:e2b-risk-fork-adapter-artifact';
 
 const QUALIFICATION_TRUST_VERIFIERS = new WeakSet();
 const EXTERNAL_QUALIFICATION_OBSERVATION_VERIFIERS = new WeakSet();
 const RUNTIME_SDK_INTEGRITY_VERIFIERS = new WeakSet();
+const RUNTIME_SDK_PROCESS_VERIFIERS = new WeakSet();
+// A disk digest must not relabel modules already evaluated in this process.
+// These fences cover verifier-mediated imports and visible CommonJS cache
+// entries; they are NOT an immutable-install or fresh-process attestation.
+const RUNTIME_SDK_LOADED_ENTRIES = new Map();
+const RUNTIME_SDK_CACHE_PROVENANCE = new Map();
+const RUNTIME_SDK_COMMONJS_CACHE = createRequire(import.meta.url).cache;
+const MAX_RUNTIME_SDK_LOADED_ENTRIES = 32;
+const MAX_RUNTIME_SDK_CACHE_PROVENANCE = 32_768;
+let runtimeSdkLoadTail = Promise.resolve();
+// Cleanup verification is available only through these constructor-owned
+// closures. It cannot change the current verifier's clock or freshness policy.
+const CLEANUP_OBSERVATION_VERIFIERS = new WeakMap();
+const CLEANUP_TRUST_VERIFIERS = new WeakMap();
 const MAX_RUNTIME_SDK_PACKAGES = 128;
 const MAX_RUNTIME_SDK_FILES_PER_PACKAGE = 2_048;
 const MAX_RUNTIME_SDK_FILES = 8_192;
@@ -590,7 +613,47 @@ function normalizeEvidence(value, { includeComputedFields }) {
   };
 }
 
+function normalizeExpectedBindings(value) {
+  const field = 'expected E2B bindings';
+  // Policy is supplied by the clean host. Typos must not silently remove a
+  // pin, and reading it must not execute accessors or Proxy traps. Retain the
+  // adapter's existing null/undefined-as-unset contract, using own data only.
+  if (!value || typeof value !== 'object' || isProxy(value) || Array.isArray(value)) {
+    throw new TypeError(`${field} must be a non-Proxy plain object`);
+  }
+  const prototype = Object.getPrototypeOf(value);
+  if ((prototype !== Object.prototype && prototype !== null)
+    || Object.getOwnPropertySymbols(value).length !== 0) {
+    throw new TypeError(`${field} must contain only own string-keyed data`);
+  }
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  const keys = [
+    'templateId', 'templateHash', 'bootstrapArtifactHash', 'runnerArtifactHash',
+    'adapterArtifactHash',
+  ];
+  const normalized = Object.create(null);
+  for (const [key, descriptor] of Object.entries(descriptors)) {
+    if (!keys.includes(key) || !descriptor.enumerable || !Object.hasOwn(descriptor, 'value')) {
+      throw new TypeError(`${field} contains unsupported or non-data fields`);
+    }
+    const entry = descriptor.value;
+    if (entry == null) continue;
+    const validated = key === 'templateId'
+      ? requireOpaqueRef(entry, `${field}.templateId`, { maxLength: 500 })
+      : requireSha256Ref(entry, `${field}.${key}`);
+    if (validated !== entry) throw new TypeError(`${field} must use canonical pin values`);
+    normalized[key] = validated;
+  }
+  return Object.freeze(normalized);
+}
+
 function assertExpectedBindings(evidence, expected) {
+  if (expected.adapterArtifactHash != null) {
+    const artifact = evidence.evidence_refs.find((entry) => entry.ref === E2B_ADAPTER_ARTIFACT_EVIDENCE_REF);
+    if (!artifact || !safeEqual(artifact.hash, expected.adapterArtifactHash)) {
+      throw new Error('E2B qualification adapter artifact binding mismatch');
+    }
+  }
   const bindings = [
     ['template_id_hash', expected.templateId == null ? null : sha256Ref(expected.templateId)],
     ['template_evidence_hash', expected.templateHash],
@@ -812,7 +875,7 @@ function normalizeObservationTimes(value, field) {
   return { observed_at: observedAt, issued_at: issuedAt, expires_at: expiresAt };
 }
 
-function assertExternalObservationCurrent(times, policy) {
+function assertExternalObservationHistorical(times, policy) {
   const observedMs = Date.parse(times.observed_at);
   const issuedMs = Date.parse(times.issued_at);
   const expiresMs = Date.parse(times.expires_at);
@@ -823,8 +886,16 @@ function assertExternalObservationCurrent(times, policy) {
   if (issuedMs > nowMs) {
     throw new Error('E2B external qualification observation is future-issued');
   }
+  return nowMs;
+}
+
+function assertExternalObservationCurrent(times, policy) {
+  const nowMs = assertExternalObservationHistorical(times, policy);
+  const expiresMs = Date.parse(times.expires_at);
   if (nowMs >= expiresMs) {
-    throw new Error('E2B external qualification observation is expired');
+    const error = new Error('E2B external qualification observation is expired');
+    error.code = 'E2B_QUALIFICATION_OBSERVATION_EXPIRED';
+    throw error;
   }
 }
 
@@ -1017,7 +1088,9 @@ function normalizeExternalNetwork(value) {
   };
 }
 
-function externalObservationPayload(evidence, input, observer, policy) {
+function externalObservationPayload(
+  evidence, input, observer, policy, assertTime = assertExternalObservationCurrent,
+) {
   assertExternalObservationProvisional(evidence);
   assertPlainObject(input, 'E2B external qualification observation input');
   assertAllowedKeys(input, [
@@ -1041,7 +1114,7 @@ function externalObservationPayload(evidence, input, observer, policy) {
   }
   const audience = externalObservationAudience(evidence);
   assertExternalObservationAudience(audience, policy.audience);
-  assertExternalObservationCurrent(times, policy);
+  assertTime(times, policy);
   const normalizedObserver = normalizeObserverIdentity(observer);
   const observerBoundary = normalizeExternalObserverBoundary(input.observer_boundary);
   const payload = {
@@ -1624,6 +1697,9 @@ async function inspectRuntimeSdkPackage(packageDirectory) {
   if (sdk.manifest.main !== 'dist/index.js' || !sdk.filePaths.has(sdk.manifest.main)) {
     throw new Error('E2B runtime SDK package entrypoint is not the reviewed dist/index.js');
   }
+  if (sdk.manifest.type != null && sdk.manifest.type !== 'commonjs') {
+    throw new Error('E2B runtime SDK entry requires the reviewed CommonJS package profile');
+  }
   const packages = [...packagesByRoot.values()]
     .map((entry) => entry.record)
     .sort((left, right) => (
@@ -1649,6 +1725,12 @@ async function inspectRuntimeSdkPackage(packageDirectory) {
   return {
     binding,
     entry: path.join(root, sdk.manifest.main),
+    runtimeFiles: [...packagesByRoot.values()].flatMap((entry) => (
+      entry.record.files.map((file) => ({
+        path: path.join(entry.root, ...file.path.split('/')),
+        hash: file.hash,
+      }))
+    )),
   };
 }
 
@@ -1660,9 +1742,92 @@ function assertRuntimeSdkBindingMatches(observed, expected) {
   }
 }
 
+function runtimeSdkCachedModule(file) {
+  const descriptor = Object.getOwnPropertyDescriptor(RUNTIME_SDK_COMMONJS_CACHE, file);
+  if (descriptor && !Object.hasOwn(descriptor, 'value')) {
+    throw new Error('E2B runtime SDK cached module has unverified provenance; restart required');
+  }
+  return descriptor?.value;
+}
+
+function assertRuntimeSdkCacheProvenance(files) {
+  for (const file of files) {
+    const cached = runtimeSdkCachedModule(file.path);
+    const known = RUNTIME_SDK_CACHE_PROVENANCE.get(file.path);
+    if (cached && (!known || known.module !== cached || !safeEqual(known.hash, file.hash))) {
+      throw new Error('E2B runtime SDK cached module has unverified or changed provenance; restart required');
+    }
+    if (known && (!cached || known.module !== cached || !safeEqual(known.hash, file.hash))) {
+      throw new Error('E2B runtime SDK loaded module binding changed; restart required');
+    }
+  }
+}
+
+async function loadRuntimeSdkWithCacheFence(expected, inspect) {
+  const before = await inspect();
+  assertRuntimeSdkBindingMatches(before.binding, expected);
+  let loaded = RUNTIME_SDK_LOADED_ENTRIES.get(before.entry);
+  if (loaded && (loaded.state !== 'verified'
+    || !safeEqual(loaded.hash, before.binding.integrity_hash))) {
+    throw new Error('E2B runtime SDK loaded binding changed or failed; restart required');
+  }
+  assertRuntimeSdkCacheProvenance(before.runtimeFiles);
+  if (!loaded) {
+    if (RUNTIME_SDK_LOADED_ENTRIES.size >= MAX_RUNTIME_SDK_LOADED_ENTRIES
+      || RUNTIME_SDK_CACHE_PROVENANCE.size + before.runtimeFiles.length > MAX_RUNTIME_SDK_CACHE_PROVENANCE) {
+      throw new Error('E2B runtime SDK cache provenance capacity reached; restart required');
+    }
+    loaded = { hash: before.binding.integrity_hash, state: 'loading', module: null };
+    RUNTIME_SDK_LOADED_ENTRIES.set(before.entry, loaded);
+  }
+  try {
+    const module = await import(pathToFileURL(before.entry).href);
+    const after = await inspect();
+    assertRuntimeSdkBindingMatches(after.binding, expected);
+    if (!safeEqual(before.binding.integrity_hash, after.binding.integrity_hash)) {
+      throw new Error('E2B runtime SDK package changed while it was loaded');
+    }
+    if (loaded.module && loaded.module !== module) {
+      throw new Error('E2B runtime SDK cached namespace changed; restart required');
+    }
+    const additions = [];
+    for (const file of after.runtimeFiles) {
+      const cached = runtimeSdkCachedModule(file.path);
+      const known = RUNTIME_SDK_CACHE_PROVENANCE.get(file.path);
+      if (known && (!cached || known.module !== cached || !safeEqual(known.hash, file.hash))) {
+        throw new Error('E2B runtime SDK cached provenance changed during load; restart required');
+      }
+      if (cached && !known) additions.push([file.path, { hash: file.hash, module: cached }]);
+    }
+    for (const [file, provenance] of additions) RUNTIME_SDK_CACHE_PROVENANCE.set(file, provenance);
+    loaded.module = module;
+    loaded.state = 'verified';
+    return Object.freeze({ module, ...after.binding });
+  } catch (error) {
+    // Failed evaluation/inspection can leave an unknown partial module graph.
+    // Never evict caches or retry that entry as if evaluation had not occurred.
+    loaded.state = 'failed';
+    throw error;
+  }
+}
+
 export function createE2BRuntimeSdkIntegrityVerifier(options = {}) {
   assertPlainObject(options, 'E2B runtime SDK integrity verifier options');
-  assertAllowedKeys(options, ['packageDirectory'], 'E2B runtime SDK integrity verifier options');
+  assertAllowedKeys(options, ['packageDirectory', 'processBoundary', 'readOnlyRuntime'], 'E2B runtime SDK integrity verifier options');
+  if (options.processBoundary !== undefined) {
+    if (!isE2BRuntimeSdkProcessBoundary(options.processBoundary)
+      || options.packageDirectory !== undefined || options.readOnlyRuntime !== undefined) {
+      throw new TypeError('E2B SDK process verifier requires only an original host-owned process boundary');
+    }
+    const boundary = options.processBoundary;
+    const verifier = Object.freeze({
+      async inspect() { return normalizeRuntimeSdkBinding(await boundary.inspect()); },
+      async load(value) { return boundary.load(normalizeRuntimeSdkBinding(value)); },
+    });
+    RUNTIME_SDK_INTEGRITY_VERIFIERS.add(verifier);
+    RUNTIME_SDK_PROCESS_VERIFIERS.add(verifier);
+    return verifier;
+  }
   const packageDirectory = options.packageDirectory == null
     ? null
     : path.resolve(requireString(
@@ -1670,22 +1835,41 @@ export function createE2BRuntimeSdkIntegrityVerifier(options = {}) {
         'E2B runtime SDK packageDirectory',
         { maxLength: 4_000 },
       ));
+  let readOnlyRuntime = null;
+  if (options.readOnlyRuntime !== undefined) {
+    assertAllowedKeys(options.readOnlyRuntime, ['runtimeArtifactPath', 'runtimeArtifactHash', 'nodeArtifactHash'], 'E2B read-only runtime profile');
+    const runtimeArtifactPath = requireString(options.readOnlyRuntime.runtimeArtifactPath, 'runtimeArtifactPath');
+    if (!packageDirectory || !path.isAbsolute(runtimeArtifactPath)
+      || runtimeArtifactPath !== path.resolve(runtimeArtifactPath)) {
+      throw new TypeError('E2B read-only runtime requires explicit canonical artifact and package paths');
+    }
+    readOnlyRuntime = Object.freeze({
+      packageDirectory, runtimeArtifactPath, nodePath: process.execPath,
+      runtimeArtifactHash: requireSha256Ref(options.readOnlyRuntime.runtimeArtifactHash, 'runtimeArtifactHash'),
+      nodeArtifactHash: requireSha256Ref(options.readOnlyRuntime.nodeArtifactHash, 'nodeArtifactHash'),
+    });
+  }
+  const inspect = async () => {
+    const inspected = await inspectRuntimeSdkPackage(packageDirectory);
+    if (readOnlyRuntime) {
+      // Every resolved transitive file must share verified immutable custody;
+      // a read-only package root alone does not exclude writable submounts.
+      await assertE2BRuntimeSdkReadonlyCustody(readOnlyRuntime, inspected.runtimeFiles.map((file) => file.path));
+    }
+    return inspected;
+  };
   const verifier = {
     async inspect() {
-      const inspected = await inspectRuntimeSdkPackage(packageDirectory);
+      const inspected = await inspect();
       return inspected.binding;
     },
     async load(value) {
       const expected = normalizeRuntimeSdkBinding(value);
-      const before = await inspectRuntimeSdkPackage(packageDirectory);
-      assertRuntimeSdkBindingMatches(before.binding, expected);
-      const module = await import(pathToFileURL(before.entry).href);
-      const after = await inspectRuntimeSdkPackage(packageDirectory);
-      assertRuntimeSdkBindingMatches(after.binding, expected);
-      if (!safeEqual(before.binding.integrity_hash, after.binding.integrity_hash)) {
-        throw new Error('E2B runtime SDK package changed while it was loaded');
-      }
-      return Object.freeze({ module, ...after.binding });
+      const pending = runtimeSdkLoadTail.then(() => loadRuntimeSdkWithCacheFence(
+        expected, inspect,
+      ));
+      runtimeSdkLoadTail = pending.then(() => undefined, () => undefined);
+      return pending;
     },
   };
   RUNTIME_SDK_INTEGRITY_VERIFIERS.add(verifier);
@@ -1694,6 +1878,10 @@ export function createE2BRuntimeSdkIntegrityVerifier(options = {}) {
 
 export function isE2BRuntimeSdkIntegrityVerifier(value) {
   return Boolean(value && RUNTIME_SDK_INTEGRITY_VERIFIERS.has(value));
+}
+
+export function isE2BRuntimeSdkProcessIntegrityVerifier(value) {
+  return Boolean(value && RUNTIME_SDK_PROCESS_VERIFIERS.has(value));
 }
 
 export async function loadVerifiedE2BRuntimeSdk(value, verifier) {
@@ -1783,16 +1971,7 @@ export function createE2BExternalQualificationObservationVerifier(options = {}) 
     audience: deepFreeze(normalizeExternalObservationAudience(options.audience)),
   });
 
-  const verifier = {
-    key_hash: keyHash,
-    observer,
-    audience: policy.audience,
-    max_receipt_age_ms: policy.maxReceiptAgeMs,
-    createPayload(value, input = {}) {
-      const evidence = validateE2BQualificationEvidence(value);
-      return externalObservationPayload(evidence, input, observer, policy);
-    },
-    verify(value, observation) {
+  function verifyObservation(value, observation, assertTime) {
       const evidence = validateE2BQualificationEvidence(value);
       const normalizedObservation = normalizeExternalObservationReceipt(observation);
       if (!safeEqual(normalizedObservation.observer.public_key_hash, keyHash)
@@ -1819,7 +1998,7 @@ export function createE2BExternalQualificationObservationVerifier(options = {}) 
           aggregate_console_delta: normalizedObservation.cost.aggregate_console_delta,
           actual_sandbox: normalizedObservation.cost.actual_sandbox,
         },
-      }, observer, policy);
+      }, observer, policy, assertTime);
       const { signature: signatureValue, ...actualPayload } = normalizedObservation;
       if (canonicalize(actualPayload) !== canonicalize(payload)) {
         throw new Error('E2B external qualification observation binding mismatch');
@@ -1837,9 +2016,24 @@ export function createE2BExternalQualificationObservationVerifier(options = {}) 
         throw new Error('E2B external qualification observation signature is invalid');
       }
       return normalizedObservation;
+  }
+  const verifier = {
+    key_hash: keyHash,
+    observer,
+    audience: policy.audience,
+    max_receipt_age_ms: policy.maxReceiptAgeMs,
+    createPayload(value, input = {}) {
+      const evidence = validateE2BQualificationEvidence(value);
+      return externalObservationPayload(evidence, input, observer, policy);
+    },
+    verify(value, observation) {
+      return verifyObservation(value, observation, assertExternalObservationCurrent);
     },
   };
   EXTERNAL_QUALIFICATION_OBSERVATION_VERIFIERS.add(verifier);
+  CLEANUP_OBSERVATION_VERIFIERS.set(verifier, (value, observation) => (
+    verifyObservation(value, observation, assertExternalObservationHistorical)
+  ));
   return Object.freeze(verifier);
 }
 
@@ -1877,23 +2071,7 @@ export function createE2BQualificationTrustVerifier(options = {}) {
     throw new Error('E2B qualification trust verifier public key hash mismatch');
   }
 
-  const verifier = {
-    key_hash: keyHash,
-    createPayload(value, expected = {}, externalObservationVerifier = null) {
-      const evidence = validateE2BQualificationEvidence(
-        value,
-        expected,
-        externalObservationVerifier,
-      );
-      assertDistinctQualificationTrustKey(evidence, keyHash);
-      return qualificationTrustPayload(evidence, keyHash);
-    },
-    verify(value, trust, expected = {}, externalObservationVerifier = null) {
-      const evidence = validateE2BQualificationEvidence(
-        value,
-        expected,
-        externalObservationVerifier,
-      );
+  function verifyBoundTrust(evidence, trust) {
       assertDistinctQualificationTrustKey(evidence, keyHash);
       assertPlainObject(trust, 'E2B qualification trust');
       assertAllowedKeys(
@@ -1917,9 +2095,24 @@ export function createE2BQualificationTrustVerifier(options = {}) {
         throw new Error('E2B qualification trust signature is invalid');
       }
       return deepFreeze({ ...payload, signature: trust.signature });
+  }
+  const verifier = {
+    key_hash: keyHash,
+    createPayload(value, expected = {}, externalObservationVerifier = null) {
+      const evidence = validateE2BQualificationEvidence(
+        value, expected, externalObservationVerifier,
+      );
+      assertDistinctQualificationTrustKey(evidence, keyHash);
+      return qualificationTrustPayload(evidence, keyHash);
+    },
+    verify(value, trust, expected = {}, externalObservationVerifier = null) {
+      return verifyBoundTrust(validateE2BQualificationEvidence(
+        value, expected, externalObservationVerifier,
+      ), trust);
     },
   };
   QUALIFICATION_TRUST_VERIFIERS.add(verifier);
+  CLEANUP_TRUST_VERIFIERS.set(verifier, verifyBoundTrust);
   return Object.freeze(verifier);
 }
 
@@ -2109,7 +2302,9 @@ function finalizeE2BQualificationEvidence(evidence, verified) {
   });
 }
 
-function assertFinalizedEvidenceMatchesReceipt(evidence, externalObservationVerifier) {
+function assertFinalizedEvidenceMatchesReceipt(
+  evidence, externalObservationVerifier, cleanupOnly = false,
+) {
   if (!externalObservationVerifier
     || !EXTERNAL_QUALIFICATION_OBSERVATION_VERIFIERS.has(externalObservationVerifier)) {
     throw new TypeError(
@@ -2117,7 +2312,10 @@ function assertFinalizedEvidenceMatchesReceipt(evidence, externalObservationVeri
     );
   }
   const provisional = provisionalEvidenceFromFinalized(evidence);
-  const verified = externalObservationVerifier.verify(
+  const verifyObservation = cleanupOnly
+    ? CLEANUP_OBSERVATION_VERIFIERS.get(externalObservationVerifier)
+    : (value, observation) => externalObservationVerifier.verify(value, observation);
+  const verified = verifyObservation(
     provisional,
     evidence.external_observation_receipt,
   );
@@ -2137,11 +2335,13 @@ export function createE2BQualificationEvidence(input = {}) {
   return evidence;
 }
 
-export function validateE2BQualificationEvidence(
+function validateQualificationEvidence(
   value,
   expected = {},
   externalObservationVerifier = null,
+  cleanupOnly = false,
 ) {
+  const expectedBindings = normalizeExpectedBindings(expected);
   const normalized = normalizeEvidence(value, { includeComputedFields: true });
   const expectedHash = sha256Ref({ ...normalized, evidence_hash: null });
   if (!safeEqual(normalized.evidence_hash, expectedHash)) {
@@ -2150,11 +2350,39 @@ export function validateE2BQualificationEvidence(
   if (canonicalize(normalized) !== canonicalize(value)) {
     throw new Error('E2B qualification evidence is not canonical and closed');
   }
-  assertExpectedBindings(normalized, expected);
+  assertExpectedBindings(normalized, expectedBindings);
   if (normalized.external_observation_receipt !== null) {
-    assertFinalizedEvidenceMatchesReceipt(normalized, externalObservationVerifier);
+    assertFinalizedEvidenceMatchesReceipt(normalized, externalObservationVerifier, cleanupOnly);
   }
   return deepFreeze(normalized);
+}
+
+export function validateE2BQualificationEvidence(
+  value, expected = {}, externalObservationVerifier = null,
+) {
+  return validateQualificationEvidence(value, expected, externalObservationVerifier);
+}
+
+// Cleanup-only provenance helper, NOT current qualification or permission
+// for new effects. No public allowExpired option, replacement clock, refreshed
+// receipt, or new authority token is minted. The full historical chain remains
+// pinned and verified; only the not-expired-now condition is inapplicable.
+export function verifyE2BCleanupQualificationProvenance(
+  value, trust, verifier, expected = {}, externalObservationVerifier = null,
+) {
+  const evidence = validateQualificationEvidence(value, expected, externalObservationVerifier, true);
+  const verifyTrust = CLEANUP_TRUST_VERIFIERS.get(verifier);
+  if (!verifyTrust) {
+    throw new TypeError('E2B cleanup provenance requires a trusted qualification trust verifier');
+  }
+  if (evidence.status !== 'verified'
+    || evidence.external_observation_receipt === null) {
+    throw new Error('E2B cleanup provenance requires finalized signed qualified historical evidence');
+  }
+  return Object.freeze({
+    evidence, trust: verifyTrust(evidence, trust), cleanup_only: true,
+    grants_new_effects: false, production_activation_granted: false,
+  });
 }
 
 export function isE2BQualificationEvidenceCanonical(

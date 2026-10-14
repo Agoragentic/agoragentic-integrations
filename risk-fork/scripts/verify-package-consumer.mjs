@@ -62,7 +62,19 @@ try {
   for (const expected of [
     'LICENSE', 'NOTICE', 'CITATION.cff', 'AUTHORS.md', 'GETTING_STARTED.md',
     'CLIENT_ADOPTION.md', 'MCP_2026_07_28_READINESS.md',
-    'managed-service/DEPLOYMENT_GATES.md', 'clients/one-tool-stdio-gate.mjs',
+    'managed-service/DEPLOYMENT_GATES.md', 'managed-service/OPERATIONAL_QUALIFICATION.md',
+    'managed-service/TELEMETRY.md', 'managed-service/REQUEST_POLICY.md',
+    'managed-service/ops/postgres/owner-bootstrap.sql.template',
+    'managed-service/ops/postgres/control-plane-owner-bootstrap.sql.template',
+    'managed-service/ops/postgres/control-plane-roles.sql.template',
+    'managed-service/ops/postgres/worker-delivery-roles.sql.template',
+    'managed-service/ops/postgres/request-policy-roles.sql.template',
+    'managed-service/ops/postgres/telemetry-roles.sql.template',
+    'managed-service/ops/postgres/lifecycle-grants.sql.template',
+    'managed-service/ops/postgres/metrics-grants.sql.template',
+    'managed-service/ops/postgres/diagnostic-grants.sql.template',
+    'managed-service/ops/postgres/worker-diagnostic-grants.sql.template',
+    'clients/one-tool-stdio-gate.mjs',
     'assets/risk-fork-social-preview.svg', 'src/host-boundary.mjs',
     'src/skillspector-admission.mjs',
     'schema/skillspector-admission-evidence.v1.json',
@@ -76,6 +88,12 @@ try {
     'examples/local-reference.mjs', 'examples/framework-adapters.mjs',
     'FRAMEWORK_ADAPTERS.md', 'src/client-adoption.mjs',
   ]) assert.ok(included.has(expected), `Packed file missing: ${expected}`);
+  assert.equal(included.has('managed-service/src/index.mjs'), false,
+    'Source-only managed-service runtime must not become a public SDK export');
+  assert.equal(included.has('managed-service/src/worker-diagnostic.mjs'), false,
+    'Worker diagnostics remain checkout-only managed-service source');
+  assert.equal(included.has('managed-service/migrations/016_managed_worker_diagnostic_metrics.pg.sql'), false,
+    'Managed-service DDL must not become a public SDK migration export');
   for (const file of included) {
     assert.ok(!/(?:^|\/)(?:node_modules|\.git|\.env|test|hackathon)(?:\/|$)/.test(file), `Unexpected package path: ${file}`);
     assert.ok(!file.endsWith('.tgz') && !file.endsWith('.zip'), 'Nested release artifact');
@@ -88,6 +106,8 @@ try {
     'MCP_2026_07_28_READINESS.md',
     'FRAMEWORK_ADAPTERS.md',
     'CLIENT_ADOPTION.md',
+    'managed-service/TELEMETRY.md',
+    'managed-service/REQUEST_POLICY.md',
   ]) {
     const markdown = await readFile(path.join(packageRoot, document), 'utf8');
     for (const match of markdown.matchAll(/\]\((\.\.?\/[^)#]+)(?:#[^)]*)?\)/g)) {
@@ -186,6 +206,7 @@ try {
   run('installed package exports', process.execPath, ['--input-type=module', '--eval', `
     import assert from 'node:assert/strict';
     import * as core from '@agoragentic/risk-fork';
+    import * as qualification from '@agoragentic/risk-fork/e2b-qualification';
     import * as host from '@agoragentic/risk-fork/host-boundary';
     import * as skillspector from '@agoragentic/risk-fork/skillspector-admission';
     import * as mcp from '@agoragentic/risk-fork/mcp-host-adapter';
@@ -198,6 +219,15 @@ try {
     import * as langgraph from '@agoragentic/risk-fork/frameworks/langgraph';
     import * as clients from '@agoragentic/risk-fork/client-adoption';
     assert.equal(typeof core.RiskForkController, 'function');
+    for (const surface of [core, qualification]) {
+      assert.equal(Object.hasOwn(surface, 'createE2BRuntimeSdkProcessBoundary'), false);
+      assert.equal(Object.hasOwn(surface, 'isE2BRuntimeSdkProcessBoundary'), false);
+    }
+    for (const subpath of ['e2b-sdk-process', 'src/e2b-sdk-process.mjs']) {
+      await assert.rejects(import('@agoragentic/risk-fork/' + subpath), {
+        code: 'ERR_PACKAGE_PATH_NOT_EXPORTED',
+      });
+    }
     assert.equal(typeof core.LocalReferenceRiskForkAdapter, 'function');
     assert.equal(typeof core.verifyPostgresAuthorityAuditPage, 'function');
     assert.equal(typeof host.createRiskForkHostBoundary, 'function');

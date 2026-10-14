@@ -1,5 +1,9 @@
 import { randomUUID } from 'node:crypto';
+import { assertCleanupIncompleteLease, cleanupIncompleteAuditBinding,
+  normalizeCleanupIncompleteInput, verifyCleanupIncompleteReplay } from './cleanup-incomplete.mjs';
 import { createManagedAuditEvent } from './audit.mjs';
+import { createManagedBacklogSnapshot, normalizeBacklogRead } from './backlog-snapshot.mjs';
+import { normalizeAuditPageRequest, normalizeAuditWindowRequest, verifyAuditInvocationPage } from './audit-read.mjs';
 import { sha256Ref } from '../../src/canonical.mjs';
 import { validateChildOperation } from '../../src/child-operation.mjs';
 import {
@@ -13,6 +17,8 @@ import {
   workerWriteScope,
 } from './constants.mjs';
 import { normalizeApiKeyRecord } from './auth.mjs';
+import { cancellationAuditDetails, normalizeCancellationFields, planCancellation,
+  verifyCancellationObservation } from './cancellation.mjs';
 import {
   assertManagedRecoveryKeyIntegrity,
   createManagedResourceJournalReceipt,
@@ -98,6 +104,7 @@ function normalizeTenant(value) {
 
 function publicInvocation(record) {
   assertManagedRecoveryKeyIntegrity(record);
+  normalizeCancellationFields(record);
   const copy = cloneJson(record, 'invocation');
   delete copy.operation;
   delete copy.lease_claim_audit_hash;
@@ -181,7 +188,7 @@ export class MemoryManagedServiceStore {
     }
   }
 
-  #draftAudit(record, eventType, occurredAt, details = {}) {
+  #draftAudit(record, eventType, occurredAt, details = {}, eventRef = undefined) {
     const key = invocationKey(record.tenant_id, record.invocation_ref);
     const events = this.#audit.get(key) ?? [];
     const normalizedOccurredAt = requireIso(occurredAt, 'audit event occurred_at');
@@ -194,7 +201,7 @@ export class MemoryManagedServiceStore {
       );
     }
     const event = createManagedAuditEvent({
-      event_ref: requireOpaqueRef(this.#eventRef(), 'event reference'),
+      event_ref: requireOpaqueRef(eventRef ?? this.#eventRef(), 'event reference'),
       tenant_id: record.tenant_id,
       invocation_ref: record.invocation_ref,
       sequence: events.length + 1,
@@ -206,8 +213,8 @@ export class MemoryManagedServiceStore {
     return { key, events: [...events, event], event };
   }
 
-  #prepareAuditedRecord(record, eventType, occurredAt, details = {}) {
-    const draft = this.#draftAudit(record, eventType, occurredAt, details);
+  #prepareAuditedRecord(record, eventType, occurredAt, details = {}, eventRef = undefined) {
+    const draft = this.#draftAudit(record, eventType, occurredAt, details, eventRef);
     const { event } = draft;
     record.audit_head_hash = event.event_hash;
     record.audit_event_count = draft.events.length;
@@ -407,6 +414,10 @@ export class MemoryManagedServiceStore {
           'provider_recovery_key',
         ),
         execution_outcome: null,
+        cancel_requested_at: null,
+        cancel_requested_by: null,
+        cancel_request_hash: null,
+        cancel_reason_hash: null,
         execution_evidence_hash: null,
         result_hash: null,
         admitted_at: now,
@@ -683,7 +694,8 @@ export class MemoryManagedServiceStore {
   }
 
   #requireActiveClaimant(tenantIdValue, claimantKeyIdValue, nowValue, requiredScope) {
-    if (!/^worker:(execution|cleanup|recovery):(claim|write)$/.test(requiredScope)) {
+    if (requiredScope !== 'invocations:cancel' && requiredScope !== 'audit:read'
+      && !/^worker:(execution|cleanup|recovery):(claim|write)$/.test(requiredScope)) {
       throw new TypeError('claimant scope must be purpose-specific');
     }
     const tenantId = requireTenantId(tenantIdValue);
@@ -750,6 +762,24 @@ export class MemoryManagedServiceStore {
     }
   }
 
+  async recordCleanupIncomplete(inputValue) {
+    const input = normalizeCleanupIncompleteInput(inputValue);
+    return this.#exclusive(() => {
+      const key = invocationKey(input.tenant_id, input.invocation_ref);
+      const record = this.#invocations.get(key);
+      if (!record) throw managedError('Invocation was not found', 'INVOCATION_NOT_FOUND', 404);
+      this.#requireActiveClaimant(input.tenant_id, input.claimant_key_id, input.now, workerWriteScope('cleanup'));
+      assertCleanupIncompleteLease(record, input, input.now);
+      const binding = cleanupIncompleteAuditBinding(input);
+      const prior = (this.#audit.get(key) ?? []).find((event) => event.event_ref === binding.event_ref);
+      if (prior) return verifyCleanupIncompleteReplay(prior, input, record);
+      const next = cloneJson(record, 'cleanup incomplete invocation');
+      const prepared = this.#prepareAuditedRecord(next, 'cleanup_incomplete', input.now, binding.details, binding.event_ref);
+      this.#commitAuditedRecord(prepared);
+      return prepared.event;
+    });
+  }
+
   async transitionInvocation(input) {
     return this.#exclusive(async () => {
       const resourceJournalRequestHash = input.resource_journal_request_hash == null
@@ -810,6 +840,9 @@ export class MemoryManagedServiceStore {
         throw managedError('Invocation transition is invalid', 'INVOCATION_TRANSITION_INVALID', 409);
       }
       const terminal = TERMINAL_INVOCATION_STATES.includes(input.next_state);
+      if (record.cancel_request_hash != null && input.next_state === 'completed') {
+        throw managedError('Canceled invocation cannot import a completed result', 'INVOCATION_CANCELED', 409);
+      }
       if (terminal) {
         const verificationNotAfter = requireIso(
           input.verification_not_after,
@@ -926,7 +959,8 @@ export class MemoryManagedServiceStore {
       next.lease_token_hash = null;
       next.lease_expires_at = null;
       next.updated_at = now;
-      const prepared = this.#prepareAuditedRecord(next, 'execution_outcome_recorded', now, {
+      const eventType = input.execution_outcome === 'failed' ? 'execution_failure_observed' : 'execution_outcome_recorded';
+      const prepared = this.#prepareAuditedRecord(next, eventType, now, {
         from_state: 'running',
         to_state: 'cleanup_pending',
         outcome: input.execution_outcome,
@@ -1058,6 +1092,110 @@ export class MemoryManagedServiceStore {
     });
   }
 
+  async readCleanupRecoveryBacklog(inputValue, { clock = () => new Date() } = {}) {
+    const input = normalizeBacklogRead(inputValue);
+    if (typeof clock !== 'function') throw new TypeError('backlog clock must be a function');
+    return this.#exclusive(() => {
+      // Capture time and authorize only AFTER any pending snapshot/writer wait.
+      const snapshotAt = requireIso(clock(), 'backlog clock result');
+      this.#requireActiveClaimant(input.tenant_id, input.claimant_key_id, snapshotAt, 'audit:read');
+      const counts = { cleanup_pending_count: 0, recovery_required_count: 0,
+        expired_execution_lease_count: 0, expired_cleanup_lease_count: 0, expired_recovery_lease_count: 0 };
+      for (const record of this.#invocations.values()) {
+        if (record.tenant_id !== input.tenant_id) continue;
+        if (record.state === 'cleanup_pending') counts.cleanup_pending_count += 1;
+        if (record.state === 'recovery_required') counts.recovery_required_count += 1;
+        if (record.lease_expires_at === null || Date.parse(record.lease_expires_at) > Date.parse(snapshotAt)) continue;
+        if (record.lease_kind === 'execution') counts.expired_execution_lease_count += 1;
+        if (record.lease_kind === 'cleanup') counts.expired_cleanup_lease_count += 1;
+        if (record.lease_kind === 'recovery') counts.expired_recovery_lease_count += 1;
+      }
+      return createManagedBacklogSnapshot({ tenant_id: input.tenant_id, snapshot_at: snapshotAt, ...counts });
+    });
+  }
+
+  async listAuditInvocations(tenantIdValue, requestValue = {}) {
+    const tenantId = requireTenantId(tenantIdValue);
+    const request = normalizeAuditPageRequest(requestValue);
+    return this.#exclusive(async () => {
+      // The memory fixture is finite; the PostgreSQL path returns bounded query results.
+      const candidates = [...this.#invocations.values()].filter((row) => row.tenant_id === tenantId)
+        .sort((left, right) => left.invocation_ref < right.invocation_ref ? -1
+          : left.invocation_ref > right.invocation_ref ? 1 : 0);
+      const upper = request.upper_ref ?? candidates.at(-1)?.invocation_ref ?? null;
+      const rows = candidates.filter((row) => (request.after_ref === null || row.invocation_ref > request.after_ref)
+        && upper !== null && row.invocation_ref <= upper).slice(0, request.limit + 1);
+      const invocations = rows.slice(0, request.limit).map((row) => ({
+        invocation_ref: row.invocation_ref, audit_event_count: row.audit_event_count, audit_head_hash: row.audit_head_hash,
+      }));
+      return verifyAuditInvocationPage({ tenant_id: tenantId, upper_ref: upper,
+        invocations, complete: rows.length <= request.limit,
+        next_after_ref: invocations.at(-1)?.invocation_ref ?? request.after_ref }, tenantId, request);
+    });
+  }
+
+  async requestCancellation(input) {
+    return this.#exclusive(async () => {
+      assertPlainRecord(input, 'stored cancellation request');
+      assertAllowedKeys(input, ['tenant_id', 'invocation_ref', 'claimant_key_id',
+        'cancel_request_hash', 'cancel_reason_hash', 'now', 'expected_request_hash',
+        'expected_operation_hash', 'expected_provider_binding_hash', 'expected_provider_recovery_key'], 'stored cancellation request');
+      const tenantId = requireTenantId(input.tenant_id);
+      const ref = requireInvocationRef(input.invocation_ref);
+      const now = requireIso(input.now, 'cancellation time');
+      this.#requireActiveClaimant(tenantId, input.claimant_key_id, now, 'invocations:cancel');
+      const record = this.#invocations.get(invocationKey(tenantId, ref));
+      if (!record) throw managedError('Invocation was not found', 'INVOCATION_NOT_FOUND', 404);
+      const plan = planCancellation(record, input, now);
+      if (plan === null) return publicInvocation(record);
+      const { release_reservation: release, additional_spent_micros: spent,
+        revoke_execution: revoke, ...patch } = plan;
+      const key = usageKey(tenantId, record.budget_day_utc);
+      const usage = this.#usage.get(key);
+      const reserved = release ? record.estimated_cost_micros : 0;
+      if (!usage || usage.reserved_micros < reserved) throw new Error('Budget reservation invariant failed');
+      const next = { ...cloneJson(record, 'canceled invocation'), ...patch, updated_at: now };
+      if (revoke) Object.assign(next, { lease_kind: null, lease_owner: null,
+        lease_token_hash: null, lease_expires_at: null });
+      const prepared = this.#prepareAuditedRecord(next, 'cancellation_requested', now, cancellationAuditDetails(record, plan));
+      this.#usage.set(key, { reserved_micros: usage.reserved_micros - reserved,
+        spent_micros: usage.spent_micros + spent });
+      return this.#commitAuditedRecord(prepared);
+    });
+  }
+
+  async observeCancellation(input) {
+    return this.#exclusive(async () => {
+      const tenantId = requireTenantId(input.tenant_id);
+      const ref = requireInvocationRef(input.invocation_ref);
+      const now = requireIso(input.now, 'cancellation observation time');
+      this.#requireActiveClaimant(tenantId, input.claimant_key_id, now, workerWriteScope('execution'));
+      const key = invocationKey(tenantId, ref);
+      const record = this.#invocations.get(key);
+      if (!record) throw managedError('Invocation was not found', 'INVOCATION_NOT_FOUND', 404);
+      const events = (this.#audit.get(key) ?? []).filter((event) => event.event_type === 'cancellation_requested');
+      return verifyCancellationObservation({ ...record, tenant_status: this.#tenants.get(tenantId)?.status },
+        input, now, { count: events.length, details_hash: events[0]?.details_hash ?? null });
+    });
+  }
+
+  async getAuditWindow(tenantIdValue, invocationRefValue, requestValue = {}) {
+    const tenantId = requireTenantId(tenantIdValue);
+    const invocationRef = requireInvocationRef(invocationRefValue, 'invocation_ref');
+    const request = normalizeAuditWindowRequest(requestValue);
+    return this.#exclusive(async () => {
+      const key = invocationKey(tenantId, invocationRef);
+      const invocation = this.#invocations.get(key);
+      if (!invocation) return null;
+      const events = this.#audit.get(key) ?? [];
+      return deepFreeze(cloneJson({ tenant_id: tenantId, invocation_ref: invocationRef,
+        audit_event_count: invocation.audit_event_count, audit_head_hash: invocation.audit_head_hash,
+        prior_event: events[request.after_sequence - 1] ?? null,
+        events: events.slice(request.after_sequence, request.after_sequence + request.limit),
+      }, 'audit window'));
+    });
+  }
+
   async listAuditEvents(tenantIdValue, invocationRefValue) {
     const tenantId = requireTenantId(tenantIdValue);
     const invocationRef = requireInvocationRef(invocationRefValue, 'invocation_ref');
@@ -1114,21 +1252,32 @@ export class MemoryManagedServiceStore {
 
   async health(nowValue = new Date()) {
     const now = requireIso(nowValue, 'health.now');
-    const recoveryRequiredCount = [...this.#invocations.values()].filter(
-      (record) => record.state === 'recovery_required',
-    ).length;
-    const expiredExecutionLeaseCount = [...this.#invocations.values()].filter(
-      (record) => record.lease_kind === 'execution'
-        && record.lease_expires_at !== null
-        && Date.parse(record.lease_expires_at) <= Date.parse(now),
-    ).length;
+    const nowMs = Date.parse(now);
+    let cleanupPendingCount = 0;
+    let recoveryRequiredCount = 0;
+    let expiredExecutionLeaseCount = 0;
+    let expiredCleanupLeaseCount = 0;
+    let expiredRecoveryLeaseCount = 0;
+    // No await or mutation: all counters observe the same in-process state.
+    for (const record of this.#invocations.values()) {
+      if (record.state === 'cleanup_pending') cleanupPendingCount += 1;
+      if (record.state === 'recovery_required') recoveryRequiredCount += 1;
+      if (record.lease_expires_at === null || Date.parse(record.lease_expires_at) > nowMs) continue;
+      if (record.lease_kind === 'execution') expiredExecutionLeaseCount += 1;
+      if (record.lease_kind === 'cleanup') expiredCleanupLeaseCount += 1;
+      if (record.lease_kind === 'recovery') expiredRecoveryLeaseCount += 1;
+    }
     return deepFreeze({
       ready: recoveryRequiredCount === 0 && expiredExecutionLeaseCount === 0,
       backend: 'memory_local_test',
       durable: false,
       tenant_count: this.#tenants.size,
+      snapshot_at: now,
+      cleanup_pending_count: cleanupPendingCount,
       recovery_required_count: recoveryRequiredCount,
       expired_execution_lease_count: expiredExecutionLeaseCount,
+      expired_cleanup_lease_count: expiredCleanupLeaseCount,
+      expired_recovery_lease_count: expiredRecoveryLeaseCount,
     });
   }
 }

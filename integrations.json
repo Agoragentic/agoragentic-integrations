@@ -1,6 +1,6 @@
 {
   "version": "2.56.1",
-  "updated_at": "2026-09-22",
+  "updated_at": "2026-10-14",
   "canonical_url": "https://agoragentic.com",
   "canonical_manifest": "https://agoragentic.com/.well-known/agent-marketplace.json",
   "packages": {
@@ -173,6 +173,15 @@
       "source": "ard",
       "min_node": "20",
       "compatibility_scope": "Pinned ARD v0.91 schemas, local contexts, deterministic compatibility manifests, and offline normalizer only; default-off with no network dereference, execution, payment, trust-promotion, publication, deployment, or live-route authority"
+    },
+    "x402_spotcheck_buyer": {
+      "name": "@agoragentic/example-x402-spotcheck-buyer",
+      "install": "cd examples/x402-spotcheck-buyer && npm ci",
+      "registry": "https://github.com/rhein1/agoragentic-integrations/tree/main/examples/x402-spotcheck-buyer",
+      "distribution_status": "source_only",
+      "source": "examples/x402-spotcheck-buyer",
+      "min_node": "20",
+      "compatibility_scope": "Optional anonymous x402 buyer example with an x402-spotcheck 1.0.0 local pre-payment check (pinned to github:withgrokbot/x402-spotcheck#v1.0.0, @x402/fetch and @x402/evm 2.28.0). Base mainnet only. Offline tests use mock fetch and a throwaway signer; no live endpoints, check service, credentials, chain calls, publication or spend"
     }
   },
   "env_vars": {
@@ -431,7 +440,7 @@
       "reason": "The offline conformance scorer is source-visible, but its run records are self-attested and it has no independent harness evidence, leaderboard approval, or publication review.",
       "owner": "repository-maintainers",
       "tracking_ref": "https://github.com/rhein1/agoragentic-integrations/pull/261",
-      "review_by": "2026-10-08",
+      "review_by": "2026-11-07",
       "published": false,
       "external_compatibility_verified": false,
       "ready_for_manifest": false,
@@ -443,7 +452,7 @@
       "reason": "The exact upstream source lock, closed representation contract, no-spend target policy, and deterministic fixture replay pass, but no live MatrAIx provider run or independent external compatibility review has occurred.",
       "owner": "repository-maintainers",
       "tracking_ref": "https://github.com/rhein1/agoragentic-integrations/pull/320",
-      "review_by": "2026-10-08",
+      "review_by": "2026-11-07",
       "published": false,
       "external_compatibility_verified": false,
       "ready_for_manifest": false,
@@ -455,7 +464,7 @@
       "reason": "The provider-neutral qualification evaluator, closed evidence schema, fail-closed regression handling, and no-auto-promotion tests are source-visible. It is not published, deployed, authorized to execute integrations, or sufficient by itself to prove runtime compatibility, hosted availability, production activation, or human promotion.",
       "owner": "repository-maintainers",
       "tracking_ref": "https://github.com/rhein1/agoragentic-integrations/issues/323",
-      "review_by": "2026-10-08",
+      "review_by": "2026-11-07",
       "published": false,
       "external_compatibility_verified": false,
       "ready_for_manifest": false,
@@ -467,7 +476,7 @@
       "reason": "A hash-bound, provider-free run against exact Prime Agent v0.7.2 records verified release bytes, a pinned dependency closure, the loaded source extension, and a passed RPC matrix as runtime-compatibility evidence. Promotion is blocked because the exact closure includes direct extract-zip 2.0.1, affected by high-severity GHSA-jmr9-qjv8-65gv with no patched version reported at capture time. A public compatibility claim, real host tool-call interception, restricted exact-runtime containment, hosted availability, and production activation remain unapproved or unverified, so the effective level stays source_adapter and the package stays held from public catalog inclusion.",
       "owner": "repository-maintainers",
       "tracking_ref": "https://github.com/rhein1/agoragentic-integrations/issues/323",
-      "review_by": "2026-10-08",
+      "review_by": "2026-11-07",
       "published": false,
       "external_compatibility_verified": false,
       "ready_for_manifest": false,
@@ -479,7 +488,7 @@
       "reason": "A signed independent anchor-x402 run against historical suite 0.1.0-alpha.0 and pinned target and suite commits passed 42/42 with a publicly verified receipt, no network use, and no spend authority, and produced two actionable contract-clarity findings. Current suite 0.2.0-alpha.0 adds seven required negative/review vectors and needs fresh independent artifacts; starter self-tests cannot satisfy that gate. The package also includes optional read-only Mycelium external-verification profiles. Publication, public catalog inclusion, and any ecosystem-standard or live-compatibility claim remain separately review-gated.",
       "owner": "repository-maintainers",
       "tracking_ref": "https://github.com/rhein1/agoragentic-integrations/issues/246",
-      "review_by": "2026-10-08",
+      "review_by": "2026-11-07",
       "published": false,
       "external_compatibility_verified": false,
       "ready_for_manifest": false,
@@ -491,7 +500,7 @@
       "reason": "Exact Prime Verifiers v0.3.0 package tests pass, but an owner-approved external harness attestation run is still required before public catalog inclusion.",
       "owner": "repository-maintainers",
       "tracking_ref": "https://github.com/rhein1/agoragentic-integrations/pull/259",
-      "review_by": "2026-10-08",
+      "review_by": "2026-11-07",
       "published": false,
       "external_compatibility_verified": false,
       "ready_for_manifest": false,
@@ -503,7 +512,7 @@
       "reason": "The public integrity-bound enforcement bundle is source-only and unpublished; it supplies reviewed library source with source/loopback ordering evidence but no production host adapter, credentials, deployment authority, or traffic-routing authority. This repository contains no immutable public-safe evidence ref/hash establishing a separate private host-control release, its interface inventory, current deployment/runtime state, live interception, or qualified production traffic, so those private and runtime states remain unknown here.",
       "owner": "repository-maintainers",
       "tracking_ref": "https://github.com/rhein1/agoragentic-integrations/issues/301",
-      "review_by": "2026-10-08",
+      "review_by": "2026-11-07",
       "published": false,
       "external_compatibility_verified": false,
       "ready_for_manifest": false,
@@ -1859,6 +1868,15 @@
           "spend_capable": false
         }
       }
+    },
+    {
+      "id": "x402-spotcheck-buyer",
+      "name": "x402 Spot-Check Buyer Example (optional)",
+      "language": "javascript",
+      "status": "experimental",
+      "path": "examples/x402-spotcheck-buyer/buyer.mjs",
+      "install": "cd examples/x402-spotcheck-buyer && npm ci",
+      "docs": "sdk/node/README.md"
     }
   ],
   "specs": [
