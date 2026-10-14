@@ -10,7 +10,13 @@ import { createManagedRiskForkControlPlane } from '../src/control-plane.mjs';
 import { migrateManagedServicePostgres } from '../src/postgres-migrator.mjs';
 import { PostgresManagedServiceStore } from '../src/postgres-store.mjs';
 import { createManagedProviderRegistry } from '../src/provider-registry.mjs';
-import { invocationRequest, testLeaseToken, TestProvider, TEST_TOKEN } from './helpers.mjs';
+import {
+  createStablePostgresClock,
+  invocationRequest,
+  testLeaseToken,
+  TestProvider,
+  TEST_TOKEN,
+} from './helpers.mjs';
 
 const connectionString = process.env.RISK_FORK_MANAGED_TEST_POSTGRES_URL;
 let skip = 'An explicit disposable loopback risk_fork_managed_test database is required';
@@ -33,12 +39,14 @@ const leaseHash = (token) => `sha256:${createHash('sha256')
 async function fixture(t) {
   const schemaName = `risk_fork_scope_test_${randomUUID().replaceAll('-', '')}`;
   const schema = quotePostgresAuthorityIdentifier(schemaName);
-  const pool = await createPostgresAuthorityPool({ connectionString, requireTls: false, maxConnections: 4 });
+  const rawPool = await createPostgresAuthorityPool({ connectionString, requireTls: false, maxConnections: 4 });
   t.after(async () => {
-    try { await pool.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`); }
-    finally { await pool.end(); }
+    try { await rawPool.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`); }
+    finally { await rawPool.end(); }
   });
-  await migrateManagedServicePostgres({ pool, schemaName, requireTls: false });
+  await migrateManagedServicePostgres({ pool: rawPool, schemaName, requireTls: false });
+  const stableClock = await createStablePostgresClock(rawPool, schemaName);
+  const pool = stableClock.pool;
   await pool.query(`INSERT INTO ${schema}.managed_tenants
     (tenant_id, status, daily_budget_micros, max_invocation_cost_micros, max_concurrent_invocations)
     VALUES ('tenant_alpha', 'active', 1000000, 500000, 4)`);
@@ -62,25 +70,26 @@ async function fixture(t) {
   }]);
   function restart() {
     const store = new PostgresManagedServiceStore({ pool, schemaName, requireTls: false });
-    const auth = createManagedAuthenticator({ store });
+    const auth = createManagedAuthenticator({ store, clock: stableClock.clock });
     const control = createManagedRiskForkControlPlane({
       config: createManagedServiceConfig({ enabled: true, environment: 'local_test' }),
-      store, providerRegistry, requirePrincipal: auth.requirePrincipal,
+      store, providerRegistry, requirePrincipal: auth.requirePrincipal, clock: stableClock.clock,
     });
     return { store, auth, control };
   }
   const current = restart();
   const principal = await current.auth.authenticate(`Bearer ${TEST_TOKEN}`, 'invocations:write');
+  const leaseMs = 120_000;
   const { invocation } = await current.control.admitInvocation(principal, invocationRequest());
   const token = testLeaseToken('scoped_pg');
   const claimRequest = { invocation_ref: invocation.invocation_ref, lease_token: token,
-    worker_id: 'worker_scope_test', lease_ms: 120_000 };
+    worker_id: 'worker_scope_test', lease_ms: leaseMs };
   const resources = { invocation_ref: invocation.invocation_ref, lease_token: token,
     savepoint_ref: 'savepoint_scope', fork_ref: 'fork_scope' };
   const base = { tenant_id: 'tenant_alpha', claimant_key_id: 'key_alpha',
     invocation_ref: invocation.invocation_ref, lease_token_hash: leaseHash(token) };
-  return { ...current, pool, schema, schemaName, setScopes, hooks, restart, principal, invocation,
-    claimRequest, resources, base };
+  return { ...current, clock: stableClock.clock, pool, schema, schemaName, setScopes, hooks,
+    restart, principal, invocation, claimRequest, leaseMs, resources, base };
 }
 
 test('PostgreSQL checks current scopes at the store boundary, including claim replays', { skip }, async (t) => {
@@ -131,10 +140,10 @@ test('PostgreSQL rejects withdrawn write authority for renewal, preflight, settl
   const before = await f.store.getAuditSnapshot('tenant_alpha', f.invocation.invocation_ref);
   await f.setScopes(scopes.filter((scope) => scope !== 'worker:execution:write'));
   const { store } = f.restart();
-  const base = { ...f.base, now: new Date().toISOString() };
+  const base = { ...f.base, now: f.clock().toISOString() };
   for (const operation of [
     () => store.assertActiveLease({ ...base, lease_kind: 'execution', expected_states: ['running'] }),
-    () => store.renewLease({ ...base, lease_ms: 120_000 }),
+    () => store.renewLease({ ...base, lease_ms: f.leaseMs }),
     () => store.settleExecutionOutcome({ ...base, actual_cost_micros: 10,
       execution_outcome: 'succeeded', execution_evidence_hash: sha256Ref({ ok: true }), result_hash: sha256Ref({ result: true }) }),
     () => store.transitionInvocation({ ...journalInput, now: base.now }),
@@ -142,7 +151,7 @@ test('PostgreSQL rejects withdrawn write authority for renewal, preflight, settl
   ]) await assert.rejects(operation(), denied);
   assert.deepEqual(await store.getAuditSnapshot('tenant_alpha', f.invocation.invocation_ref), before);
   await f.setScopes(scopes);
-  assert.deepEqual(await store.transitionInvocation({ ...journalInput, now: new Date().toISOString() }), running);
+  assert.deepEqual(await store.transitionInvocation({ ...journalInput, now: f.clock().toISOString() }), running);
 });
 
 test('PostgreSQL keeps cleanup pending when authority is withdrawn during absence verification', { skip }, async (t) => {
@@ -159,7 +168,7 @@ test('PostgreSQL keeps cleanup pending when authority is withdrawn during absenc
   });
   const cleanup = { invocation_ref: f.invocation.invocation_ref, lease_token: lease.lease_token,
     cleanup_evidence: lease.invocation.cleanup_requests.map((request) => createCleanupVerificationEvidence(request, {
-      status: 'verified', observed_at: new Date().toISOString(), evidence_ref: `observed_${request.resource_kind}`,
+      status: 'verified', observed_at: f.clock().toISOString(), evidence_ref: `observed_${request.resource_kind}`,
       observation_hash: sha256Ref({ absent: request.resource_ref }),
     })) };
   const before = await f.store.getAuditSnapshot('tenant_alpha', f.invocation.invocation_ref);
@@ -197,10 +206,10 @@ test('PostgreSQL serializes credential changes behind the final lease decision',
     },
   };
   const store = new PostgresManagedServiceStore({ pool: gatedPool, schemaName: f.schemaName, requireTls: false });
-  const now = new Date().toISOString();
+  const now = f.clock().toISOString();
   const claim = { ...f.base, purpose: 'execution', worker_id: 'worker_scope_lock',
-    lease_ms: 120_000, min_lease_ms: 5_000, max_lease_ms: 120_000,
-    max_invocation_age_ms: 900_000, now, expires_at: new Date(Date.parse(now) + 120_000).toISOString() };
+    lease_ms: f.leaseMs, min_lease_ms: 5_000, max_lease_ms: 120_000,
+    max_invocation_age_ms: 900_000, now, expires_at: new Date(Date.parse(now) + f.leaseMs).toISOString() };
   const pendingClaim = store.claimLease(claim);
   // Attach the failure observer before the transaction reaches the barrier.
   const reached = await Promise.race([locked.then(() => true), pendingClaim.then(() => false)]);
@@ -219,7 +228,7 @@ test('PostgreSQL serializes credential changes behind the final lease decision',
     await pendingClaim;
   }
   await f.setScopes(['invocations:read']);
-  await assert.rejects(store.claimLease({ ...claim, now: new Date().toISOString() }), denied);
+  await assert.rejects(store.claimLease({ ...claim, now: f.clock().toISOString() }), denied);
   assert.equal((await f.store.getAuditSnapshot('tenant_alpha', f.invocation.invocation_ref)).events.length, 2);
 });
 
@@ -245,8 +254,8 @@ for (const expiry of ['lease', 'credential']) {
           WHERE key_id = 'key_alpha' FOR UPDATE`);
         const pid = (await blocker.query('SELECT pg_backend_pid() AS pid')).rows[0].pid;
         pending = f.store.claimLease({ ...f.base, purpose: 'execution', worker_id: 'worker_scope_test',
-          lease_ms: 120_000, min_lease_ms: 5_000, max_lease_ms: 120_000,
-          max_invocation_age_ms: 900_000, now: new Date().toISOString() })
+          lease_ms: f.leaseMs, min_lease_ms: 5_000, max_lease_ms: 120_000,
+          max_invocation_age_ms: 900_000, now: f.clock().toISOString() })
           .then((value) => { settled = true; return { value }; },
             (error) => { settled = true; return { error }; });
         let waiting = false;
@@ -285,7 +294,16 @@ for (const corrupt of [false, true]) {
       await f.control.recordResources(f.principal, f.resources);
       // Owner-only disposable fixture simulates the unchanged v1 layout.
       await f.pool.query(`ALTER TABLE ${f.schema}.managed_resource_journal_receipts DROP COLUMN lease_kind`);
-      await f.pool.query(`DELETE FROM ${f.schema}.managed_schema_migrations WHERE version = 2`);
+      await f.pool.query(`DROP FUNCTION ${f.schema}.lock_managed_tenant_share(text)`);
+      await f.pool.query(`DROP FUNCTION ${f.schema}.lock_managed_api_key_share(text,text)`);
+      await f.pool.query(`DROP FUNCTION ${f.schema}.lock_managed_tenant_update(text)`);
+      await f.pool.query(`DROP TRIGGER managed_invocations_no_cancellation_rearm ON ${f.schema}.managed_invocations`);
+      await f.pool.query(`DROP FUNCTION ${f.schema}.reject_managed_cancellation_rearm()`);
+      await f.pool.query(`ALTER TABLE ${f.schema}.managed_invocations
+        DROP CONSTRAINT managed_cancellation_marker,
+        DROP COLUMN cancel_requested_at, DROP COLUMN cancel_requested_by,
+        DROP COLUMN cancel_request_hash, DROP COLUMN cancel_reason_hash`);
+      await f.pool.query(`DELETE FROM ${f.schema}.managed_schema_migrations WHERE version IN (2,3,4)`);
       if (corrupt) await f.pool.query(
         `UPDATE ${f.schema}.managed_resource_journal_receipts
           SET response_json = jsonb_set(response_json, '{audit_head_hash}', to_jsonb($1::text))`,
@@ -296,7 +314,7 @@ for (const corrupt of [false, true]) {
         await assert.rejects(migrate(), (error) => error.code === '55000');
         assert.equal((await f.pool.query(`SELECT count(*)::int AS n FROM ${f.schema}.managed_schema_migrations`)).rows[0].n, 1);
       } else {
-        assert.equal((await migrate()).migration_version, 2);
+        assert.equal((await migrate()).migration_version, 4);
         assert.equal((await f.pool.query(`SELECT lease_kind FROM ${f.schema}.managed_resource_journal_receipts`)).rows[0].lease_kind, 'execution');
         assert.equal((await f.store.health()).ready, true);
         await migrate(); // exact rerun applies no DDL

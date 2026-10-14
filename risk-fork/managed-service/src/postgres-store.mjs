@@ -1,4 +1,6 @@
 import { randomUUID } from 'node:crypto';
+import { assertCleanupIncompleteLease, cleanupIncompleteAuditBinding,
+  normalizeCleanupIncompleteInput, verifyCleanupIncompleteReplay } from './cleanup-incomplete.mjs';
 import { readFile } from 'node:fs/promises';
 import {
   acquirePostgresAuthorityClient,
@@ -7,7 +9,12 @@ import {
 } from '../../src/adapters/postgres-authority-migrator.mjs';
 import { sha256Ref } from '../../src/canonical.mjs';
 import { validateChildOperation } from '../../src/child-operation.mjs';
+import { verifyPostgresControlPlaneAttestation } from './postgres-control-plane-attestation.mjs';
 import { createManagedAuditEvent } from './audit.mjs';
+import { createManagedBacklogSnapshot, MANAGED_BACKLOG_COUNT_FIELDS, normalizeBacklogRead } from './backlog-snapshot.mjs';
+import { cancellationAuditDetails, normalizeCancellationFields, planCancellation,
+  verifyCancellationObservation } from './cancellation.mjs';
+import { normalizeAuditPageRequest, normalizeAuditWindowRequest, verifyAuditInvocationPage } from './audit-read.mjs';
 import {
   ACTIVE_INVOCATION_STATES,
   INVOCATION_STATES,
@@ -70,7 +77,8 @@ const expectedMigrationHashPromises = new Map();
 
 function expectedMigrationHash(version) {
   if (!expectedMigrationHashPromises.has(version)) {
-    const file = version === 1 ? '001_managed_control_plane.pg.sql' : '002_journal_purpose.pg.sql';
+    const file = ['001_managed_control_plane.pg.sql', '002_journal_purpose.pg.sql',
+      '003_control_plane_lock_helpers.pg.sql', '008_managed_cancellation.pg.sql'][version - 1];
     expectedMigrationHashPromises.set(version, readFile(new URL(`../migrations/${file}`, import.meta.url),
       'utf8').then((source) => sha256Ref(source.replace(/\r\n?/g, '\n'))));
   }
@@ -160,6 +168,8 @@ function normalizeInvocationRow(row, includeOperation = false) {
     actual_cost_micros: actualCostMicros,
     budget_day_utc: pgDay(row.budget_day_utc, 'budget_day_utc'),
     state,
+    ...normalizeCancellationFields({ ...row,
+      cancel_requested_at: row.cancel_requested_at == null ? null : pgIso(row.cancel_requested_at, 'cancel_requested_at') }),
     lease_kind: leaseKind,
     lease_owner: leaseOwner,
     lease_expires_at: leaseExpiresAt,
@@ -258,6 +268,7 @@ export class PostgresManagedServiceStore {
   #verifiedClients = new WeakSet();
   #eventRef;
   #schemaName;
+  #expectedOwner;
   #maxClockSkewMs;
   #closed = false;
 
@@ -267,6 +278,7 @@ export class PostgresManagedServiceStore {
     requireTls = true,
     maxClockSkewMs = 5_000,
     eventRef = () => `evt_${randomUUID()}`,
+    expectedOwner,
   } = {}) {
     if (!pool || typeof pool.connect !== 'function') {
       throw new TypeError('PostgreSQL managed store requires pool.connect()');
@@ -290,6 +302,8 @@ export class PostgresManagedServiceStore {
       'managed PostgreSQL schema name',
     );
     this.#schemaName = schemaName;
+    if (expectedOwner !== undefined) quotePostgresAuthorityIdentifier(expectedOwner, 'expectedOwner');
+    this.#expectedOwner = expectedOwner;
     this.#requireTls = requireTls;
     this.#eventRef = eventRef;
   }
@@ -301,6 +315,11 @@ export class PostgresManagedServiceStore {
       verifiedClients: this.#verifiedClients,
     });
     try {
+      if (this.#expectedOwner !== undefined) {
+        await verifyPostgresControlPlaneAttestation(client, {
+          schemaName: this.#schemaName, expectedOwner: this.#expectedOwner,
+        });
+      }
       return await callback(client);
     } finally {
       client.release();
@@ -314,6 +333,11 @@ export class PostgresManagedServiceStore {
           await client.query('BEGIN ISOLATION LEVEL SERIALIZABLE');
           try {
             await client.query('SET LOCAL synchronous_commit = on');
+            if (this.#expectedOwner !== undefined) {
+              await verifyPostgresControlPlaneAttestation(client, {
+                schemaName: this.#schemaName, expectedOwner: this.#expectedOwner,
+              });
+            }
             if (assertedNowValue !== undefined && attempt === 1) {
               await this.#databaseNow(client, assertedNowValue);
             }
@@ -392,7 +416,7 @@ export class PostgresManagedServiceStore {
 
   async #lockTenantStatus(client, tenantId) {
     const result = await client.query(
-      `SELECT status FROM ${this.#schema}.managed_tenants WHERE tenant_id = $1 FOR SHARE`,
+      `SELECT ${this.#schema}.lock_managed_tenant_share($1) AS status`,
       [tenantId],
     );
     return result.rowCount === 1 ? result.rows[0].status : null;
@@ -414,7 +438,8 @@ export class PostgresManagedServiceStore {
   }
 
   async #isClaimantCredentialActive(client, tenantId, claimantKeyId, requiredScope) {
-    if (!/^worker:(execution|cleanup|recovery):(claim|write)$/.test(requiredScope)) {
+    if (requiredScope !== 'invocations:cancel'
+      && !/^worker:(execution|cleanup|recovery):(claim|write)$/.test(requiredScope)) {
       throw new TypeError('claimant scope must be purpose-specific');
     }
     // Hold the credential row through the enclosing mutation transaction.
@@ -422,11 +447,10 @@ export class PostgresManagedServiceStore {
     // Lock by identity first: WHERE predicates can run before a row-lock wait,
     // so validity must be checked again with the clock after acquiring the lock.
     const locked = await client.query(
-      `SELECT 1 FROM ${this.#schema}.managed_api_keys
-        WHERE key_id = $2 AND tenant_id = $1 FOR SHARE`,
+      `SELECT ${this.#schema}.lock_managed_api_key_share($1,$2) AS locked`,
       [tenantId, claimantKeyId],
     );
-    if (locked.rowCount !== 1) return false;
+    if (locked.rowCount !== 1 || locked.rows[0]?.locked !== true) return false;
     const result = await client.query(
       `SELECT EXISTS (
          SELECT 1 FROM ${this.#schema}.managed_api_keys AS claimant
@@ -447,9 +471,9 @@ export class PostgresManagedServiceStore {
     }
   }
 
-  async #appendAudit(client, row, eventType, occurredAt, details = {}) {
+  async #appendAudit(client, row, eventType, occurredAt, details = {}, eventRef = undefined) {
     const event = createManagedAuditEvent({
-      event_ref: requireOpaqueRef(this.#eventRef(), 'event reference'),
+      event_ref: requireOpaqueRef(eventRef ?? this.#eventRef(), 'event reference'),
       tenant_id: row.tenant_id,
       invocation_ref: row.invocation_ref,
       sequence: pgInteger(row.audit_event_count, 'audit_event_count') + 1,
@@ -513,6 +537,7 @@ export class PostgresManagedServiceStore {
     }
     row.audit_head_hash = event.event_hash;
     row.audit_event_count = event.sequence;
+    return event;
   }
 
   async resolveCredential(keyHashValue) {
@@ -632,8 +657,7 @@ export class PostgresManagedServiceStore {
         return deepFreeze({ created: false, invocation: normalizeInvocationRow(existing) });
       }
       const tenantResult = await client.query(
-        `SELECT * FROM ${this.#schema}.managed_tenants
-          WHERE tenant_id = $1 FOR UPDATE`,
+        `SELECT * FROM ${this.#schema}.lock_managed_tenant_update($1)`,
         [tenantId],
       );
       const tenant = tenantResult.rowCount === 1 ? tenantResult.rows[0] : null;
@@ -1193,6 +1217,44 @@ export class PostgresManagedServiceStore {
     }, input.now);
   }
 
+  async recordCleanupIncomplete(inputValue) {
+    const input = normalizeCleanupIncompleteInput(inputValue);
+    return this.#withTransaction(async (client) => {
+      await this.#lockTenantStatus(client, input.tenant_id);
+      const row = await this.#selectInvocation(client, input.tenant_id, input.invocation_ref, true);
+      if (!row) throw managedError('Invocation was not found', 'INVOCATION_NOT_FOUND', 404);
+      await this.#assertClaimantCredentialActive(client, input.tenant_id, input.claimant_key_id, workerWriteScope('cleanup'));
+      const binding = cleanupIncompleteAuditBinding(input);
+      const prior = await client.query(`SELECT event_ref, tenant_id, invocation_ref, sequence,
+        event_type, occurred_at, details_hash, prior_event_hash, event_hash, evidence_class
+        FROM ${this.#schema}.managed_audit_events
+        WHERE tenant_id = $1 AND invocation_ref = $2 AND event_ref = $3`,
+      [input.tenant_id, input.invocation_ref, binding.event_ref]);
+      // Recheck after every authority-bearing lock and the replay lookup. A
+      // durable event is not authority to replay through an expired/taken lease.
+      const guarded = await client.query(`WITH observation_clock AS MATERIALIZED (
+        SELECT clock_timestamp() AS now
+      ) SELECT target.*, observation_clock.now AS observation_at
+        FROM ${this.#schema}.managed_invocations AS target CROSS JOIN observation_clock
+        WHERE target.tenant_id = $1 AND target.invocation_ref = $2
+          AND target.state = 'cleanup_pending' AND target.lease_kind = 'cleanup'
+          AND target.lease_owner = $3 AND target.lease_token_hash = $4
+          AND target.lease_generation = $5 AND target.lease_expires_at > observation_clock.now
+          AND EXISTS (SELECT 1 FROM ${this.#schema}.managed_api_keys AS credential
+            WHERE credential.tenant_id = $1 AND credential.key_id = $3
+              AND credential.revoked_at IS NULL AND credential.not_before <= observation_clock.now
+              AND credential.expires_at > observation_clock.now AND credential.scopes ? $6)`,
+      [input.tenant_id, input.invocation_ref, input.claimant_key_id, input.lease_token_hash,
+        input.lease_generation, workerWriteScope('cleanup')]);
+      const now = guarded.rowCount === 1
+        ? pgIso(guarded.rows[0].observation_at, 'cleanup observation time') : await this.#databaseNow(client);
+      assertCleanupIncompleteLease({ ...normalizeInvocationRow(row), lease_token_hash: row.lease_token_hash }, input, now);
+      if (guarded.rowCount !== 1) throw managedError('Cleanup lease authority changed', 'LEASE_AUTHORITY_LOST', 409);
+      if (prior.rowCount === 1) return verifyCleanupIncompleteReplay(normalizeAuditRows(prior.rows)[0], input, normalizeInvocationRow(row));
+      return this.#appendAudit(client, row, 'cleanup_incomplete', now, binding.details, binding.event_ref);
+    }, input.now);
+  }
+
   async transitionInvocation(input) {
     return this.#withTransaction(async (client) => {
       const tenantId = requireTenantId(input.tenant_id);
@@ -1286,6 +1348,9 @@ export class PostgresManagedServiceStore {
         result_hash: patch.result_hash ?? row.result_hash,
       };
       const terminal = ['completed', 'failed_closed'].includes(input.next_state);
+      if (row.cancel_request_hash != null && input.next_state === 'completed') {
+        throw managedError('Canceled invocation cannot import a completed result', 'INVOCATION_CANCELED', 409);
+      }
       const verificationNotAfter = terminal
         ? requireIso(input.verification_not_after, 'verification_not_after')
         : null;
@@ -1400,6 +1465,102 @@ export class PostgresManagedServiceStore {
     }, input.now);
   }
 
+  async requestCancellation(input) {
+    assertPlainRecord(input, 'stored cancellation request');
+    assertAllowedKeys(input, ['tenant_id', 'invocation_ref', 'claimant_key_id',
+      'cancel_request_hash', 'cancel_reason_hash', 'now', 'expected_request_hash',
+      'expected_operation_hash', 'expected_provider_binding_hash', 'expected_provider_recovery_key'], 'stored cancellation request');
+    return this.#withTransaction(async (client) => {
+      const tenantId = requireTenantId(input.tenant_id);
+      const ref = requireInvocationRef(input.invocation_ref);
+      const claimant = requireOpaqueRef(input.claimant_key_id, 'claimant_key_id');
+      // Same lock order and persisted credential boundary as worker mutations.
+      // Tenant suspension does not prohibit cancellation or historical cleanup.
+      await this.#lockTenantStatus(client, tenantId);
+      const row = await this.#selectInvocation(client, tenantId, ref, true);
+      if (!row) throw managedError('Invocation was not found', 'INVOCATION_NOT_FOUND', 404);
+      await this.#assertClaimantCredentialActive(client, tenantId, claimant, 'invocations:cancel');
+      const now = await this.#databaseNow(client);
+      const plan = planCancellation(normalizeInvocationRow(row), input, now);
+      if (plan === null) return normalizeInvocationRow(row);
+      const reserved = plan.release_reservation ? pgInteger(row.estimated_cost_micros, 'estimated cost') : 0;
+      const usage = await client.query(
+        `UPDATE ${this.#schema}.managed_usage_buckets
+            SET reserved_micros = reserved_micros - $3,
+                spent_micros = spent_micros + $4, updated_at = clock_timestamp()
+          WHERE tenant_id = $1 AND budget_day_utc = $2::date AND reserved_micros >= $3`,
+        [tenantId, pgDay(row.budget_day_utc, 'budget day'), reserved, plan.additional_spent_micros],
+      );
+      if (usage.rowCount !== 1) throw new Error('Budget reservation invariant failed');
+      const updated = await client.query(
+        `WITH cancel_clock AS (SELECT clock_timestamp() AS now)
+         UPDATE ${this.#schema}.managed_invocations AS target
+            SET cancel_requested_at = cancel_clock.now, cancel_requested_by = $3,
+                cancel_request_hash = $4, cancel_reason_hash = $5,
+                state = $6, execution_outcome = $7, actual_cost_micros = $8,
+                terminal_at = CASE WHEN $6 = 'failed_closed' THEN cancel_clock.now ELSE terminal_at END,
+                lease_kind = CASE WHEN $9 THEN NULL ELSE lease_kind END,
+                lease_owner = CASE WHEN $9 THEN NULL ELSE lease_owner END,
+                lease_token_hash = CASE WHEN $9 THEN NULL ELSE lease_token_hash END,
+                lease_expires_at = CASE WHEN $9 THEN NULL ELSE lease_expires_at END,
+                updated_at = cancel_clock.now
+           FROM cancel_clock
+          WHERE target.tenant_id = $1 AND target.invocation_ref = $2
+            AND target.admitted_key_id = $3 AND target.cancel_requested_at IS NULL
+            AND EXISTS (SELECT 1 FROM ${this.#schema}.managed_api_keys AS claimant
+              WHERE claimant.tenant_id = $1 AND claimant.key_id = $3
+                AND claimant.revoked_at IS NULL AND claimant.not_before <= cancel_clock.now
+                AND claimant.expires_at > cancel_clock.now AND claimant.scopes ? 'invocations:cancel')
+          RETURNING *`,
+        [tenantId, ref, claimant, plan.cancel_request_hash, plan.cancel_reason_hash, plan.state,
+          plan.execution_outcome, plan.actual_cost_micros, plan.revoke_execution],
+      );
+      if (updated.rowCount !== 1) {
+        throw managedError('Cancellation credential changed before mutation', 'AUTHENTICATION_FAILED', 401);
+      }
+      const next = updated.rows[0];
+      await this.#appendAudit(client, next, 'cancellation_requested', pgIso(next.updated_at, 'cancellation time'),
+        cancellationAuditDetails(row, plan));
+      return normalizeInvocationRow(next);
+    }, input.now);
+  }
+
+  async observeCancellation(input) {
+    assertPlainRecord(input, 'cancellation observation');
+    assertAllowedKeys(input, ['tenant_id', 'claimant_key_id', 'invocation_ref', 'lease_token_hash',
+      'lease_generation', 'now'], 'cancellation observation');
+    const tenantId = requireTenantId(input.tenant_id);
+    const ref = requireInvocationRef(input.invocation_ref);
+    const claimant = requireOpaqueRef(input.claimant_key_id, 'claimant_key_id');
+    return this.#withClient(async (client) => {
+      await this.#databaseNow(client, input.now);
+      const result = await client.query(`SELECT target.*, tenant.status AS tenant_status,
+        clock_timestamp() AS observed_at,
+        EXISTS (SELECT 1 FROM ${this.#schema}.managed_api_keys AS credential
+          WHERE credential.tenant_id = target.tenant_id AND credential.key_id = $3
+            AND credential.revoked_at IS NULL AND credential.not_before <= clock_timestamp()
+            AND credential.expires_at > clock_timestamp() AND credential.scopes ? $4) AS claimant_active,
+        (SELECT count(*)::integer FROM ${this.#schema}.managed_audit_events AS event
+          WHERE event.tenant_id = target.tenant_id AND event.invocation_ref = target.invocation_ref
+            AND event.event_type = 'cancellation_requested') AS cancellation_audit_count,
+        (SELECT details_hash FROM ${this.#schema}.managed_audit_events AS event
+          WHERE event.tenant_id = target.tenant_id AND event.invocation_ref = target.invocation_ref
+            AND event.event_type = 'cancellation_requested' ORDER BY sequence DESC LIMIT 1) AS cancellation_details_hash
+        FROM ${this.#schema}.managed_invocations AS target
+        JOIN ${this.#schema}.managed_tenants AS tenant ON tenant.tenant_id = target.tenant_id
+        WHERE target.tenant_id = $1 AND target.invocation_ref = $2`,
+      [tenantId, ref, claimant, workerWriteScope('execution')]);
+      if (result.rowCount !== 1) throw managedError('Invocation was not found', 'INVOCATION_NOT_FOUND', 404);
+      const row = result.rows[0];
+      if (row.claimant_active !== true) throw managedError('Execution observation credential is not active', 'AUTHENTICATION_FAILED', 401);
+      return verifyCancellationObservation({ ...normalizeInvocationRow(row),
+        lease_token_hash: row.lease_token_hash, tenant_status: row.tenant_status }, input,
+      pgIso(row.observed_at, 'cancellation observation time'), {
+        count: pgInteger(row.cancellation_audit_count, 'cancellation audit count'), details_hash: row.cancellation_details_hash,
+      });
+    });
+  }
+
   async settleExecutionOutcome(input) {
     return this.#withTransaction(async (client) => {
       const tenantId = requireTenantId(input.tenant_id);
@@ -1485,7 +1646,7 @@ export class PostgresManagedServiceStore {
       await this.#appendAudit(
         client,
         updatedRow,
-        'execution_outcome_recorded',
+        input.execution_outcome === 'failed' ? 'execution_failure_observed' : 'execution_outcome_recorded',
         pgIso(updatedRow.updated_at, 'execution outcome time'),
         {
           from_state: 'running',
@@ -1652,6 +1813,95 @@ export class PostgresManagedServiceStore {
     });
   }
 
+  async readCleanupRecoveryBacklog(inputValue) {
+    const input = normalizeBacklogRead(inputValue);
+    return this.#withReadSnapshot(async (client) => {
+      await client.query("SET LOCAL statement_timeout = '5000ms'");
+      // One SQL snapshot, one DB clock, one tenant. The aggregate never derives
+      // state from retained telemetry or exposes invocation/credential details.
+      const result = await client.query(`WITH source_clock AS MATERIALIZED (
+        SELECT clock_timestamp() AS authority_at
+      ), observation_clock AS MATERIALIZED (
+        SELECT authority_at, date_trunc('milliseconds', authority_at) AS snapshot_at FROM source_clock
+      ), backlog AS (
+        SELECT count(*) FILTER (WHERE state = 'cleanup_pending') AS cleanup_pending_count,
+          count(*) FILTER (WHERE state = 'recovery_required') AS recovery_required_count,
+          count(*) FILTER (WHERE lease_kind = 'execution' AND lease_expires_at <= observation_clock.snapshot_at) AS expired_execution_lease_count,
+          count(*) FILTER (WHERE lease_kind = 'cleanup' AND lease_expires_at <= observation_clock.snapshot_at) AS expired_cleanup_lease_count,
+          count(*) FILTER (WHERE lease_kind = 'recovery' AND lease_expires_at <= observation_clock.snapshot_at) AS expired_recovery_lease_count
+        FROM ${this.#schema}.managed_invocations CROSS JOIN observation_clock WHERE tenant_id = $1
+      ) SELECT observation_clock.snapshot_at, backlog.* FROM backlog CROSS JOIN observation_clock
+        WHERE EXISTS (SELECT 1 FROM ${this.#schema}.managed_api_keys AS credential
+          WHERE credential.tenant_id = $1 AND credential.key_id = $2
+            AND credential.revoked_at IS NULL AND credential.not_before <= observation_clock.authority_at
+            AND credential.expires_at > observation_clock.authority_at AND credential.scopes ? 'audit:read')`,
+      [input.tenant_id, input.claimant_key_id]);
+      if (result.rowCount !== 1) throw managedError('Backlog observation credential is not active', 'AUTHENTICATION_FAILED', 401);
+      const row = result.rows[0], counts = {};
+      for (const field of MANAGED_BACKLOG_COUNT_FIELDS) counts[field] = pgInteger(row[field], field);
+      return createManagedBacklogSnapshot({ tenant_id: input.tenant_id,
+        snapshot_at: pgIso(row.snapshot_at, 'backlog snapshot_at'), ...counts });
+    });
+  }
+
+  async listAuditInvocations(tenantIdValue, requestValue = {}) {
+    const tenantId = requireTenantId(tenantIdValue);
+    const request = normalizeAuditPageRequest(requestValue);
+    return this.#withReadSnapshot(async (client) => {
+      await client.query("SET LOCAL statement_timeout = '5000ms'");
+      let upper = request.upper_ref;
+      if (upper === null) {
+        const result = await client.query(`SELECT invocation_ref FROM ${this.#schema}.managed_invocations
+          WHERE tenant_id = $1 ORDER BY invocation_ref COLLATE "C" DESC LIMIT 1`, [tenantId]);
+        upper = result.rows[0]?.invocation_ref ?? null;
+      }
+      const result = await client.query(`SELECT invocation_ref, audit_event_count, audit_head_hash
+        FROM ${this.#schema}.managed_invocations WHERE tenant_id = $1
+          AND ($2::text IS NULL OR invocation_ref COLLATE "C" > $2::text COLLATE "C")
+          AND invocation_ref COLLATE "C" <= $3::text COLLATE "C"
+        ORDER BY invocation_ref COLLATE "C" LIMIT $4`,
+      [tenantId, request.after_ref, upper, request.limit + 1]);
+      const invocations = result.rows.slice(0, request.limit).map((row) => ({
+        invocation_ref: row.invocation_ref, audit_event_count: pgInteger(row.audit_event_count, 'audit_event_count'),
+        audit_head_hash: row.audit_head_hash,
+      }));
+      return verifyAuditInvocationPage({ tenant_id: tenantId, upper_ref: upper,
+        invocations, complete: result.rows.length <= request.limit,
+        next_after_ref: invocations.at(-1)?.invocation_ref ?? request.after_ref }, tenantId, request);
+    });
+  }
+
+  async getAuditWindow(tenantIdValue, invocationRefValue, requestValue = {}) {
+    const tenantId = requireTenantId(tenantIdValue);
+    const invocationRef = requireInvocationRef(invocationRefValue, 'invocation_ref');
+    const request = normalizeAuditWindowRequest(requestValue);
+    return this.#withReadSnapshot(async (client) => {
+      await client.query("SET LOCAL statement_timeout = '5000ms'");
+      const anchor = await client.query(`SELECT audit_event_count, audit_head_hash
+        FROM ${this.#schema}.managed_invocations WHERE tenant_id = $1 AND invocation_ref = $2`,
+      [tenantId, invocationRef]);
+      if (anchor.rows.length === 0) return null;
+      const prior = request.after_sequence === 0 ? [] : normalizeAuditRows((await client.query(
+        `SELECT event_ref, tenant_id, invocation_ref, sequence, event_type,
+          occurred_at, details_hash, prior_event_hash, event_hash, evidence_class
+          FROM ${this.#schema}.managed_audit_events
+          WHERE tenant_id = $1 AND invocation_ref = $2 AND sequence = $3`,
+        [tenantId, invocationRef, request.after_sequence],
+      )).rows);
+      const events = normalizeAuditRows((await client.query(
+        `SELECT event_ref, tenant_id, invocation_ref, sequence, event_type,
+          occurred_at, details_hash, prior_event_hash, event_hash, evidence_class
+          FROM ${this.#schema}.managed_audit_events
+          WHERE tenant_id = $1 AND invocation_ref = $2 AND sequence > $3
+          ORDER BY sequence LIMIT $4`, [tenantId, invocationRef, request.after_sequence, request.limit],
+      )).rows);
+      return deepFreeze({ tenant_id: tenantId, invocation_ref: invocationRef,
+        audit_event_count: pgInteger(anchor.rows[0].audit_event_count, 'audit_event_count'),
+        audit_head_hash: requireSha256(anchor.rows[0].audit_head_hash, 'audit_head_hash'),
+        prior_event: prior[0] ?? null, events });
+    });
+  }
+
   async getAuditSnapshot(tenantIdValue, invocationRefValue) {
     const tenantId = requireTenantId(tenantIdValue);
     const invocationRef = requireInvocationRef(invocationRefValue, 'invocation_ref');
@@ -1706,8 +1956,15 @@ export class PostgresManagedServiceStore {
     });
   }
 
+  async initialize() {
+    return this.#withClient((client) => verifyPostgresControlPlaneAttestation(client, {
+      schemaName: this.#schemaName, expectedOwner: this.#expectedOwner,
+    }));
+  }
+
   async health() {
-    return this.#withClient(async (client) => {
+    return this.#withReadSnapshot(async (client) => {
+      await client.query("SET LOCAL statement_timeout = '5000ms'");
       const catalog = await client.query(
         `SELECT
            (SELECT count(*)::integer
@@ -1732,34 +1989,58 @@ export class PostgresManagedServiceStore {
         && Number(row.trigger_count) === REQUIRED_AUDIT_TRIGGERS.length;
       let migrationVerified = false;
       let migrationCount = null;
+      let snapshotAt = null;
+      let cleanupPendingCount = null;
       let recoveryRequiredCount = null;
       let expiredExecutionLeaseCount = null;
+      let expiredCleanupLeaseCount = null;
+      let expiredRecoveryLeaseCount = null;
       if (catalogVerified) {
         const state = await client.query(
-          `SELECT
+          `WITH health_clock AS MATERIALIZED (
+             SELECT date_trunc('milliseconds', clock_timestamp()) AS snapshot_at
+           ), backlog AS (
+             SELECT count(*) FILTER (WHERE state = 'cleanup_pending') AS cleanup_pending_count,
+                    count(*) FILTER (WHERE state = 'recovery_required') AS recovery_required_count,
+                    count(*) FILTER (WHERE lease_kind = 'execution'
+                      AND lease_expires_at <= health_clock.snapshot_at) AS expired_execution_lease_count,
+                    count(*) FILTER (WHERE lease_kind = 'cleanup'
+                      AND lease_expires_at <= health_clock.snapshot_at) AS expired_cleanup_lease_count,
+                    count(*) FILTER (WHERE lease_kind = 'recovery'
+                      AND lease_expires_at <= health_clock.snapshot_at) AS expired_recovery_lease_count
+               FROM ${this.#schema}.managed_invocations CROSS JOIN health_clock
+           ) SELECT
              (SELECT migration_hash
                 FROM ${this.#schema}.managed_schema_migrations
                WHERE version = 1) AS migration_hash,
              (SELECT migration_hash
                 FROM ${this.#schema}.managed_schema_migrations
                WHERE version = 2) AS purpose_migration_hash,
+             (SELECT migration_hash
+                FROM ${this.#schema}.managed_schema_migrations
+               WHERE version = 3) AS lock_migration_hash,
+             (SELECT migration_hash
+                FROM ${this.#schema}.managed_schema_migrations
+               WHERE version = 4) AS cancellation_migration_hash,
              (SELECT count(*)::integer
                 FROM ${this.#schema}.managed_schema_migrations) AS migration_count,
-             (SELECT count(*)::integer
-                FROM ${this.#schema}.managed_invocations
-               WHERE state = 'recovery_required') AS recovery_required_count,
-             (SELECT count(*)::integer
-                FROM ${this.#schema}.managed_invocations
-               WHERE lease_kind = 'execution'
-                 AND lease_expires_at <= clock_timestamp()) AS expired_execution_lease_count`,
+             (SELECT snapshot_at FROM health_clock) AS snapshot_at,
+             backlog.* FROM backlog`,
         );
-        const stateRow = state.rows[0] ?? {};
-        migrationCount = Number(stateRow.migration_count);
-        migrationVerified = migrationCount === 2
+        if (state.rowCount !== 1) throw managedError('Health snapshot unavailable', 'STORE_HEALTH_FAILED', 503);
+        const stateRow = state.rows[0];
+        migrationCount = pgInteger(stateRow.migration_count, 'health migration_count');
+        migrationVerified = migrationCount === 4
           && stateRow.migration_hash === await expectedMigrationHash(1)
-          && stateRow.purpose_migration_hash === await expectedMigrationHash(2);
-        recoveryRequiredCount = Number(stateRow.recovery_required_count);
-        expiredExecutionLeaseCount = Number(stateRow.expired_execution_lease_count);
+          && stateRow.purpose_migration_hash === await expectedMigrationHash(2)
+          && stateRow.lock_migration_hash === await expectedMigrationHash(3)
+          && stateRow.cancellation_migration_hash === await expectedMigrationHash(4);
+        snapshotAt = pgIso(stateRow.snapshot_at, 'health snapshot_at');
+        cleanupPendingCount = pgInteger(stateRow.cleanup_pending_count, 'health cleanup_pending_count');
+        recoveryRequiredCount = pgInteger(stateRow.recovery_required_count, 'health recovery_required_count');
+        expiredExecutionLeaseCount = pgInteger(stateRow.expired_execution_lease_count, 'health expired_execution_lease_count');
+        expiredCleanupLeaseCount = pgInteger(stateRow.expired_cleanup_lease_count, 'health expired_cleanup_lease_count');
+        expiredRecoveryLeaseCount = pgInteger(stateRow.expired_recovery_lease_count, 'health expired_recovery_lease_count');
       }
       const durabilityVerified = row.fsync === 'on'
         && row.synchronous_commit === 'on'
@@ -1776,10 +2057,18 @@ export class PostgresManagedServiceStore {
         tls_required: this.#requireTls,
         tls_ca_validated: this.#requireTls,
         catalog_verified: catalogVerified,
+        catalog_verification_scope: this.#expectedOwner === undefined
+          ? 'table_trigger_inventory' : 'source_manifest_and_runtime_role',
+        exact_catalog_verified: this.#expectedOwner !== undefined,
+        runtime_privileges_verified: this.#expectedOwner !== undefined,
         migration_verified: migrationVerified,
         migration_count: migrationCount,
+        snapshot_at: snapshotAt,
+        cleanup_pending_count: cleanupPendingCount,
         recovery_required_count: recoveryRequiredCount,
         expired_execution_lease_count: expiredExecutionLeaseCount,
+        expired_cleanup_lease_count: expiredCleanupLeaseCount,
+        expired_recovery_lease_count: expiredRecoveryLeaseCount,
       });
     });
   }
@@ -1803,6 +2092,7 @@ export async function createPostgresManagedServiceStore(options = {}) {
     'statementTimeoutMs',
     'maxClockSkewMs',
     'eventRef',
+    'expectedOwner',
   ], 'managed PostgreSQL store options');
   const pool = await createPostgresAuthorityPool({
     connectionString: options.connectionString,
@@ -1816,13 +2106,16 @@ export async function createPostgresManagedServiceStore(options = {}) {
   trustedCaPinnedPools.add(pool);
   managedOwnedPools.add(pool);
   try {
-    return new PostgresManagedServiceStore({
+    const store = new PostgresManagedServiceStore({
       pool,
       schemaName: options.schemaName,
       requireTls: true,
       maxClockSkewMs: options.maxClockSkewMs,
       eventRef: options.eventRef,
+      expectedOwner: options.expectedOwner,
     });
+    await store.initialize();
+    return store;
   } catch (error) {
     await pool.end().catch(() => {});
     throw error;
