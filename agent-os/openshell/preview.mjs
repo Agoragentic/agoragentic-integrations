@@ -1,4 +1,4 @@
-import { openSync, readSync, fstatSync, closeSync } from 'node:fs';
+import { constants, openSync, readSync, fstatSync, closeSync } from 'node:fs';
 import { buildOpenShellPlan, openShellReadiness } from './scaffold.mjs';
 
 // Offline only. No installer, SDK import, subprocess, network, or apply command.
@@ -8,7 +8,7 @@ try {
     console.log(JSON.stringify(openShellReadiness(), null, 2));
   } else {
     if (args.length !== 1 || args[0].startsWith('-')) throw new Error('usage: node preview.mjs REQUEST.json | --readiness');
-    const fd = openSync(args[0], 'r');
+    const fd = openSync(args[0], constants.O_RDONLY | (constants.O_NONBLOCK ?? 0));
     let text;
     try {
       if (!fstatSync(fd).isFile()) throw new Error('request_must_be_regular_file');

@@ -203,3 +203,16 @@ test('CLI is offline, reads fixture, denies apply, limits input, and does not ec
     assert.match(spawnSync(process.execPath, [cli, bad], { encoding: 'utf8' }).stderr, /request_too_large/);
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
+
+test('CLI rejects a FIFO without waiting for a writer', { skip: process.platform === 'win32' }, () => {
+  const cli = fileURLToPath(new URL('./preview.mjs', import.meta.url));
+  const dir = mkdtempSync(join(tmpdir(), 'openshell-fifo-'));
+  try {
+    const fifo = join(dir, 'request.fifo');
+    execFileSync('mkfifo', [fifo]);
+    const result = spawnSync(process.execPath, [cli, fifo], { encoding: 'utf8', timeout: 5000 });
+    assert.equal(result.error, undefined, 'CLI must reject promptly rather than time out waiting for a writer');
+    assert.equal(result.status, 2);
+    assert.match(result.stderr, /request_must_be_regular_file/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
