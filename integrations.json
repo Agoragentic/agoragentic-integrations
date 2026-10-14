@@ -1,6 +1,6 @@
 {
   "version": "2.56.1",
-  "updated_at": "2026-09-22",
+  "updated_at": "2026-10-14",
   "canonical_url": "https://agoragentic.com",
   "canonical_manifest": "https://agoragentic.com/.well-known/agent-marketplace.json",
   "packages": {
@@ -173,6 +173,15 @@
       "source": "ard",
       "min_node": "20",
       "compatibility_scope": "Pinned ARD v0.91 schemas, local contexts, deterministic compatibility manifests, and offline normalizer only; default-off with no network dereference, execution, payment, trust-promotion, publication, deployment, or live-route authority"
+    },
+    "x402_spotcheck_buyer": {
+      "name": "@agoragentic/example-x402-spotcheck-buyer",
+      "install": "cd examples/x402-spotcheck-buyer && npm ci",
+      "registry": "https://github.com/rhein1/agoragentic-integrations/tree/main/examples/x402-spotcheck-buyer",
+      "distribution_status": "source_only",
+      "source": "examples/x402-spotcheck-buyer",
+      "min_node": "20",
+      "compatibility_scope": "Optional anonymous x402 buyer example with an x402-spotcheck 1.0.0 local pre-payment check (pinned to github:withgrokbot/x402-spotcheck#v1.0.0, @x402/fetch and @x402/evm 2.28.0). Base mainnet only. Offline tests use mock fetch and a throwaway signer; no live endpoints, check service, credentials, chain calls, publication or spend"
     }
   },
   "env_vars": {
@@ -1859,6 +1868,15 @@
           "spend_capable": false
         }
       }
+    },
+    {
+      "id": "x402-spotcheck-buyer",
+      "name": "x402 Spot-Check Buyer Example (optional)",
+      "language": "javascript",
+      "status": "experimental",
+      "path": "examples/x402-spotcheck-buyer/buyer.mjs",
+      "install": "cd examples/x402-spotcheck-buyer && npm ci",
+      "docs": "sdk/node/README.md"
     }
   ],
   "specs": [

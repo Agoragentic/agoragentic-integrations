@@ -91,6 +91,9 @@
         },
         "ard_profile": {
           "$ref": "#/$defs/package"
+        },
+        "x402_spotcheck_buyer": {
+          "$ref": "#/$defs/package"
         }
       }
     },

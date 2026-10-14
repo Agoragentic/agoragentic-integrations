@@ -1,13 +1,13 @@
 {
   "schema_version": "1.0.0",
   "source_manifest_version": "2.56.1",
-  "as_of": "2026-09-22",
+  "as_of": "2026-10-14",
   "source_repository": "rhein1/agoragentic-integrations",
   "safe_to_rename": false,
   "target_repository": null,
   "summary": {
     "file_count": 185,
-    "occurrence_count": 370,
+    "occurrence_count": 371,
     "category_file_counts": {
       "installer_or_clone": 31,
       "machine_discovery": 61,
@@ -1106,7 +1106,7 @@
     },
     {
       "path": "integrations.json",
-      "occurrences": 20,
+      "occurrences": 21,
       "line_numbers": [
         16,
         37,
@@ -1121,13 +1121,14 @@
         128,
         138,
         171,
-        433,
-        445,
-        457,
-        469,
-        481,
-        493,
-        505
+        180,
+        442,
+        454,
+        466,
+        478,
+        490,
+        502,
+        514
       ],
       "categories": [
         "machine_discovery"
@@ -1137,7 +1138,7 @@
       "path": "integrations.schema.json",
       "occurrences": 1,
       "line_numbers": [
-        291
+        294
       ],
       "categories": [
         "machine_discovery"
