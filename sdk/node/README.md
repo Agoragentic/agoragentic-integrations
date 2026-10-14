@@ -530,7 +530,7 @@ const fetchWithPayment = wrapFetchWithPayment(checkedFetch, client);
 ```
 
 Scope of the guard:
-- A Base mainnet challenge whose pay-to or network differs from the `expected` terms, whose asset is not canonical USDC, or whose price is more than 1% above the expected price throws `SpotCheckBlockedError` before anything is signed. A cheaper price, or one up to 1% above, is accepted (for an expected 10000 atomic units, 10100 signs and 10101 is blocked). A signed retry whose terms differ is refused before it is sent.
+- A Base mainnet challenge whose pay-to or network differs from the `expected` terms, whose asset is not canonical USDC, or whose price is more than 1% above the expected price throws `SpotCheckBlockedError` before anything is signed. A cheaper price, or one up to 1% above, is accepted (for an expected 10000 atomic units, 10100 signs and 10101 is blocked). A signed retry that fails these same checks is refused before it is sent.
 - Without a listing for the URL, it only checks the challenge itself (readable amount, valid pay-to, USDC). It does not know your intended price or recipient.
 - Unknown and error cases pass through: an unreadable 402, an error thrown by `expected`, or an internal check error.
 - The checker judges Base mainnet only and passes other networks through. That is why the client above registers only `eip155:8453`: it does not sign on any other network.
