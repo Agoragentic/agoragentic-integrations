@@ -521,7 +521,7 @@ const listings = new Map([
 ]);
 
 const account = privateKeyToAccount(process.env.WALLET_KEY);
-const client = new x402Client().register("eip155:*", new ExactEvmScheme(account));
+const client = new x402Client().register("eip155:8453", new ExactEvmScheme(account)); // Base mainnet only
 const checkedFetch = spotCheckFetch(fetch, {
   mode: "local", // the 1.0.0 default, set explicitly: no network calls of its own, no check fees
   expected: (url) => listings.get(url),
@@ -530,9 +530,10 @@ const fetchWithPayment = wrapFetchWithPayment(checkedFetch, client);
 ```
 
 Scope of the guard:
-- A Base mainnet challenge whose price, pay-to or network differs from the `expected` terms, or whose asset is not canonical USDC, throws `SpotCheckBlockedError` before anything is signed. A signed retry whose terms differ is refused before it is sent.
+- A Base mainnet challenge whose pay-to or network differs from the `expected` terms, whose asset is not canonical USDC, or whose price is more than 1% above the expected price throws `SpotCheckBlockedError` before anything is signed. A cheaper price, or one up to 1% above, is accepted (for an expected 10000 atomic units, 10100 signs and 10101 is blocked). A signed retry whose terms differ is refused before it is sent.
 - Without a listing for the URL, it only checks the challenge itself (readable amount, valid pay-to, USDC). It does not know your intended price or recipient.
-- Unknown and error cases pass through: an unreadable 402, an error thrown by `expected`, or an internal check error. Non-Base networks are not judged.
+- Unknown and error cases pass through: an unreadable 402, an error thrown by `expected`, or an internal check error.
+- The checker judges Base mainnet only and passes other networks through. That is why the client above registers only `eip155:8453`: it does not sign on any other network.
 - Service mode and paid checks are not used here. Your own spend limits still apply.
 
 Offline tests for this example (mock fetch, throwaway key, no network or spend): [`examples/x402-spotcheck-buyer`](../../examples/x402-spotcheck-buyer) (`npm ci && npm test`).

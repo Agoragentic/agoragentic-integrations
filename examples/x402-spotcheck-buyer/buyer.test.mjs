@@ -31,8 +31,19 @@ function seller({ accepts = [requirement()], raw402 = null } = {}) {
   return { fetch, log, payments: () => log.filter((r) => r.paid) };
 }
 
-const buyer = (s, listings = new Map([[URL_, LISTING]])) =>
-  createCheckedBuyer({ account: privateKeyToAccount(generatePrivateKey()), listings, fetchImpl: s.fetch });
+const BASE_SEPOLIA_USDC = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
+// Throwaway signer that counts signatures.
+function countingAccount() {
+  const a = privateKeyToAccount(generatePrivateKey());
+  const counted = { ...a, signs: 0 };
+  for (const k of ["signTypedData", "signMessage", "signTransaction"]) counted[k] = async (...args) => { counted.signs++; return a[k](...args); };
+  return counted;
+}
+let lastAccount;
+const buyer = (s, listings = new Map([[URL_, LISTING]])) => {
+  lastAccount = countingAccount();
+  return createCheckedBuyer({ account: lastAccount, listings, fetchImpl: s.fetch });
+};
 const post = (pay) => pay(URL_, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: "doc" }) });
 const blocked = (code) => (err) => {
   const e = err instanceof SpotCheckBlockedError ? err : err?.cause;
@@ -58,6 +69,8 @@ test("README optional example matches buyer.mjs imports and wrapper order", () =
   assert.match(readme, /import \{ spotCheckFetch \} from "x402-spotcheck";/);
   assert.match(readme, /wrapFetchWithPayment\(checkedFetch, client\)/);
   assert.match(readme, /mode: "local"/);
+  assert.match(readme, /register\("eip155:8453", new ExactEvmScheme\(account\)\)/);
+  assert.doesNotMatch(readme, /register\("eip155:\*"/);
   assert.match(readme, /expected: \(url\) => listings\.get\(url\)/);
 });
 
@@ -68,7 +81,25 @@ test("valid terms: signs once and pays the listed recipient", async () => {
   assert.equal(s.payments().length, 1);
   assert.equal(s.payments()[0].paid.accepted.payTo, PAY_TO);
   assert.equal(s.payments()[0].paid.accepted.amount, "10000");
+  assert.equal(lastAccount.signs, 1);
 });
+
+// Price rule of x402-spotcheck 1.0.0 (rules.js, tolerance 0.01): cheaper is accepted, up to 1% above is accepted.
+for (const [amount, signs] of [["5000", true], ["10050", true], ["10100", true], ["10101", false]]) {
+  test(`price edge: expected 10000, challenge ${amount} ${signs ? "signs" : "is blocked"}`, async () => {
+    const s = seller({ accepts: [requirement({ amount })] });
+    if (signs) {
+      assert.equal((await post(buyer(s))).status, 200);
+      assert.equal(lastAccount.signs, 1);
+      assert.equal(s.payments().length, 1);
+      assert.equal(s.payments()[0].paid.accepted.amount, amount);
+    } else {
+      await assert.rejects(post(buyer(s)), blocked("price_mismatch"));
+      assert.equal(lastAccount.signs, 0);
+      assert.equal(s.payments().length, 0);
+    }
+  });
+}
 
 for (const [name, req, code] of [
   ["changed price", requirement({ amount: "20000" }), "price_mismatch"],
@@ -78,6 +109,7 @@ for (const [name, req, code] of [
     const s = seller({ accepts: [req] });
     await assert.rejects(post(buyer(s)), blocked(code));
     assert.equal(s.payments().length, 0);
+    assert.equal(lastAccount.signs, 0);
   });
 }
 
@@ -87,11 +119,11 @@ test("wrong network: listing on another network than the Base challenge: network
   assert.equal(s.payments().length, 0);
 });
 
-test("scope: a non-Base challenge is not judged by spotcheck (Base only by default)", async () => {
-  const s = seller({ accepts: [requirement({ network: "eip155:84532" })] });
-  // spotcheck passes it through; here @x402/fetch then declines on its own, so still nothing is sent.
+test("network: a valid non-Base challenge (Base Sepolia USDC) passes the checker but the Base-only client does not sign", async () => {
+  const s = seller({ accepts: [requirement({ network: "eip155:84532", asset: BASE_SEPOLIA_USDC })] });
   await assert.rejects(post(buyer(s)), (e) => !(e instanceof SpotCheckBlockedError) && !(e?.cause instanceof SpotCheckBlockedError));
-  assert.equal(s.payments().length, 0);
+  assert.equal(lastAccount.signs, 0, "zero signer calls");
+  assert.equal(s.payments().length, 0, "zero signed retries");
 });
 
 test("unknown: no listing for the URL passes through to local sanity checks only", async () => {
