@@ -7,6 +7,56 @@ peer ranges, clean install, tests, lint, build, dependency audits, and package
 contents. Historical CLI compatibility and Creator Portal acceptance were not
 revalidated.
 
+## Current security recheck: 2026-10-24
+
+The September audit results below are historical. A fresh audit of the unchanged
+lockfile now fails the complete development gate: **four high findings**, all
+attributed to [GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5).
+The production-only lockfile audit reports zero vulnerabilities. This does not
+qualify an installed n8n host or clear the development/release gate.
+
+Reproduction with Node.js 24.13.0 and npm 11.6.2:
+
+```text
+npm audit --package-lock-only --json --audit-level=low --include=dev
+exit 1; high: 4
+
+npm audit --package-lock-only --json --audit-level=low --omit=dev
+exit 0; total: 0
+```
+
+These are lockfile-only security checks, not a fresh install or behavioral
+qualification. The resolved copy is `zod@3.25.67`. Both
+`n8n-workflow@2.28.4` (exact peer) and `@n8n/expression-runtime@0.19.1`
+(exact dependency) require it; `@n8n/eslint-plugin-community-nodes@0.32.0`
+adds the workflow dependency through its `>=2` peer. These four audit entries
+describe one advisory propagating through the dependency graph, not four
+independent vulnerabilities.
+
+The advisory's patched range starts at Zod 4.6.6. Checked upstream workflow
+releases 2.44.2 and 2.45.1 still pin Zod 3.25.76, as do their expression-runtime
+releases 0.35.0 and 0.36.1. The current fixture exposes Zod 3 declarations and
+root imports alongside explicit `zod/v4` imports. Specifically, workflow's
+`dist/cjs/message-event-bus.d.ts` supplies five generic arguments to
+`z.ZodObject`; Zod 4.6.7's root `ZodObject` accepts two. A major override needs
+a consumer declaration/source migration and validation, not just a different
+lock entry. Routing the
+root imports through `zod/v3` also does not establish remediation: the
+[upstream security patch](https://github.com/colinhacks/zod/commit/a0ebf970f2d752e5f58527cd2942ff48be4f46bd)
+changes the v4 implementation only.
+
+npm's alternative workflow downgrade to 1.75.1 conflicts with the retained
+community lint plugin's `n8n-workflow >=2` peer. Downgrading the plugin as well
+would change the validation contract and requires separate qualification;
+removing its checks is not a security fix. No override, audit exception,
+dependency downgrade, or manifest/lockfile change is included in this recheck.
+
+The gate remains blocking. A compatible upstream patched release is the
+preferred resolution. A maintained upstream/backport fork or a replacement
+toolchain is a separate design decision requiring consumer type, schema,
+expression-boundary, lint, build, package and security qualification. This
+investigation does not claim that such a migration is impossible or completed.
+
 ## Candidate
 
 - Package: `n8n-nodes-agoragentic@0.1.4`
@@ -34,7 +84,7 @@ The 2.39.1 fixture and available 2.41.1 stable / 2.42.1 beta releases pin
 `axios@1.18.0` exactly. Seven newly reported Axios advisories require 1.20.0;
 substituting a lock entry cannot satisfy that pin, and overrides remain prohibited.
 Use the latest pre-Axios 2.28 patch fixture, 2.28.4, with its exact Zod peer
-3.25.67. Its complete development graph audits clean. Clean installation, tests,
+3.25.67. Its complete development graph audited clean on September 30. Clean installation, tests,
 lint, build, runtime imports and the offline error boundary pass. All eleven
 generated code, declaration and static-asset files are byte-identical to the
 2.39.1 build. This changes the development fixture only: package version,
@@ -108,7 +158,8 @@ use Node.js 24 without ignoring engine metadata.
 
 ## Security boundary
 
-Both published-package and complete development audits are clean:
+Historical September 30 results for both production-only and complete development
+audits (superseded by the current security recheck above):
 
 ```text
 npm audit --omit=dev --audit-level=moderate
