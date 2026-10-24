@@ -8,7 +8,7 @@ const test = require('node:test');
 const repositoryRoot = path.resolve(__dirname, '..', '..');
 const sdkPins = Object.freeze({
     mcp: '1.32.0',
-    'risk-fork-hosted-mcp': '1.31.0',
+    'risk-fork-hosted-mcp': '1.32.0',
     'claude-agent-sdk': '1.32.0',
 });
 const clientPin = '2.3.0';
@@ -23,8 +23,7 @@ const load = (directory, name) => JSON.parse(readFileSync(
 ));
 
 // These are source-checkout tooling contracts, not a live OAuth qualification.
-// The coordinated roots use SDK 1.32.0; the reviewed risk-fork-hosted-mcp
-// checkout remains on its separately reviewed 1.31.0 contract.
+// The coordinated roots use SDK 1.32.0 under separately reviewed exact contracts.
 // Scan every
 // nested lock entry so a second vulnerable copy cannot hide behind a fixed root.
 for (const directory of ['mcp', 'risk-fork-hosted-mcp', 'claude-agent-sdk']) {
