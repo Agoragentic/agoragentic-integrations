@@ -72,6 +72,13 @@ jobs:
       contents: read
       id-token: write
     steps:
+      - name: Setup Node for npm trusted publishing
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24.22.1'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+
       - name: Download the exact package artifact
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
