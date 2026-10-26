@@ -1,0 +1,64 @@
+name: MCP Docker protocol smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Dockerfile'
+      - 'mcp/**'
+      - '.github/workflows/mcp-docker-smoke.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'Dockerfile'
+      - 'mcp/**'
+      - '.github/workflows/mcp-docker-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      AGORAGENTIC_NO_SPEND: '1'
+      AGORAGENTIC_ALLOW_REAL_SPEND: '0'
+      AGORAGENTIC_ALLOW_NETWORK_CANARIES: '0'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Build the pinned runtime image
+        run: docker build --tag agoragentic-mcp:${{ github.sha }} .
+
+      - name: Exercise the local ACP protocol with network disabled
+        env:
+          MCP_IMAGE: agoragentic-mcp:${{ github.sha }}
+          MCP_SENTINEL: docker-smoke-sentinel
+        run: |
+          set -euo pipefail
+          printf '%s\n' \
+            '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' \
+            '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
+            '{"jsonrpc":"2.0","id":3,"method":"shutdown","params":{}}' \
+            | docker run --rm \
+                --network none \
+                --read-only \
+                --cap-drop=ALL \
+                --security-opt=no-new-privileges \
+                --pids-limit=64 \
+                --memory=256m \
+                --user 1000:1000 \
+                --env AGORAGENTIC_API_KEY="$MCP_SENTINEL" \
+                "$MCP_IMAGE" --acp > "$RUNNER_TEMP/mcp-acp.jsonl"
+          test "$(wc -l < "$RUNNER_TEMP/mcp-acp.jsonl")" -eq 3
+          ! grep -F "$MCP_SENTINEL" "$RUNNER_TEMP/mcp-acp.jsonl"
+          node --input-type=module - "$RUNNER_TEMP/mcp-acp.jsonl" <<'NODE'
+          import fs from 'node:fs';
+          const lines = fs.readFileSync(process.argv[2], 'utf8')
+            .trim().split(/\r?\n/).map((line) => JSON.parse(line));
+          if (lines[0].id !== 1 || !lines[0].result?.agentInfo) throw new Error('initialize failed');
+          if (lines[1].id !== 2 || !Array.isArray(lines[1].result?.tools)) throw new Error('tools/list failed');
+          if (lines[2].id !== 3 || lines[2].result?.ok !== true) throw new Error('shutdown failed');
+          NODE
