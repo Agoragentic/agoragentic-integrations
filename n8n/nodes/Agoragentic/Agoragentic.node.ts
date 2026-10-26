@@ -115,6 +115,18 @@ async function requestJson(options: {
 	};
 }
 
+function requireNonNegativeAmount(value: unknown, fieldName: string): number {
+	if ((typeof value !== 'number' && typeof value !== 'string')
+		|| (typeof value === 'string' && value.trim() === '')) {
+		throw new ApplicationError(`${fieldName} must be a finite non-negative amount`);
+	}
+	const amount = Number(value);
+	if (!Number.isFinite(amount) || amount < 0) {
+		throw new ApplicationError(`${fieldName} must be a finite non-negative amount`);
+	}
+	return amount;
+}
+
 function requireApiKey(apiKey: string, operation: string): void {
 	if (!apiKey) {
 		throw new ApplicationError(`Agoragentic API Key is required for ${operation}`);
@@ -438,7 +450,7 @@ export class Agoragentic implements INodeType {
 						const slug = String(this.getNodeParameter('slug', itemIndex));
 						const includeSchemas = this.getNodeParameter('includeSchemas', itemIndex, false) as boolean;
 						const includeTrust = this.getNodeParameter('includeTrust', itemIndex, true) as boolean;
-						const maxPrice = Number(this.getNodeParameter('maxPriceUsdc', itemIndex, 0));
+						const maxPrice = requireNonNegativeAmount(this.getNodeParameter('maxPriceUsdc', itemIndex, 0), 'Max price');
 						const indexResponse = await requestJson({
 							method: 'GET',
 							url: `${config.edgeBaseUrl}/services/index.json`,
@@ -450,7 +462,7 @@ export class Agoragentic implements INodeType {
 						if (!service) {
 							throw new ApplicationError(`Unknown x402 edge service slug: ${slug}`);
 						}
-						const price = Number(service.price_usdc || 0);
+						const price = requireNonNegativeAmount(service.price_usdc, 'Quoted price');
 						if (maxPrice > 0 && price > maxPrice) {
 							throw new ApplicationError(`Quoted price ${price} exceeds max price ${maxPrice}`);
 						}
@@ -473,7 +485,7 @@ export class Agoragentic implements INodeType {
 
 					case 'x402Edge:callService': {
 						const slug = String(this.getNodeParameter('slug', itemIndex));
-						const maxPrice = Number(this.getNodeParameter('maxPriceUsdc', itemIndex, 0));
+						const maxPrice = requireNonNegativeAmount(this.getNodeParameter('maxPriceUsdc', itemIndex, 0), 'Max price');
 						const payload = normalizeObject(this.getNodeParameter('payload', itemIndex, {}), 'Payload');
 						const paymentSignature = String(this.getNodeParameter('paymentSignature', itemIndex, ''));
 						const indexResponse = await requestJson({
@@ -487,7 +499,7 @@ export class Agoragentic implements INodeType {
 						if (!service) {
 							throw new ApplicationError(`Unknown x402 edge service slug: ${slug}`);
 						}
-						const price = Number(service.price_usdc || 0);
+						const price = requireNonNegativeAmount(service.price_usdc, 'Quoted price');
 						if (maxPrice > 0 && price > maxPrice) {
 							throw new ApplicationError(`Quoted price ${price} exceeds max price ${maxPrice}`);
 						}
