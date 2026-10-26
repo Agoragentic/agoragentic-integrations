@@ -1,0 +1,62 @@
+{
+  "name": "@n8n/expression-runtime",
+  "version": "0.19.1",
+  "description": "Secure, isolated expression evaluation runtime for n8n",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    },
+    "./*": "./*"
+  },
+  "keywords": [
+    "n8n",
+    "expression",
+    "evaluation",
+    "isolated-vm",
+    "web-worker",
+    "security"
+  ],
+  "license": "SEE LICENSE IN LICENSE.md",
+  "dependencies": {
+    "isolated-vm": "^6.1.2",
+    "jmespath": "0.16.0",
+    "js-base64": "3.7.8",
+    "jssha": "3.3.1",
+    "lodash": "4.18.1",
+    "luxon": "3.7.2",
+    "md5": "2.3.0",
+    "title-case": "3.0.3",
+    "transliteration": "2.3.5",
+    "zod": "4.6.7",
+    "@n8n/errors": "0.10.0",
+    "@n8n/tournament": "1.4.0"
+  },
+  "files": [
+    "dist",
+    "ARCHITECTURE.md",
+    "LICENSE.md",
+    "LICENSE_EE.md"
+  ],
+  "homepage": "https://n8n.io",
+  "author": {
+    "name": "Jan Oberhauser",
+    "email": "jan@n8n.io"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/n8n-io/n8n.git"
+  },
+  "type": "module",
+  "private": true,
+  "xAgoragenticFixture": {
+    "upstreamVersion": "0.19.1",
+    "upstreamSourceCommit": "955be3ef2131afb9ecba5482024d045e710e4f20",
+    "zodVersion": "4.6.7",
+    "buildInputs": "sha256:8fd6f4124327d54ec36fa3943c7394f9817e42384e7c9eade8ec0bd460d282f0"
+  }
+}

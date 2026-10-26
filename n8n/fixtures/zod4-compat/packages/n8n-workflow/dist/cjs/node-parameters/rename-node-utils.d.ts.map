@@ -1,0 +1,1 @@
+{"version":3,"file":"rename-node-utils.d.ts","sourceRoot":"","sources":["../../../../../source/packages/workflow/src/node-parameters/rename-node-utils.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,KAAK,EAAE,sBAAsB,EAAE,yBAAsB;AAEnE,wBAAgB,gBAAgB,CAC/B,IAAI,EAAE,KAAK,EACX,WAAW,EAAE,CAAC,CAAC,EAAE,sBAAsB,KAAK,sBAAsB,GAChE,IAAI,CAuBN"}

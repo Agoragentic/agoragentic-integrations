@@ -1,0 +1,51 @@
+{
+  "archive": "sha256:0ddad00a619a7df13ad16fedc1b67d8bb66239f0aa68a9ac71a5f90ce89d1b4d",
+  "source_inventory": "sha256:dd441c0efac1191c6e180e359d39f3fa6b52df49f46e8e179ba122550eabfb76",
+  "source_patch": "sha256:17ddfffe46915afd94f26a109dddc69745f64ffda1ac3b06b7f9018d8aa2991a",
+  "files": [
+    {
+      "path": "scripts/build-zod4-fixture.mjs",
+      "sha256": "sha256:8f0aeda96fe7d48ae6956e9074d61d0a1cf5e942613f44fc0f85a3a5217e17d6"
+    },
+    {
+      "path": "scripts/fixture-source.mjs",
+      "sha256": "sha256:d96d0e7efd71edaecd42e4d5ed784b01d95aebe63254443f2344dc76e7702dc1"
+    },
+    {
+      "path": "scripts/fixture-compiler.mjs",
+      "sha256": "sha256:96b2e86f613e3c89793ced98dad7b10110f26f5a8f3297a98c4545701fdbf643"
+    },
+    {
+      "path": "scripts/check-zod4-consumer.mjs",
+      "sha256": "sha256:fb5c3deb3b164d67fe65a915c2cc1d3b031201cf46a10bb948d40857426e2b98"
+    },
+    {
+      "path": "scripts/audit-dev-dependencies.cjs",
+      "sha256": "sha256:ebd09b7551d8d5dafc784daa541861dbdc9717ab589e85c1ea45d72606dcd630"
+    },
+    {
+      "path": "fixtures/zod4-compat/build/package.json",
+      "sha256": "sha256:9e7eb130cb97dfe6fe01919a5ac2a9d01d0a1e432f55c352c33bc78dbeb4030d"
+    },
+    {
+      "path": "fixtures/zod4-compat/build/package-lock.json",
+      "sha256": "sha256:2a6c7b4de7379626ebe2217f4fd118731205f5f8f0b30d6cde78c56228813720"
+    },
+    {
+      "path": "fixtures/zod4-compat/build/consumer-check/public-exports.mts",
+      "sha256": "sha256:af29699baebab5c0ebf4dcc3604ec51eab48478055bccddbac3a394588c9d112"
+    },
+    {
+      "path": "fixtures/zod4-compat/build/consumer-check/public-exports.cts",
+      "sha256": "sha256:af29699baebab5c0ebf4dcc3604ec51eab48478055bccddbac3a394588c9d112"
+    },
+    {
+      "path": "fixtures/zod4-compat/security-patches/string-extensions.json",
+      "sha256": "sha256:9cfb63d234a1d4bcd3658249811d388857681ca1fb0252f73e0a36a60e447072"
+    },
+    {
+      "path": "fixtures/zod4-compat/security-patches/workflow-security.json",
+      "sha256": "sha256:01ff482af2c17547c0efb0c33aff545c6ca22a77d269c89fb7c1ec5db118a8a8"
+    }
+  ]
+}
