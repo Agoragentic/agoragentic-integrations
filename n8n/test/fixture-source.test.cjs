@@ -30,7 +30,8 @@ function archive(extra = [], omitted = []) {
 		const header = Buffer.alloc(512);
 		assert.ok(Buffer.byteLength(name) <= 100);
 		header.write(name, 0, 100);
-		header.write('0000644\0', 100, 8);
+		// Directories need traversal permission on POSIX; files stay non-executable.
+		header.write(type === '5' ? '0000755\0' : '0000644\0', 100, 8);
 		header.write('0000000\0', 108, 8);
 		header.write('0000000\0', 116, 8);
 		header.write(`${data.length.toString(8).padStart(11, '0')}\0`, 124, 12);
