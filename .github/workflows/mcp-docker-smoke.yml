@@ -39,7 +39,7 @@ jobs:
         run: |
           set -euo pipefail
           printf '%s\n' \
-            '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' \
+            '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":1,"clientInfo":{"name":"docker-smoke","version":"1.0.0"}}}' \
             '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
             '{"jsonrpc":"2.0","id":3,"method":"shutdown","params":{}}' \
             | docker run --rm \
@@ -58,7 +58,7 @@ jobs:
           import fs from 'node:fs';
           const lines = fs.readFileSync(process.argv[2], 'utf8')
             .trim().split(/\r?\n/).map((line) => JSON.parse(line));
-          if (lines[0].id !== 1 || !lines[0].result?.agentInfo) throw new Error('initialize failed');
+          if (lines[0].id !== 1 || lines[0].result?.protocolVersion !== 1 || !lines[0].result?.agentInfo) throw new Error('initialize failed');
           if (lines[1].id !== 2 || !Array.isArray(lines[1].result?.tools)) throw new Error('tools/list failed');
           if (lines[2].id !== 3 || lines[2].result?.ok !== true) throw new Error('shutdown failed');
           NODE

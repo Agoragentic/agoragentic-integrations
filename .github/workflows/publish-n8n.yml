@@ -4,14 +4,12 @@ on:
   release:
     types: [published]
 
-permissions:
-  contents: read
-  id-token: write
-
 jobs:
-  publish:
+  build:
     if: startsWith(github.event.release.tag_name, 'n8n-v')
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: n8n
@@ -21,11 +19,10 @@ jobs:
       - name: Setup Node for npm trusted publishing
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: '24'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: '24.22.1'
           package-manager-cache: false
 
-      - name: Verify npm trusted publishing runtime
+      - name: Verify release build runtime
         run: |
           node --version
           npm --version
@@ -52,8 +49,37 @@ jobs:
       - name: Reject high or critical toolchain advisories
         run: npm run audit:dev
 
-      - name: Dry-run package contents
-        run: npm pack --dry-run
+      - name: Pack the verified artifact
+        id: pack
+        shell: bash
+        run: |
+          tarball="$(npm pack --ignore-scripts)"
+          test -f "${tarball}"
+          printf 'tarball=%s\n' "${tarball}" >> "${GITHUB_OUTPUT}"
+
+      - name: Upload the exact package artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: agoragentic-n8n-${{ github.event.release.tag_name }}
+          path: n8n/${{ steps.pack.outputs.tarball }}
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    if: startsWith(github.event.release.tag_name, 'n8n-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download the exact package artifact
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: agoragentic-n8n-${{ github.event.release.tag_name }}
+          path: package/
 
       - name: Publish n8n node with npm trusted publishing
-        run: npm publish --access public
+        shell: bash
+        run: |
+          test "$(find package -maxdepth 1 -type f -name '*.tgz' | wc -l)" -eq 1
+          npm publish package/*.tgz --access public --ignore-scripts
