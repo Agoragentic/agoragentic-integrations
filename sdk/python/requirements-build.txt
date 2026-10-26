@@ -1,4 +1,8 @@
 --only-binary=:all:
+# build declares colorama only on Windows; pin its official PyPI wheel so
+# --require-hashes remains deterministic on every supported build runner.
+colorama==0.4.6 ; sys_platform == "win32" \
+    --hash=sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6
 build==1.6.1 \
     --hash=sha256:ecd351a4be9d35a9eaaba244a7687143c9c7d4aea6ac964e7e7ddab20cbcf4e7
 packaging==26.3 \
