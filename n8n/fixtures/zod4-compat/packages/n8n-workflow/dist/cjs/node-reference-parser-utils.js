@@ -44,7 +44,7 @@ const SPLIT_OUT_NODE_TYPE = 'n8n-nodes-base.splitOut';
 const ITEM_ACCESSORS = ['params', 'isExecuted'];
 const DATA_ACCESSORS = ['json', 'binary'];
 function hasDotNotationBannedChar(nodeName) {
-    const DOT_NOTATION_BANNED_CHARS = /^(\d)|[\\ `!@#$%^&*()_+\-=[\]{};':"\\|,.<>?~]/g;
+    const DOT_NOTATION_BANNED_CHARS = /^(\d)|[\\ `!@#$%^&*()_+\-=[\]{};':"|,.<>?~]/g;
     return DOT_NOTATION_BANNED_CHARS.test(nodeName);
 }
 function backslashEscape(nodeName) {

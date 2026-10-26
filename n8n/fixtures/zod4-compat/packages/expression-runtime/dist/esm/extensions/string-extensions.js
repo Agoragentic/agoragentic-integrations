@@ -99,6 +99,15 @@ function length(value) {
 export function toJsonString(value) {
     return JSON.stringify(value);
 }
+function stripHtmlTags(value) {
+    let output = value;
+    while (true) {
+        const previous = output;
+        output = output.replace(/<+\/?[_A-Za-z][^>]*(?:>|$)/gm, '');
+        if (output === previous)
+            return output;
+    }
+}
 function removeMarkdown(value) {
     let output = value;
     try {
@@ -110,9 +119,8 @@ function removeMarkdown(value) {
             .replace(/~~/g, '')
             // Fenced codeblocks
             .replace(/`{3}.*\n/g, '');
+        output = stripHtmlTags(output);
         output = output
-            // Remove HTML tags
-            .replace(/<[\w|\s|=|'|"|:|(|)|,|;|/|0-9|.|-]+[>|\\>]/g, '')
             // Remove setext-style headers
             .replace(/^[=-]{2,}\s*$/g, '')
             // Remove footnotes?
@@ -137,10 +145,11 @@ function removeMarkdown(value) {
     catch (e) {
         return value;
     }
+    output = stripHtmlTags(output);
     return output;
 }
 function removeTags(value) {
-    return value.replace(/<[^>]*>?/gm, '');
+    return stripHtmlTags(value);
 }
 function toDate(value) {
     const date = new Date(Date.parse(value));

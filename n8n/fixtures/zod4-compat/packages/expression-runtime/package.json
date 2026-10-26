@@ -57,6 +57,6 @@
     "upstreamVersion": "0.19.1",
     "upstreamSourceCommit": "955be3ef2131afb9ecba5482024d045e710e4f20",
     "zodVersion": "4.6.7",
-    "buildInputs": "sha256:074174fc9e8457a89013db89568a584d6700a37e957ab825ccb137214c9cf241"
+    "buildInputs": "sha256:f6f3bc171ff41c798f58150db2574c9f07600c3e84921da3603d37abb5de0995"
   }
 }

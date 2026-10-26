@@ -13,6 +13,131 @@ index 6b999a2..41dfff0 100644
  	})
  	.strict();
  
+diff --git a/original/packages/@n8n/expression-runtime/src/extensions/string-extensions.ts b/source/packages/@n8n/expression-runtime/src/extensions/string-extensions.ts
+index d49c6e9..6466b90 100644
+--- a/original/packages/@n8n/expression-runtime/src/extensions/string-extensions.ts
++++ b/source/packages/@n8n/expression-runtime/src/extensions/string-extensions.ts
+@@ -131,6 +131,15 @@ export function toJsonString(value: string): string {
+ 	return JSON.stringify(value);
+ }
+ 
++function stripHtmlTags(value: string): string {
++	let output = value;
++	while (true) {
++		const previous = output;
++		output = output.replace(/<+\/?[_A-Za-z][^>]*(?:>|$)/gm, '');
++		if (output === previous) return output;
++	}
++}
++
+ function removeMarkdown(value: string): string {
+ 	let output = value;
+ 	try {
+@@ -144,9 +153,9 @@ function removeMarkdown(value: string): string {
+ 			// Fenced codeblocks
+ 			.replace(/`{3}.*\n/g, '');
+ 
++		output = stripHtmlTags(output);
++
+ 		output = output
+-			// Remove HTML tags
+-			.replace(/<[\w|\s|=|'|"|:|(|)|,|;|/|0-9|.|-]+[>|\\>]/g, '')
+ 			// Remove setext-style headers
+ 			.replace(/^[=-]{2,}\s*$/g, '')
+ 			// Remove footnotes?
+@@ -170,11 +179,12 @@ function removeMarkdown(value: string): string {
+ 	} catch (e) {
+ 		return value;
+ 	}
++	output = stripHtmlTags(output);
+ 	return output;
+ }
+ 
+ function removeTags(value: string): string {
+-	return value.replace(/<[^>]*>?/gm, '');
++	return stripHtmlTags(value);
+ }
+ 
+ function toDate(value: string): Date {
+diff --git a/original/packages/workflow/src/common/get-connected-nodes.ts b/source/packages/workflow/src/common/get-connected-nodes.ts
+index ea0bace..92eefcd 100644
+--- a/original/packages/workflow/src/common/get-connected-nodes.ts
++++ b/source/packages/workflow/src/common/get-connected-nodes.ts
+@@ -106,7 +106,7 @@ function collectConnectedNodes(
+ 					memo,
+ 				);
+ 
+-				for (i = addNodes.length; i--; i > 0) {
++				for (i = addNodes.length; i-- > 0;) {
+ 					// Because nodes can have multiple parents it is possible that
+ 					// parts of the tree is parent of both and to not add nodes
+ 					// twice check first if they already got added before.
+diff --git a/original/packages/workflow/src/common/map-connections-by-destination.ts b/source/packages/workflow/src/common/map-connections-by-destination.ts
+index c37370b..f8fe577 100644
+--- a/original/packages/workflow/src/common/map-connections-by-destination.ts
++++ b/source/packages/workflow/src/common/map-connections-by-destination.ts
+@@ -23,11 +23,11 @@ export function mapConnectionsByDestination(connections: IConnections) {
+ 				}
+ 
+ 				for (connectionInfo of connections[sourceNode][type][inputIndex] ?? []) {
+-					if (!returnConnection.hasOwnProperty(connectionInfo.node)) {
+-						returnConnection[connectionInfo.node] = {};
++					if (!Object.prototype.hasOwnProperty.call(returnConnection, connectionInfo.node)) {
++						Object.defineProperty(returnConnection, connectionInfo.node, { value: {}, enumerable: true, configurable: true, writable: true });
+ 					}
+-					if (!returnConnection[connectionInfo.node].hasOwnProperty(connectionInfo.type)) {
+-						returnConnection[connectionInfo.node][connectionInfo.type] = [];
++					if (!Object.prototype.hasOwnProperty.call(returnConnection[connectionInfo.node], connectionInfo.type)) {
++						Object.defineProperty(returnConnection[connectionInfo.node], connectionInfo.type, { value: [], enumerable: true, configurable: true, writable: true });
+ 					}
+ 
+ 					maxIndex = returnConnection[connectionInfo.node][connectionInfo.type].length - 1;
+diff --git a/original/packages/workflow/src/extensions/string-extensions.ts b/source/packages/workflow/src/extensions/string-extensions.ts
+index 66746be..cea18c0 100644
+--- a/original/packages/workflow/src/extensions/string-extensions.ts
++++ b/source/packages/workflow/src/extensions/string-extensions.ts
+@@ -170,6 +170,15 @@ export function toJsonString(value: string): string {
+ 	return JSON.stringify(value);
+ }
+ 
++function stripHtmlTags(value: string): string {
++	let output = value;
++	while (true) {
++		const previous = output;
++		output = output.replace(/<+\/?[_A-Za-z][^>]*(?:>|$)/gm, '');
++		if (output === previous) return output;
++	}
++}
++
+ function removeMarkdown(value: string): string {
+ 	let output = value;
+ 	try {
+@@ -183,9 +192,9 @@ function removeMarkdown(value: string): string {
+ 			// Fenced codeblocks
+ 			.replace(/`{3}.*\n/g, '');
+ 
++		output = stripHtmlTags(output);
++
+ 		output = output
+-			// Remove HTML tags
+-			.replace(/<[\w|\s|=|'|"|:|(|)|,|;|/|0-9|.|-]+[>|\\>]/g, '')
+ 			// Remove setext-style headers
+ 			.replace(/^[=-]{2,}\s*$/g, '')
+ 			// Remove footnotes?
+@@ -209,11 +218,12 @@ function removeMarkdown(value: string): string {
+ 	} catch (e) {
+ 		return value;
+ 	}
++	output = stripHtmlTags(output);
+ 	return output;
+ }
+ 
+ function removeTags(value: string): string {
+-	return value.replace(/<[^>]*>?/gm, '');
++	return stripHtmlTags(value);
+ }
+ 
+ function toDate(value: string): Date {
 diff --git a/original/packages/workflow/src/from-ai-parse-utils.ts b/source/packages/workflow/src/from-ai-parse-utils.ts
 index c00a7d5..ec1805d 100644
 --- a/original/packages/workflow/src/from-ai-parse-utils.ts
@@ -171,6 +296,19 @@ index 71fb7c7..dd8ab9a 100644
  	anonymizeAuditMessages: z.boolean().optional(),
  	circuitBreaker: circuitBreakerSchema,
  });
+diff --git a/original/packages/workflow/src/node-reference-parser-utils.ts b/source/packages/workflow/src/node-reference-parser-utils.ts
+index fb29c83..19f35f5 100644
+--- a/original/packages/workflow/src/node-reference-parser-utils.ts
++++ b/source/packages/workflow/src/node-reference-parser-utils.ts
+@@ -54,7 +54,7 @@ const ITEM_ACCESSORS = ['params', 'isExecuted'];
+ const DATA_ACCESSORS = ['json', 'binary'];
+ 
+ export function hasDotNotationBannedChar(nodeName: string) {
+-	const DOT_NOTATION_BANNED_CHARS = /^(\d)|[\\ `!@#$%^&*()_+\-=[\]{};':"\\|,.<>?~]/g;
++	const DOT_NOTATION_BANNED_CHARS = /^(\d)|[\\ `!@#$%^&*()_+\-=[\]{};':"|,.<>?~]/g;
+ 
+ 	return DOT_NOTATION_BANNED_CHARS.test(nodeName);
+ }
 diff --git a/original/packages/workflow/src/schemas.ts b/source/packages/workflow/src/schemas.ts
 index 5b5b373..22e1bf5 100644
 --- a/original/packages/workflow/src/schemas.ts
@@ -193,6 +331,75 @@ index 5b5b373..22e1bf5 100644
  	matchingColumns: z.array(z.string()),
  	schema: z.array(ResourceMapperFieldSchema),
  	attemptToConvertTypes: z.boolean(),
+diff --git a/original/packages/workflow/src/telemetry-helpers.ts b/source/packages/workflow/src/telemetry-helpers.ts
+index 2b1cbea..bd88b2d 100644
+--- a/original/packages/workflow/src/telemetry-helpers.ts
++++ b/source/packages/workflow/src/telemetry-helpers.ts
+@@ -306,6 +306,15 @@ function getNumberOfItemsInRuns(runs: ITaskData[]): number {
+ 	}, 0);
+ }
+ 
++function isGoogleHostname(raw: string): boolean {
++	try {
++		const hostname = new URL(raw).hostname.toLowerCase();
++		return hostname === 'google.com' || hostname.endsWith('.google.com');
++	} catch {
++		return false;
++	}
++}
++
+ export function generateNodesGraph(
+ 	workflow: Partial<IWorkflowBase>,
+ 	nodeTypes: INodeTypes,
+@@ -465,7 +474,7 @@ export function generateNodesGraph(
+ 
+ 			if (toolUrl.startsWith('{') && toolUrl.endsWith('}')) {
+ 				nodeItem.toolSettings.url_type = 'any';
+-			} else if (toolUrl.includes('google.com')) {
++			} else if (isGoogleHostname(toolUrl)) {
+ 				nodeItem.toolSettings.url_type = 'google';
+ 			}
+ 
+diff --git a/original/packages/workflow/src/utils.ts b/source/packages/workflow/src/utils.ts
+index 69a31e6..c4a3fd1 100644
+--- a/original/packages/workflow/src/utils.ts
++++ b/source/packages/workflow/src/utils.ts
+@@ -345,7 +345,18 @@ export function randomInt(min: number, max?: number): number {
+ 		max = min;
+ 		min = 0;
+ 	}
+-	return min + (crypto.getRandomValues(new Uint32Array(1))[0] % (max - min));
++	const range = max - min;
++	const maxUint32 = 0x1_0000_0000;
++	if (!Number.isSafeInteger(min) || !Number.isSafeInteger(max) || !Number.isSafeInteger(range) || range <= 0 || range > maxUint32) {
++		throw new RangeError('randomInt bounds must be safe integers with a positive range no larger than 2^32');
++	}
++	const bucketSize = Math.floor(maxUint32 / range);
++	const limit = bucketSize * range;
++	let random: number;
++	do {
++		random = crypto.getRandomValues(new Uint32Array(1))[0];
++	} while (random >= limit);
++	return min + Math.floor(random / bucketSize);
+ }
+ 
+ export function randomString(length: number): string;
+@@ -359,9 +370,12 @@ export function randomString(minLength: number, maxLength: number): string;
+  */
+ export function randomString(minLength: number, maxLength?: number): string {
+ 	const length = maxLength === undefined ? minLength : randomInt(minLength, maxLength + 1);
+-	return [...crypto.getRandomValues(new Uint32Array(length))]
+-		.map((byte) => ALPHABET[byte % ALPHABET.length])
+-		.join('');
++	if (!Number.isInteger(length) || length < 0) throw new RangeError('randomString length must be a non-negative integer');
++	if (length > 16_384) {
++		const error = typeof DOMException === 'function' ? new DOMException('The requested length exceeds the Web Crypto quota', 'QuotaExceededError') : Object.assign(new RangeError('The requested length exceeds the Web Crypto quota'), { name: 'QuotaExceededError' });
++		throw error;
++	}
++	return Array.from({ length }, () => ALPHABET[randomInt(ALPHABET.length)]).join('');
+ }
+ 
+ /**
 diff --git a/original/packages/workflow/src/workflow-structure-validation.ts b/source/packages/workflow/src/workflow-structure-validation.ts
 index 3fa3e1a..c765a61 100644
 --- a/original/packages/workflow/src/workflow-structure-validation.ts
@@ -222,3 +429,20 @@ index 3fa3e1a..c765a61 100644
  	}, '');
  };
  
+diff --git a/original/packages/workflow/src/workflow.ts b/source/packages/workflow/src/workflow.ts
+index fa30d9a..8e41a2a 100644
+--- a/original/packages/workflow/src/workflow.ts
++++ b/source/packages/workflow/src/workflow.ts
+@@ -182,10 +182,10 @@ export class Workflow {
+ 
+ 					for (connectionInfo of connections[sourceNode][type][inputIndex] ?? []) {
+ 						if (!returnConnection.hasOwnProperty(connectionInfo.node)) {
+-							returnConnection[connectionInfo.node] = {};
++							Object.defineProperty(returnConnection, connectionInfo.node, { value: {}, enumerable: true, configurable: true, writable: true });
+ 						}
+ 						if (!returnConnection[connectionInfo.node].hasOwnProperty(connectionInfo.type)) {
+-							returnConnection[connectionInfo.node][connectionInfo.type] = [];
++							Object.defineProperty(returnConnection[connectionInfo.node], connectionInfo.type, { value: [], enumerable: true, configurable: true, writable: true });
+ 						}
+ 
+ 						maxIndex = returnConnection[connectionInfo.node][connectionInfo.type].length - 1;

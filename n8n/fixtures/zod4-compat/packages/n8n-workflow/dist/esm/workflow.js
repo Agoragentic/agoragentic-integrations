@@ -102,10 +102,10 @@ export class Workflow {
                     }
                     for (connectionInfo of connections[sourceNode][type][inputIndex] ?? []) {
                         if (!returnConnection.hasOwnProperty(connectionInfo.node)) {
-                            returnConnection[connectionInfo.node] = {};
+                            Object.defineProperty(returnConnection, connectionInfo.node, { value: {}, enumerable: true, configurable: true, writable: true });
                         }
                         if (!returnConnection[connectionInfo.node].hasOwnProperty(connectionInfo.type)) {
-                            returnConnection[connectionInfo.node][connectionInfo.type] = [];
+                            Object.defineProperty(returnConnection[connectionInfo.node], connectionInfo.type, { value: [], enumerable: true, configurable: true, writable: true });
                         }
                         maxIndex = returnConnection[connectionInfo.node][connectionInfo.type].length - 1;
                         for (let j = maxIndex; j < connectionInfo.index; j++) {

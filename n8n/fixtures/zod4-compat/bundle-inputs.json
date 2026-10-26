@@ -502,7 +502,7 @@
     },
     {
       "path": "source/packages/@n8n/expression-runtime/src/extensions/string-extensions.ts",
-      "sha256": "sha256:b95806d689c76f712e0e07476aa306ef180652b1571104c0623d0a663f2ad740"
+      "sha256": "sha256:dcd1c5ebe801e896f128970755879ee26beb0ab568d65b8f6c195b2f64937d23"
     },
     {
       "path": "source/packages/@n8n/expression-runtime/src/extensions/utils.ts",
@@ -1040,7 +1040,7 @@
     },
     {
       "path": "source/packages/@n8n/expression-runtime/src/extensions/string-extensions.ts",
-      "sha256": "sha256:b95806d689c76f712e0e07476aa306ef180652b1571104c0623d0a663f2ad740"
+      "sha256": "sha256:dcd1c5ebe801e896f128970755879ee26beb0ab568d65b8f6c195b2f64937d23"
     },
     {
       "path": "source/packages/@n8n/expression-runtime/src/extensions/utils.ts",

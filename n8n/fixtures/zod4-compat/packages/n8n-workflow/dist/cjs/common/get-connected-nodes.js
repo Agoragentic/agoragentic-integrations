@@ -69,7 +69,7 @@ function collectConnectedNodes(connections, nodeName, connectionType, depth, cur
                 }
                 returnNodes.unshift(connection.node);
                 addNodes = collectConnectedNodes(connections, connection.node, connectionType, newDepth, currentPath, memo);
-                for (i = addNodes.length; i--; i > 0) {
+                for (i = addNodes.length; i-- > 0;) {
                     // Because nodes can have multiple parents it is possible that
                     // parts of the tree is parent of both and to not add nodes
                     // twice check first if they already got added before.

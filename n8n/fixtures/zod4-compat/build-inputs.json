@@ -1,15 +1,15 @@
 {
   "archive": "sha256:0ddad00a619a7df13ad16fedc1b67d8bb66239f0aa68a9ac71a5f90ce89d1b4d",
   "source_inventory": "sha256:dd441c0efac1191c6e180e359d39f3fa6b52df49f46e8e179ba122550eabfb76",
-  "source_patch": "sha256:37b10edc222adfe175333d2cce5f2e53585fcdf4344615f54e99959be8ce7307",
+  "source_patch": "sha256:20696cdbfedc4aa4755ef6c2b50bda974f64d554d01868a8f3230ca545ece0e2",
   "files": [
     {
       "path": "scripts/build-zod4-fixture.mjs",
-      "sha256": "sha256:cfe0c3e6c235b156057dbe5ee080608324c5089335252c5b3baf8ce4d2da7dfa"
+      "sha256": "sha256:8f0aeda96fe7d48ae6956e9074d61d0a1cf5e942613f44fc0f85a3a5217e17d6"
     },
     {
       "path": "scripts/fixture-source.mjs",
-      "sha256": "sha256:8e6212bb81d57e0586be9f66c9c1f59b5db4a7c8cf74e456c4837a8497ca0dfa"
+      "sha256": "sha256:d96d0e7efd71edaecd42e4d5ed784b01d95aebe63254443f2344dc76e7702dc1"
     },
     {
       "path": "scripts/fixture-compiler.mjs",
@@ -38,6 +38,14 @@
     {
       "path": "fixtures/zod4-compat/build/consumer-check/public-exports.cts",
       "sha256": "sha256:af29699baebab5c0ebf4dcc3604ec51eab48478055bccddbac3a394588c9d112"
+    },
+    {
+      "path": "fixtures/zod4-compat/security-patches/string-extensions.json",
+      "sha256": "sha256:9cfb63d234a1d4bcd3658249811d388857681ca1fb0252f73e0a36a60e447072"
+    },
+    {
+      "path": "fixtures/zod4-compat/security-patches/workflow-security.json",
+      "sha256": "sha256:e0420c09fd2c99db0106cb42dc99a702ed4c987cfe274a619d75aaee41b798e2"
     }
   ]
 }

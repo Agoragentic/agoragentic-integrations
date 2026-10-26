@@ -25,23 +25,23 @@
     },
     {
       "path": "expression-runtime/dist/bundle/runtime.esm.js",
-      "bytes": 480651,
-      "sha256": "a893140609386cc40e6f2ac809cb524dceb80de513ec438112c6303adace12fd"
+      "bytes": 480693,
+      "sha256": "39d25f5ffea1e308235cd2c1528e531601a93004f73e83d971f842747123a1ac"
     },
     {
       "path": "expression-runtime/dist/bundle/runtime.esm.js.map",
-      "bytes": 1585380,
-      "sha256": "cfcb0ee64dfea2f3aa2e727c818f8e5c2bb428cfac9375e8810b86b479562ccb"
+      "bytes": 1585780,
+      "sha256": "55a00c5a00d1b916adf35fc1c325d2f3690c8eeb27884162486ba6b801b6372b"
     },
     {
       "path": "expression-runtime/dist/bundle/runtime.iife.js",
-      "bytes": 480693,
-      "sha256": "42446f9dc613f2b81b79b01502eb492e24171ade6bbd023c57df27e481cbf200"
+      "bytes": 480735,
+      "sha256": "7a4e41aee6a63f9824bb66e7fdde91072cfc116bcc92f6be8528d7b045019074"
     },
     {
       "path": "expression-runtime/dist/bundle/runtime.iife.js.map",
-      "bytes": 1585380,
-      "sha256": "0d117fc7d436d13e10cd438ea9015368cef38b4574549e238ba19763de87af89"
+      "bytes": 1585780,
+      "sha256": "361bbb0d118679c91db2b3637e24fa9c1a319c2e87ff954239e4383258cd320d"
     },
     {
       "path": "expression-runtime/dist/cjs/bridge/bridge-messages.d.ts",
@@ -331,17 +331,17 @@
     {
       "path": "expression-runtime/dist/cjs/extensions/string-extensions.d.ts.map",
       "bytes": 530,
-      "sha256": "0bba5a8b27e5f22eb5ef08333dde80be80aa0e1cd54c97a8e5db77101f90d582"
+      "sha256": "07996a01b9e0831810c3304ea6a8a0ac59aa230409774092545f2310973918f5"
     },
     {
       "path": "expression-runtime/dist/cjs/extensions/string-extensions.js",
-      "bytes": 31938,
-      "sha256": "b6165aaa36b03cdbc827c8642e96dd168f867b6882130100ada566a91d9782c7"
+      "bytes": 32144,
+      "sha256": "a4ff0bede67911a5e54eaf7c9e496d33cd8741a0a1d1ae23c4b52dfcccc7ea25"
     },
     {
       "path": "expression-runtime/dist/cjs/extensions/string-extensions.js.map",
-      "bytes": 20639,
-      "sha256": "68650cf8ba6a7946daf661d36401d0c4a725bbdd8107331687c9db88f57514ea"
+      "bytes": 20892,
+      "sha256": "e3f4575686e75600ef5122c316c149fb283321eb46567bedbe100a9e64795ed3"
     },
     {
       "path": "expression-runtime/dist/cjs/extensions/utils.d.ts",
@@ -976,17 +976,17 @@
     {
       "path": "expression-runtime/dist/esm/extensions/string-extensions.d.ts.map",
       "bytes": 530,
-      "sha256": "0bba5a8b27e5f22eb5ef08333dde80be80aa0e1cd54c97a8e5db77101f90d582"
+      "sha256": "07996a01b9e0831810c3304ea6a8a0ac59aa230409774092545f2310973918f5"
     },
     {
       "path": "expression-runtime/dist/esm/extensions/string-extensions.js",
-      "bytes": 31061,
-      "sha256": "ed09d0a7ae6370c3cce3278a7eb261d1819cd2130efd691f7f9b5102ae8484d9"
+      "bytes": 31267,
+      "sha256": "843b48f80f329cb3cf346bf4cc5b4482150636ebf045cfc80190929a158b351c"
     },
     {
       "path": "expression-runtime/dist/esm/extensions/string-extensions.js.map",
-      "bytes": 20745,
-      "sha256": "42fac4fb4c59c7f69b6ed654e27ff68b6f1e2f20ae983af30c1bb8676cd06d67"
+      "bytes": 20998,
+      "sha256": "ae62721358ef09798bcee170b1ba7a9a89e25941d05fbc571926e8ba944e43c5"
     },
     {
       "path": "expression-runtime/dist/esm/extensions/utils.d.ts",
@@ -1336,7 +1336,7 @@
     {
       "path": "expression-runtime/package.json",
       "bytes": 1491,
-      "sha256": "445251457720e2307f465d270c8179e9d651cd44c148668e4a1f2303c54d8af4"
+      "sha256": "f12beacc1cd2b3def09d3ee230569177955f4aa677a8814b7ebf24325f645b12"
     },
     {
       "path": "n8n-workflow/LICENSE.md",
@@ -1425,13 +1425,13 @@
     },
     {
       "path": "n8n-workflow/dist/cjs/common/get-connected-nodes.js",
-      "bytes": 4099,
-      "sha256": "35a2a14e144f1b80faf209c5f470a232a057b281b0502ee6e0cfaa2ea945a40c"
+      "bytes": 4097,
+      "sha256": "eaad357686b8d74944d2b3d3b1706cbf55474a868da6d234493b1f043b795300"
     },
     {
       "path": "n8n-workflow/dist/cjs/common/get-connected-nodes.js.map",
-      "bytes": 2877,
-      "sha256": "530dd952567de29dec9cc66a66002cbbb6a123bb624025f7e4b22948900f6e80"
+      "bytes": 2867,
+      "sha256": "63938f22de7638f59f899ddd44337013875de295cdf3abce5b30532512012884"
     },
     {
       "path": "n8n-workflow/dist/cjs/common/get-node-by-name.d.ts",
@@ -1505,13 +1505,13 @@
     },
     {
       "path": "n8n-workflow/dist/cjs/common/map-connections-by-destination.js",
-      "bytes": 1995,
-      "sha256": "9d7b16bf1dc4c8b271adf4d30cede9de2a019a0a6e6a4ba7ea93025426a90eab"
+      "bytes": 2215,
+      "sha256": "8a30ea6d76674ecc56fc123262b6680971b2ed3eff317aeb739d49fa63f23cb3"
     },
     {
       "path": "n8n-workflow/dist/cjs/common/map-connections-by-destination.js.map",
-      "bytes": 1776,
-      "sha256": "ebde468da23b570c71695725f1deaadccc1c887828d7ca2c10f2b38234b6ed0d"
+      "bytes": 2036,
+      "sha256": "2c0303f61317f7490d081e64e43c4571f1cd2d19177028c3959a75e46c749d23"
     },
     {
       "path": "n8n-workflow/dist/cjs/common/resolve-variables.d.ts",
@@ -2581,17 +2581,17 @@
     {
       "path": "n8n-workflow/dist/cjs/extensions/string-extensions.d.ts.map",
       "bytes": 512,
-      "sha256": "d99c5154a69d76a8e7dd9a0fb99ebda098d7b3dff48b55728c57dd34b857669a"
+      "sha256": "0bc1da0df8d41954acdf657210b7a0563238377a94ff5689d2d69a10799d3b33"
     },
     {
       "path": "n8n-workflow/dist/cjs/extensions/string-extensions.js",
-      "bytes": 33454,
-      "sha256": "e387f7a0bec468578a8d8532118c156f339f0820ea99429605d152b1e94d556a"
+      "bytes": 33660,
+      "sha256": "f43973606369a6eaf6bee8339bb3ac5af504392fc0791c2b9668eeca835e9e9e"
     },
     {
       "path": "n8n-workflow/dist/cjs/extensions/string-extensions.js.map",
-      "bytes": 18164,
-      "sha256": "8bda9f9c52226d62bb7d6079b73eeebea498564e03af140e330092d7179d8409"
+      "bytes": 18417,
+      "sha256": "9472e2549f10b7f625ef718a567765bacdb064ea30d3d428045b546e23266752"
     },
     {
       "path": "n8n-workflow/dist/cjs/extensions/utils.d.ts",
@@ -3105,13 +3105,13 @@
     },
     {
       "path": "n8n-workflow/dist/cjs/node-reference-parser-utils.js",
-      "bytes": 25319,
-      "sha256": "5e5c91ada9919a5ebf4965333a92c0718b028f6acadbcff67547e57e18d4f6ea"
+      "bytes": 25317,
+      "sha256": "aebe54f15e5700e7d7f55243a5aeed8beef562e7f5157549bfff468a3c5b8071"
     },
     {
       "path": "n8n-workflow/dist/cjs/node-reference-parser-utils.js.map",
       "bytes": 18439,
-      "sha256": "2d78e11dfd930d70677645a221452c72ac3638f6075edaca2c730d29f13a7f43"
+      "sha256": "18c6624599dc9f1ee8b13842a060718d2e1f0a04134e36abe144dede10505161"
     },
     {
       "path": "n8n-workflow/dist/cjs/node-validation.d.ts",
@@ -3326,17 +3326,17 @@
     {
       "path": "n8n-workflow/dist/cjs/telemetry-helpers.d.ts.map",
       "bytes": 1938,
-      "sha256": "1abecafbb42c4f3ac3bc3839b9ae6a760ab8640367c7fcdb4676c42918f52c04"
+      "sha256": "ef23360617e6246d974443e5e78fe1ba9dc78e867e257ae1b4c868f4a54a2651"
     },
     {
       "path": "n8n-workflow/dist/cjs/telemetry-helpers.js",
-      "bytes": 34300,
-      "sha256": "efa3d8a8de4a3b7c293001d2754bd2f2c4b1bb7e68723b26f31497b501d720d1"
+      "bytes": 34526,
+      "sha256": "34ab1e77645accb32616aac4a1b5a01ada026a1705b05804b03390ac1f6890ca"
     },
     {
       "path": "n8n-workflow/dist/cjs/telemetry-helpers.js.map",
-      "bytes": 28683,
-      "sha256": "5b70da3e204856ae86f407618ae7e3fa6085375fab2174928d68f5c24900ad30"
+      "bytes": 28925,
+      "sha256": "c207d1c4673bb42b13bed24743f654ab75d6f19cfdc88fe18e9cfbbad922167c"
     },
     {
       "path": "n8n-workflow/dist/cjs/tool-helpers.d.ts",
@@ -3425,18 +3425,18 @@
     },
     {
       "path": "n8n-workflow/dist/cjs/utils.d.ts.map",
-      "bytes": 2956,
-      "sha256": "818df44d62cbb33856e459d1d0ac183c4429bbade6ae1a9c8138659f9b337328"
+      "bytes": 2957,
+      "sha256": "7dde5bd8dbaec30c1e8220313087d68dbbe84641c94f86a9459b4a97f9487aaf"
     },
     {
       "path": "n8n-workflow/dist/cjs/utils.js",
-      "bytes": 20486,
-      "sha256": "0130f924bbcd0f9cba38fff0c74c964868dc97eccca865219c5d213635bc49eb"
+      "bytes": 21393,
+      "sha256": "9327084e712a8a8ceb6067d86809f107112021835e24dd15af82e8db8608288a"
     },
     {
       "path": "n8n-workflow/dist/cjs/utils.js.map",
-      "bytes": 13200,
-      "sha256": "64a06551dc3d55cc3fd74f8fb284f1086c3f1b9f91dd1899d15f28b25742fa60"
+      "bytes": 14029,
+      "sha256": "196b092b5644e447b85a4be288baabe0d1e278773e1fd3c7eac3b085a5d42a36"
     },
     {
       "path": "n8n-workflow/dist/cjs/versioned-node-type.d.ts",
@@ -3650,13 +3650,13 @@
     },
     {
       "path": "n8n-workflow/dist/cjs/workflow.js",
-      "bytes": 30024,
-      "sha256": "5f39af9c3d3e49fc5a74e6ad992e77d6e69a2a7b84f0f2b89861eb38e832da59"
+      "bytes": 30198,
+      "sha256": "c596f94130d642eaa052aee4ed497f0da0f69d4efffe234a66681ee684f4674e"
     },
     {
       "path": "n8n-workflow/dist/cjs/workflow.js.map",
-      "bytes": 20091,
-      "sha256": "ae8238ec2c31115de28245689c57408aa2f7c9b7456175db39c965a0cc4c6fc6"
+      "bytes": 20291,
+      "sha256": "88de715ee563fce248c18ffb3e467cb37f95d881e2dc243ce0c2b7c468bbf879"
     },
     {
       "path": "n8n-workflow/dist/esm/augment-object.d.ts",
@@ -3730,13 +3730,13 @@
     },
     {
       "path": "n8n-workflow/dist/esm/common/get-connected-nodes.js",
-      "bytes": 3975,
-      "sha256": "0feba4533166e397f6be6a23e583128ef17345e3ae174167b28c9c71c122b1d9"
+      "bytes": 3973,
+      "sha256": "feb9eb2a7db784fb5b81be77c09ceb89513b0bb8979128bd7709f4e664f61043"
     },
     {
       "path": "n8n-workflow/dist/esm/common/get-connected-nodes.js.map",
-      "bytes": 2889,
-      "sha256": "0605793e2f158ef111dc8957030e7687f3dbc480fdf548e4edbbff567b8b3a69"
+      "bytes": 2879,
+      "sha256": "2831132f20c2d8069edc1cfa7b00904cc9c2602bb91ad54fe6dd36901441d0b3"
     },
     {
       "path": "n8n-workflow/dist/esm/common/get-node-by-name.d.ts",
@@ -3810,13 +3810,13 @@
     },
     {
       "path": "n8n-workflow/dist/esm/common/map-connections-by-destination.js",
-      "bytes": 1858,
-      "sha256": "cdc1de89b9e418af82da5847c3361d9ee516810ec29bc892adf2c8681bf29602"
+      "bytes": 2078,
+      "sha256": "f656662348687998ddc1b8bad2c9b8c77d05019e4871e5d5b12bfc7860ba3a6f"
     },
     {
       "path": "n8n-workflow/dist/esm/common/map-connections-by-destination.js.map",
-      "bytes": 1765,
-      "sha256": "c888216ab1f53220845d4eebd3912fc70fe45e5fda4bc9359debfa78581a7837"
+      "bytes": 2025,
+      "sha256": "5a4f7375abc3b13a70c0d24a366ea9863c710a88f71d21645b08ee63fb2f8e13"
     },
     {
       "path": "n8n-workflow/dist/esm/common/resolve-variables.d.ts",
@@ -4886,17 +4886,17 @@
     {
       "path": "n8n-workflow/dist/esm/extensions/string-extensions.d.ts.map",
       "bytes": 512,
-      "sha256": "d99c5154a69d76a8e7dd9a0fb99ebda098d7b3dff48b55728c57dd34b857669a"
+      "sha256": "0bc1da0df8d41954acdf657210b7a0563238377a94ff5689d2d69a10799d3b33"
     },
     {
       "path": "n8n-workflow/dist/esm/extensions/string-extensions.js",
-      "bytes": 32639,
-      "sha256": "7b308682d00ee4fbe80ac9008c171d65656f9cc45cd6cc13f7daf224ec58bd6b"
+      "bytes": 32845,
+      "sha256": "4e5b439ba7b751000a8451aa7dbe3ca34b4cea50eb8dcf24f7df04b3b311c862"
     },
     {
       "path": "n8n-workflow/dist/esm/extensions/string-extensions.js.map",
-      "bytes": 18294,
-      "sha256": "2f663b2933f54db6e8b46d5a3d870f85343e15a1891b4ed9efff710836276235"
+      "bytes": 18547,
+      "sha256": "896de40718149d216c675fd4aa63c3631ffa807a3e659d182fd04d3c1aeb12af"
     },
     {
       "path": "n8n-workflow/dist/esm/extensions/utils.d.ts",
@@ -5410,13 +5410,13 @@
     },
     {
       "path": "n8n-workflow/dist/esm/node-reference-parser-utils.js",
-      "bytes": 24679,
-      "sha256": "90118fa0625ffe0d5bc64939695f21c634cfac8fcea8f0b0d5c1d8b22a58607f"
+      "bytes": 24677,
+      "sha256": "4e4504abe317a733164f1160c957c16257b96a9a2acc83fc02e3817cfded3f6b"
     },
     {
       "path": "n8n-workflow/dist/esm/node-reference-parser-utils.js.map",
       "bytes": 18429,
-      "sha256": "abb8d85a2b227e09d8af1b6f2e35111f7c8fa46abf3a3e72d1348ddac226339d"
+      "sha256": "5a4a88bc48678f78b9261d4793abffd8de2cd794cbdec4cdb1e9fb4deb90a703"
     },
     {
       "path": "n8n-workflow/dist/esm/node-validation.d.ts",
@@ -5631,17 +5631,17 @@
     {
       "path": "n8n-workflow/dist/esm/telemetry-helpers.d.ts.map",
       "bytes": 1938,
-      "sha256": "1abecafbb42c4f3ac3bc3839b9ae6a760ab8640367c7fcdb4676c42918f52c04"
+      "sha256": "ef23360617e6246d974443e5e78fe1ba9dc78e867e257ae1b4c868f4a54a2651"
     },
     {
       "path": "n8n-workflow/dist/esm/telemetry-helpers.js",
-      "bytes": 33776,
-      "sha256": "77ac9cfdbc10d40a3247242c4c47048cf46a32468c5301cc5ee94efb5410dfc6"
+      "bytes": 34002,
+      "sha256": "06b13406aa13c8202e7a4584bfaf706f618ba6c1b50e465316beef5d0ae8c0c4"
     },
     {
       "path": "n8n-workflow/dist/esm/telemetry-helpers.js.map",
-      "bytes": 29040,
-      "sha256": "edaef65c8c07ed7ef5ef1a54f3472576cfcda9c9e8e802c12836172c0b905287"
+      "bytes": 29282,
+      "sha256": "6bcbfa9ced54a380172936e45aa3890f35c7734f0b769edd547372315807db28"
     },
     {
       "path": "n8n-workflow/dist/esm/tool-helpers.d.ts",
@@ -5730,18 +5730,18 @@
     },
     {
       "path": "n8n-workflow/dist/esm/utils.d.ts.map",
-      "bytes": 2956,
-      "sha256": "818df44d62cbb33856e459d1d0ac183c4429bbade6ae1a9c8138659f9b337328"
+      "bytes": 2957,
+      "sha256": "7dde5bd8dbaec30c1e8220313087d68dbbe84641c94f86a9459b4a97f9487aaf"
     },
     {
       "path": "n8n-workflow/dist/esm/utils.js",
-      "bytes": 17290,
-      "sha256": "07ca87dc103c1ebc1761dfa593ad9b9eabf8746f61447aa61c17c9c803fc684d"
+      "bytes": 18197,
+      "sha256": "cb4956433156bb9d56b98e32f5509cb337afd2fadcb48ffc91da1172987c3968"
     },
     {
       "path": "n8n-workflow/dist/esm/utils.js.map",
-      "bytes": 13010,
-      "sha256": "490a7e42102be2fc708d25e499f6c1d488f645d049f931b3577a0ec7b0c23f5a"
+      "bytes": 13838,
+      "sha256": "4147f9948a92a712da5d43556686dca72857df4b78a979bde9a15ac60871da39"
     },
     {
       "path": "n8n-workflow/dist/esm/versioned-node-type.d.ts",
@@ -5955,18 +5955,18 @@
     },
     {
       "path": "n8n-workflow/dist/esm/workflow.js",
-      "bytes": 28337,
-      "sha256": "055ac5d34f248024a3eca816b0a1afb4dfbc515035d46e3ca9604b61ac0b8023"
+      "bytes": 28511,
+      "sha256": "fe83b4aa7b9a1040111bf5e7a22d489939f180e58a7db184ae9ab9b99d62d34b"
     },
     {
       "path": "n8n-workflow/dist/esm/workflow.js.map",
-      "bytes": 20319,
-      "sha256": "f7f4e0fab104a498d1e6d9c7d2738ce905216f8d743f0fbbab154f53f741af7d"
+      "bytes": 20519,
+      "sha256": "844f8d8c30379d1bbb187f3cb4799aca8ecd6c9aa4152b4713558a84652b4bf2"
     },
     {
       "path": "n8n-workflow/package.json",
       "bytes": 1928,
-      "sha256": "37f43092e6fb498eb62017eccab4693df960aa7e4bd9559f409cff6033fc840e"
+      "sha256": "67d9e672ee6169e4280dd668cc64019592b3b960ac65451fc105f9aa8a5661db"
     }
   ]
 }

@@ -232,6 +232,15 @@ function getNumberOfItemsInRuns(runs) {
         return total + count;
     }, 0);
 }
+function isGoogleHostname(raw) {
+    try {
+        const hostname = new URL(raw).hostname.toLowerCase();
+        return hostname === 'google.com' || hostname.endsWith('.google.com');
+    }
+    catch {
+        return false;
+    }
+}
 function generateNodesGraph(workflow, nodeTypes, options) {
     const { runData } = options ?? {};
     const nodeGraph = {
@@ -357,7 +366,7 @@ function generateNodesGraph(workflow, nodeTypes, options) {
             if (toolUrl.startsWith('{') && toolUrl.endsWith('}')) {
                 nodeItem.toolSettings.url_type = 'any';
             }
-            else if (toolUrl.includes('google.com')) {
+            else if (isGoogleHostname(toolUrl)) {
                 nodeItem.toolSettings.url_type = 'google';
             }
             if (node.parameters?.sendBody) {

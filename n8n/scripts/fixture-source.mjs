@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
-import { lstat, mkdir, mkdtemp, readFile, readdir, realpath, rename, rm, writeFile } from 'node:fs/promises';
+import { constants } from 'node:fs';
+import { lstat, mkdir, mkdtemp, open, readdir, realpath, rename, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -13,6 +14,9 @@ const sourceSelections = [
 	'package.json', 'pnpm-workspace.yaml', 'pnpm-lock.yaml', 'tsconfig.json',
 	'LICENSE.md', 'LICENSE_EE.md',
 ];
+const pinnedSourceArchives = new Map([
+	['955be3ef2131afb9ecba5482024d045e710e4f20', 'https://codeload.github.com/n8n-io/n8n/tar.gz/955be3ef2131afb9ecba5482024d045e710e4f20'],
+]);
 
 export const sha256Bytes = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
@@ -25,6 +29,34 @@ function expectedHash(value) {
 function checkedCommit(value) {
 	if (!/^[a-f0-9]{40}$/.test(value)) throw new Error('A full lowercase upstream commit is required');
 	return value;
+}
+
+async function readBoundedRegularFile(filePath, maximumBytes, description) {
+	const noFollow = process.platform === 'win32' ? 0 : (constants.O_NOFOLLOW ?? 0);
+	const handle = await open(filePath, constants.O_RDONLY | noFollow);
+	try {
+		const info = await handle.stat();
+		if (!info.isFile() || info.size > maximumBytes) throw new Error(`${description} must be a bounded regular archive file`);
+		if (process.platform === 'win32') {
+			const pathInfo = await lstat(filePath);
+			if (!pathInfo.isFile() || pathInfo.isSymbolicLink() || pathInfo.dev !== info.dev || pathInfo.ino !== info.ino) {
+				throw new Error(`${description} changed while it was being opened`);
+			}
+		}
+		const chunks = [];
+		let size = 0;
+		for (;;) {
+			const buffer = Buffer.alloc(Math.min(64 * 1024, maximumBytes - size + 1));
+			const { bytesRead } = await handle.read(buffer, 0, buffer.length, null);
+			if (!bytesRead) break;
+			size += bytesRead;
+			if (size > maximumBytes) throw new Error(`${description} exceeds the size limit`);
+			chunks.push(buffer.subarray(0, bytesRead));
+		}
+		return Buffer.concat(chunks, size);
+	} finally {
+		await handle.close();
+	}
 }
 
 function contained(root, candidate) {
@@ -60,11 +92,12 @@ export async function loadVerifiedArchive({ archivePath, commit, sha256 }) {
 	const digest = expectedHash(sha256);
 	let bytes;
 	if (archivePath) {
-		const info = await lstat(archivePath);
-		if (!info.isFile() || info.size > maximumArchiveBytes) throw new Error('Source cache must be a bounded regular archive file');
-		bytes = await readFile(archivePath);
+		bytes = await readBoundedRegularFile(archivePath, maximumArchiveBytes, 'Source cache');
 	} else {
-		const response = await fetch(`https://codeload.github.com/n8n-io/n8n/tar.gz/${commit}`, {
+		const pinnedCommit = checkedCommit(commit);
+		const sourceUrl = pinnedSourceArchives.get(pinnedCommit);
+		if (!sourceUrl) throw new Error('The requested upstream commit is not in the pinned source allowlist');
+		const response = await fetch(sourceUrl, {
 			redirect: 'error', signal: AbortSignal.timeout(120000),
 		});
 		if (!response.ok || !response.body) throw new Error(`Pinned source download failed: HTTP ${response.status}`);
@@ -107,17 +140,32 @@ export async function loadVerifiedArchive({ archivePath, commit, sha256 }) {
 
 export async function extractSourceArchive({ archivePath, workDir, commit, sha256 }) {
 	const archiveRoot = `n8n-${checkedCommit(commit)}`;
-	if (sha256Bytes(await readFile(archivePath)) !== expectedHash(sha256)) throw new Error('Source archive SHA-256 mismatch');
-	return extractTree(archivePath, workDir, archiveRoot, sourceSelections.map((entry) => `${archiveRoot}/${entry}`));
+	const bytes = await readBoundedRegularFile(archivePath, maximumArchiveBytes, 'Source archive');
+	if (sha256Bytes(bytes) !== expectedHash(sha256)) throw new Error('Source archive SHA-256 mismatch');
+	const temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'agoragentic-n8n-extract-'));
+	const ownedArchive = path.join(temporaryRoot, 'source.tar.gz');
+	try {
+		await writeFile(ownedArchive, bytes, { flag: 'wx', mode: 0o600 });
+		return await extractTree(ownedArchive, workDir, archiveRoot, sourceSelections.map((entry) => `${archiveRoot}/${entry}`));
+	} finally {
+		contained(path.resolve(os.tmpdir()), path.resolve(temporaryRoot));
+		await rm(temporaryRoot, { recursive: true, force: true });
+	}
 }
 
 export async function extractPackageArchive({ archivePath, workDir, integrity }) {
-	const info = await lstat(archivePath);
-	if (!info.isFile() || info.size > maximumArchiveBytes) throw new Error('Package archive must be a bounded regular file');
-	const bytes = await readFile(archivePath);
+	const bytes = await readBoundedRegularFile(archivePath, maximumArchiveBytes, 'Package archive');
 	const actual = `sha512-${createHash('sha512').update(bytes).digest('base64')}`;
 	if (actual !== integrity) throw new Error('Package archive SHA-512 mismatch');
-	return extractTree(archivePath, workDir, 'package', ['package']);
+	const temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'agoragentic-n8n-package-extract-'));
+	const ownedArchive = path.join(temporaryRoot, 'package.tgz');
+	try {
+		await writeFile(ownedArchive, bytes, { flag: 'wx', mode: 0o600 });
+		return await extractTree(ownedArchive, workDir, 'package', ['package']);
+	} finally {
+		contained(path.resolve(os.tmpdir()), path.resolve(temporaryRoot));
+		await rm(temporaryRoot, { recursive: true, force: true });
+	}
 }
 
 async function extractTree(archivePath, workDir, archiveRoot, selected) {
@@ -142,8 +190,6 @@ async function extractTree(archivePath, workDir, archiveRoot, selected) {
 		if (/^[lh]/.test(line)) throw new Error('Links are not allowed in selected source inputs');
 		if (!/^[-d]/.test(line)) throw new Error('Unsupported archive entry type in selected source inputs');
 	}
-	const sourceRoot = path.join(realDestination, archiveRoot);
-	contained(realDestination, sourceRoot);
 	const staging = await mkdtemp(path.join(realDestination, '.source-extract-'));
 	contained(realDestination, staging);
 	try {
@@ -151,11 +197,12 @@ async function extractTree(archivePath, workDir, archiveRoot, selected) {
 		const stagedSource = path.join(staging, archiveRoot);
 		contained(staging, stagedSource);
 		await inventoryFiles(stagedSource);
-		// Publish the complete verified tree only after extraction succeeds.
-		contained(realDestination, stagedSource);
-		contained(realDestination, sourceRoot);
-		await rename(stagedSource, sourceRoot);
-		return sourceRoot;
+		// Publish the complete owned staging container atomically. The published
+		// child name is derived only from mkdtemp's private name; no checked
+		// archive child is passed as the rename source.
+		const publishedContainer = path.join(realDestination, `.authenticated-${path.basename(staging)}`);
+		await rename(staging, publishedContainer);
+		return path.join(publishedContainer, archiveRoot);
 	} finally {
 		contained(realDestination, staging);
 		await rm(staging, { recursive: true, force: true });
@@ -174,7 +221,7 @@ export async function inventoryFiles(directory) {
 		if (info.isDirectory()) {
 			for (const name of (await readdir(current)).sort()) await walk(path.join(current, name));
 		} else if (info.isFile()) {
-			const bytes = await readFile(current);
+			const bytes = await readBoundedRegularFile(current, maximumArchiveBytes, 'Source/artifact file');
 			files.push({ path: path.relative(root, current).split(path.sep).join('/'), bytes: bytes.length, sha256: sha256Bytes(bytes) });
 		} else {
 			throw new Error(`Unsupported source/artifact entry: ${current}`);

@@ -48,6 +48,19 @@ The Zod 4 package retains its published legacy and `v3` bytes for package
 compatibility. The maintained consumer imports the Zod 4 root; it does not
 modify or delete those compatibility subpaths.
 
+The maintained source also fixes findings exposed by scanning the complete
+fixture: uniform random-number selection through equal-size rejection buckets,
+parsed Google hostname boundaries, prototype-safe connection keys, and
+fixed-point text tag removal in both host and isolated-runtime sources. The
+tag-removal helpers are not general HTML sanitizers. Exact replacements and
+their rationale are recorded under `security-patches/` and bound into the
+build-input hash; compiled output is never patched directly.
+
+Archive reads use bounded file descriptors and verified private copies before
+extraction. Tests replace external archive paths after capture to verify that
+source and package extraction continue using authenticated bytes. Network
+source selection is restricted to the pinned literal download URL.
+
 ## Reproduction and boundaries
 
 The dedicated fixture toolchain is locked under `build/`, uses the pinned
@@ -81,8 +94,11 @@ node n8n/scripts/check-zod4-consumer.mjs
 Local `--write` regeneration and byte-for-byte `--check` reproduction passed
 for 300 verified source files and 1,193 generated artifacts. The staged strict
 installed-consumer proof passed NodeNext CJS/ESM declaration checks with
-`skipLibCheck:false`; the full local suite reports 51/51 tests with zero skips.
-Lint, build, production-only audit, development audit, dedicated closure audit,
-staged consumer audit, and pack dry-run also passed. Hosted CI and approval
-must also pass on the exact reviewed head. These checks made no runtime calls and do not qualify an installed host,
+`skipLibCheck:false`. The earlier 51-test candidate also passed Linux validation,
+but its CodeQL aggregate failed; that result prompted the source security
+repairs above. The expanded local suite reports 63 passed, zero failed, and one
+Windows `EPERM` skip for creating an actual symlink (64 total). Archive-link
+rejection and replacement tests still execute on Windows. Hosted CI and approval
+must also pass on the exact reviewed head; prior-head results do not qualify a
+new candidate. These checks made no provider calls and do not qualify an installed host,
 isolated-vm execution, Creator Portal, n8n Cloud, payments, or production.

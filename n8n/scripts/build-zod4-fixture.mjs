@@ -12,6 +12,7 @@ const { validateAuditReport } = createRequire(import.meta.url)('./audit-dev-depe
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const fixtureRoot = path.join(root, 'fixtures/zod4-compat');
+const securityPatchFiles = ['string-extensions.json', 'workflow-security.json'].map((name) => `fixtures/zod4-compat/security-patches/${name}`);
 const buildRoot = path.join(fixtureRoot, 'build');
 const manifestPath = path.join(fixtureRoot, 'manifest.json');
 const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
@@ -89,6 +90,17 @@ async function patchSource(sourceRoot, originalRoot, upstream) {
 	await writeFile(path.join(sourceRoot, logPath), `${scopes}\n`);
 	changes.push({ path: logPath, before: null, after: hash(`${scopes}\n`), reason: 'Verbatim tuple and type from pinned logging.config.ts; no runtime config or Zod 3 dependency' });
 	await patch('packages/workflow/src/interfaces.ts', [["import type { LogScope } from '@n8n/config';", "import type { LogScope } from './log-scope';"]], 'Use the exact source-bound logging type');
+	for (const descriptor of securityPatchFiles) {
+		const entries = JSON.parse(await readFile(path.join(root, descriptor), 'utf8'));
+		if (!Array.isArray(entries) || !entries.length) throw new Error(`Invalid security patch descriptor: ${descriptor}`);
+		for (const entry of entries) {
+			if (!entry || !['path', 'before', 'after', 'reason'].every((key) => typeof entry[key] === 'string' && entry[key].length) || !/^packages\/(?:workflow|@n8n\/expression-runtime)\/src\/.*\.ts$/.test(entry.path)) throw new Error(`Invalid security patch entry: ${descriptor}`);
+			const file = path.resolve(sourceRoot, entry.path); inside(sourceRoot, file);
+			const current = await readFile(file, 'utf8');
+			if (current.split(entry.before).length !== 2) throw new Error(`Security patch must match exactly once: ${entry.path}`);
+			await patch(entry.path, [[entry.before, entry.after]], entry.reason);
+		}
+	}
 	return changes;
 }
 
@@ -114,7 +126,7 @@ async function build() {
 		const diff = spawnSync('git', ['-c', 'core.autocrlf=false', '-c', 'core.abbrev=7', '-c', 'core.quotePath=true', 'diff', '--no-color', '--no-ext-diff', '--no-textconv', '--src-prefix=a/', '--dst-prefix=b/', '--no-index', '--', 'original', 'source'], { cwd: work, encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 });
 		if (diff.error || diff.status !== 1) throw new Error(`Source patch generation failed: ${diff.stderr}`);
 		const sourcePatch = diff.stdout;
-		const inputFiles = ['scripts/build-zod4-fixture.mjs', 'scripts/fixture-source.mjs', 'scripts/fixture-compiler.mjs', 'scripts/check-zod4-consumer.mjs', 'scripts/audit-dev-dependencies.cjs', 'fixtures/zod4-compat/build/package.json', 'fixtures/zod4-compat/build/package-lock.json', 'fixtures/zod4-compat/build/consumer-check/public-exports.mts', 'fixtures/zod4-compat/build/consumer-check/public-exports.cts'];
+		const inputFiles = ['scripts/build-zod4-fixture.mjs', 'scripts/fixture-source.mjs', 'scripts/fixture-compiler.mjs', 'scripts/check-zod4-consumer.mjs', 'scripts/audit-dev-dependencies.cjs', 'fixtures/zod4-compat/build/package.json', 'fixtures/zod4-compat/build/package-lock.json', 'fixtures/zod4-compat/build/consumer-check/public-exports.mts', 'fixtures/zod4-compat/build/consumer-check/public-exports.cts', ...securityPatchFiles];
 		const inputs = { archive: manifest.source_archive_sha256, source_inventory: hash(json(sourceInventory)), source_patch: hash(sourcePatch), files: [] };
 		for (const relative of inputFiles) inputs.files.push({ path: relative, sha256: hash(await readFile(path.join(root, relative))) });
 		const inputHash = hash(json(inputs));

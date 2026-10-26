@@ -87,16 +87,118 @@
       "before": "sha256:25829faeafc2807ba0ce1b9e372e5272fee4995cb6fda713e854a5b5c7d39326",
       "after": "sha256:afd7c98326aafb3cb9300be4c7a6eb417d1e895c1ba9d4c46ab1539988ee925b",
       "reason": "Use the exact source-bound logging type"
+    },
+    {
+      "path": "packages/workflow/src/extensions/string-extensions.ts",
+      "before": "sha256:be9ef29ac2ecc7c1a5f97aee135e42c00d28c880fce88034f1cc0eddd0b7f6de",
+      "after": "sha256:2c38be09aa35a798d2b942a5386d686a35b7b27fad8e2eb4f373c7480e9539cd",
+      "reason": "Add fixed-point tag removal so adversarial repeated-leading-angle markup cannot reform into a tag after one pass."
+    },
+    {
+      "path": "packages/workflow/src/extensions/string-extensions.ts",
+      "before": "sha256:2c38be09aa35a798d2b942a5386d686a35b7b27fad8e2eb4f373c7480e9539cd",
+      "after": "sha256:332506b2dcdc07c59b939b6528d319dd0805ea9fe896eab170ada99b39b45dd3",
+      "reason": "Apply the fixed-point text tag remover before Markdown cleanup; do not claim context-safe HTML sanitization."
+    },
+    {
+      "path": "packages/workflow/src/extensions/string-extensions.ts",
+      "before": "sha256:332506b2dcdc07c59b939b6528d319dd0805ea9fe896eab170ada99b39b45dd3",
+      "after": "sha256:ff41bba1d3351542a2dcfe92832e1929298817bdabd1c78303a0a1d6d94a14ee",
+      "reason": "Run the same fixed-point text tag remover after Markdown substitutions so formatting can never reform inert markup into an executable-looking tag."
+    },
+    {
+      "path": "packages/workflow/src/extensions/string-extensions.ts",
+      "before": "sha256:ff41bba1d3351542a2dcfe92832e1929298817bdabd1c78303a0a1d6d94a14ee",
+      "after": "sha256:3a3f1788995b27175a8c6b9a29235c3bf7bb9b3801188580956b77426820a784",
+      "reason": "Share the fixed-point tag removal with removeMarkdown while preserving ordinary less-than text."
+    },
+    {
+      "path": "packages/@n8n/expression-runtime/src/extensions/string-extensions.ts",
+      "before": "sha256:b95806d689c76f712e0e07476aa306ef180652b1571104c0623d0a663f2ad740",
+      "after": "sha256:df1b210fab01025de44e80d9072158e6cc775b61efddb3ffeefc02292f9a8481",
+      "reason": "Keep isolated runtime tag removal fixed-point and aligned with the host extension."
+    },
+    {
+      "path": "packages/@n8n/expression-runtime/src/extensions/string-extensions.ts",
+      "before": "sha256:df1b210fab01025de44e80d9072158e6cc775b61efddb3ffeefc02292f9a8481",
+      "after": "sha256:ddbd9864c293b2fa2d9b033565eaaf9ffef29b0b017b6b5b2cb899b7d02a654d",
+      "reason": "Use the fixed-point text tag remover for Markdown cleanup without treating it as a general HTML sanitizer."
+    },
+    {
+      "path": "packages/@n8n/expression-runtime/src/extensions/string-extensions.ts",
+      "before": "sha256:ddbd9864c293b2fa2d9b033565eaaf9ffef29b0b017b6b5b2cb899b7d02a654d",
+      "after": "sha256:35e7f6d5d0e0f7bdb7d9ae4808cdb9106335c7c5909ea264a995523e61f18ea4",
+      "reason": "Keep the isolated expression runtime from reforming inert Markdown into executable-looking markup after cleanup."
+    },
+    {
+      "path": "packages/@n8n/expression-runtime/src/extensions/string-extensions.ts",
+      "before": "sha256:35e7f6d5d0e0f7bdb7d9ae4808cdb9106335c7c5909ea264a995523e61f18ea4",
+      "after": "sha256:dcd1c5ebe801e896f128970755879ee26beb0ab568d65b8f6c195b2f64937d23",
+      "reason": "Share fixed-point tag removal in the isolated expression runtime."
+    },
+    {
+      "path": "packages/workflow/src/utils.ts",
+      "before": "sha256:c644e7e74fadb8f90fa157772827c185883490c804ddb46a226b70ccff061651",
+      "after": "sha256:4a505e5fd7ea52e15c5f035501e0f4cbd509ba57e0bccdaa71af289961af6d49",
+      "reason": "Use equal-size rejection buckets so cryptographically secure random values are uniform over the requested safe-integer range without modulo bias."
+    },
+    {
+      "path": "packages/workflow/src/utils.ts",
+      "before": "sha256:4a505e5fd7ea52e15c5f035501e0f4cbd509ba57e0bccdaa71af289961af6d49",
+      "after": "sha256:4f0625286d4a7812ee50f4271a68bfdc9a44b1cf8dc646e9a5eab2842d069035",
+      "reason": "Preserve Web Crypto's 16,384 Uint32 quota and compatible QuotaExceededError boundary before any allocation or RNG draw, while using unbiased alphabet indexes."
+    },
+    {
+      "path": "packages/workflow/src/telemetry-helpers.ts",
+      "before": "sha256:92b457bf0a724a6f990c32b75c3a33b21f0b79dbb0a1e42f6fd7346bfcc16b6d",
+      "after": "sha256:bdaf3ac9c1712e6263d741a0a6658fd1c4f3eb34dc96ff30aaafbf4705012850",
+      "reason": "Classify Google tool URLs by parsed hostname, preventing substring confusion such as evilgoogle.com or google.com.evil.test."
+    },
+    {
+      "path": "packages/workflow/src/telemetry-helpers.ts",
+      "before": "sha256:bdaf3ac9c1712e6263d741a0a6658fd1c4f3eb34dc96ff30aaafbf4705012850",
+      "after": "sha256:b9eec4faadf6aa46d902d8841ac5eeef06ba1d28e3f6a4ad000e3704d02f35de",
+      "reason": "Use the boundary-aware URL hostname check for telemetry classification."
+    },
+    {
+      "path": "packages/workflow/src/common/map-connections-by-destination.ts",
+      "before": "sha256:79b092618933dcfc9b263bd5841d5b55c60b1424c2379f7a105eb4a156bbbb87",
+      "after": "sha256:5458acc041f1e84d432062e405e1f076bd30c22215278fba2b559314905f56ff",
+      "reason": "Define connection keys as own enumerable properties so a malicious __proto__ node or type cannot mutate an object prototype."
+    },
+    {
+      "path": "packages/workflow/src/workflow.ts",
+      "before": "sha256:a7d6539e3bbb991cd1133731a967f880dd0d4d3ac2f434fcf8e523fc1612a5e4",
+      "after": "sha256:95126b3ac484774ea913cef682c61bc0f93ed6b410dd8e59caedef6fcfbcf249",
+      "reason": "Apply the same prototype-safe connection-key definition to the Workflow static destination mapper."
+    },
+    {
+      "path": "packages/workflow/src/workflow.ts",
+      "before": "sha256:95126b3ac484774ea913cef682c61bc0f93ed6b410dd8e59caedef6fcfbcf249",
+      "after": "sha256:ddbe3cadd8b0618caedd98e1ead8c13636dc1edda1179d643e0d97422e55bb49",
+      "reason": "Define nested workflow connection types as own properties to prevent prototype mutation through a malicious type key."
+    },
+    {
+      "path": "packages/workflow/src/common/get-connected-nodes.ts",
+      "before": "sha256:61b8b9d0c55047f2a8e56579abf83952b7fadad057e614e68d1006560d468ae6",
+      "after": "sha256:1ab989bbe3a9be608d8d560a63b096e5b5e72c550badf7afbaed687eab71127f",
+      "reason": "Remove the no-effect loop update while preserving reverse traversal order."
+    },
+    {
+      "path": "packages/workflow/src/node-reference-parser-utils.ts",
+      "before": "sha256:2bf632745062b5654e467709ade66c0c38c0eeddd195b4fccc9eeaf76023e5c5",
+      "after": "sha256:9151f498c7efe412aef5fa83b64a0c222f18c4ff2bf255a2c6ed007681b15fd7",
+      "reason": "Remove the duplicate escaped backslash and pipe entries while preserving the dot-notation ban set."
     }
   ],
   "residual_boundary": "Parser collection limits are bounded only where this fixture asserts them; unbounded or sparse consumer collections still require host-level resource budgets.",
-  "artifact_inventory_sha256": "sha256:7f0cc3e83242fc94eb8676b22b133c114b0215aa43cf205f308b94f46ea5e7b9",
-  "build_inputs_sha256": "sha256:074174fc9e8457a89013db89568a584d6700a37e957ab825ccb137214c9cf241",
+  "artifact_inventory_sha256": "sha256:ea52f1efb0c96db5890dbdca5ca38c6cf3fe8b82424a1fd7010ab61bd6d0ef6a",
+  "build_inputs_sha256": "sha256:f6f3bc171ff41c798f58150db2574c9f07600c3e84921da3603d37abb5de0995",
   "evidence": {
     "source-inventory.json": "sha256:dd441c0efac1191c6e180e359d39f3fa6b52df49f46e8e179ba122550eabfb76",
-    "source-changes.patch": "sha256:37b10edc222adfe175333d2cce5f2e53585fcdf4344615f54e99959be8ce7307",
-    "build-inputs.json": "sha256:074174fc9e8457a89013db89568a584d6700a37e957ab825ccb137214c9cf241",
-    "bundle-inputs.json": "sha256:a6e2c35a898d8952b4d5d50d859cea99389f7dde41febc216046b62035916c0b",
-    "artifact-inventory.json": "sha256:7f0cc3e83242fc94eb8676b22b133c114b0215aa43cf205f308b94f46ea5e7b9"
+    "source-changes.patch": "sha256:20696cdbfedc4aa4755ef6c2b50bda974f64d554d01868a8f3230ca545ece0e2",
+    "build-inputs.json": "sha256:f6f3bc171ff41c798f58150db2574c9f07600c3e84921da3603d37abb5de0995",
+    "bundle-inputs.json": "sha256:b769fb92081013dee566fefb860c90fb8d37c0c942a23e45b1a3bc34af4d75b7",
+    "artifact-inventory.json": "sha256:ea52f1efb0c96db5890dbdca5ca38c6cf3fe8b82424a1fd7010ab61bd6d0ef6a"
   }
 }

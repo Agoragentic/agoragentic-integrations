@@ -308,7 +308,18 @@ export function randomInt(min, max) {
         max = min;
         min = 0;
     }
-    return min + (crypto.getRandomValues(new Uint32Array(1))[0] % (max - min));
+    const range = max - min;
+    const maxUint32 = 0x1_0000_0000;
+    if (!Number.isSafeInteger(min) || !Number.isSafeInteger(max) || !Number.isSafeInteger(range) || range <= 0 || range > maxUint32) {
+        throw new RangeError('randomInt bounds must be safe integers with a positive range no larger than 2^32');
+    }
+    const bucketSize = Math.floor(maxUint32 / range);
+    const limit = bucketSize * range;
+    let random;
+    do {
+        random = crypto.getRandomValues(new Uint32Array(1))[0];
+    } while (random >= limit);
+    return min + Math.floor(random / bucketSize);
 }
 /**
  * Generates a random alphanumeric string of a specified length, or within a range of lengths.
@@ -319,9 +330,13 @@ export function randomInt(min, max) {
  */
 export function randomString(minLength, maxLength) {
     const length = maxLength === undefined ? minLength : randomInt(minLength, maxLength + 1);
-    return [...crypto.getRandomValues(new Uint32Array(length))]
-        .map((byte) => ALPHABET[byte % ALPHABET.length])
-        .join('');
+    if (!Number.isInteger(length) || length < 0)
+        throw new RangeError('randomString length must be a non-negative integer');
+    if (length > 16_384) {
+        const error = typeof DOMException === 'function' ? new DOMException('The requested length exceeds the Web Crypto quota', 'QuotaExceededError') : Object.assign(new RangeError('The requested length exceeds the Web Crypto quota'), { name: 'QuotaExceededError' });
+        throw error;
+    }
+    return Array.from({ length }, () => ALPHABET[randomInt(ALPHABET.length)]).join('');
 }
 /**
  * Checks if a value is an object with a specific key and provides a type guard for the key.
