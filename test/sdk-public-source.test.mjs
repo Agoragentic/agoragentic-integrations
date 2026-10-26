@@ -58,11 +58,47 @@ test('public package mirror excludes the obsolete root Python package and retire
 });
 
 test('PyPI trusted publishing builds from the public sdk/python source', () => {
-  const workflow = read('.github/workflows/publish-pypi.yml');
-  assert.match(workflow, /working-directory: sdk\/python/);
-  assert.match(workflow, /py-v\$\{package_version\}/);
-  assert.match(workflow, /packages-dir: sdk\/python\/dist\//);
-  assert.doesNotMatch(workflow, /password:|api-token:|PYPI_API_TOKEN/);
+  const assertHandoff = (workflow) => {
+    const text = workflow.replaceAll('\r\n', '\n');
+    const buildStart = text.indexOf('\n  build:');
+    const publishStart = text.indexOf('\n  publish:');
+    assert.ok(buildStart >= 0 && publishStart > buildStart, 'build and publish must be separate jobs');
+    const buildJob = text.slice(buildStart, publishStart);
+    const publishJob = text.slice(publishStart);
+
+    assert.match(buildJob, /working-directory: sdk\/python/);
+    const permissions = (job) => job.match(/^    permissions:\n((?:      [^\n]*\n)+)/m)?.[1].trim().split('\n').map((line) => line.trim()).sort();
+    assert.deepEqual(permissions(buildJob), ['contents: read'], 'build permissions must remain read-only');
+    assert.doesNotMatch(buildJob, /id-token:\s*write/);
+    assert.match(buildJob, /python -m pip install --require-hashes --only-binary=:all: -r requirements-build\.txt/);
+    assert.match(buildJob, /python -m build --no-isolation/);
+    assert.match(buildJob, /env:\n\s+RELEASE_TAG: \$\{\{ github\.event\.release\.tag_name \}\}/);
+    assert.match(buildJob, /test "\$\{RELEASE_TAG\}" = "py-v\$\{package_version\}"/);
+    assert.match(buildJob, /path: sdk\/python\/dist\//);
+    assert.match(buildJob, /actions\/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a/);
+
+    const uploadName = buildJob.match(/name: (agoragentic-python-\$\{\{ github\.event\.release\.tag_name \}\})/);
+    const downloadName = publishJob.match(/name: (agoragentic-python-\$\{\{ github\.event\.release\.tag_name \}\})/);
+    assert.ok(uploadName && downloadName, 'build and publish must name the artifact');
+    assert.equal(uploadName[1], downloadName[1], 'publish must download the exact build artifact');
+    assert.match(publishJob, /needs: build/);
+    assert.deepEqual(permissions(publishJob), ['contents: read', 'id-token: write']);
+    assert.match(publishJob, /actions\/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333/);
+    assert.match(publishJob, /path: dist\//);
+    assert.match(publishJob, /pypa\/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33/);
+    assert.match(publishJob, /packages-dir: dist\//);
+    assert.equal((publishJob.match(/uses:/g) ?? []).length, 2, 'publisher may only download and invoke PyPI publisher');
+    assert.doesNotMatch(publishJob, /actions\/checkout@|\brun:\s*|python -m build/);
+    assert.doesNotMatch(text, /password:|api-token:|PYPI_API_TOKEN/);
+  };
+
+  const workflow = read('.github/workflows/publish-pypi.yml').replaceAll('\r\n', '\n');
+  assertHandoff(workflow);
+  assert.throws(() => assertHandoff(workflow.replace('name: agoragentic-python-${{ github.event.release.tag_name }}', 'name: wrong-artifact')), /artifact/);
+  assert.throws(() => assertHandoff(workflow.replace('contents: read', 'contents: read\n      id-token: write')), /build permissions/);
+  assert.throws(() => assertHandoff(workflow.replace('--require-hashes', '--no-deps')), /--require-hashes/);
+  assert.throws(() => assertHandoff(workflow.replace('      - name: Publish to PyPI with Trusted Publishing', '      - uses: actions\/checkout@deadbeef\n\n      - name: Publish to PyPI with Trusted Publishing')), /publisher may only/);
+  assert.throws(() => assertHandoff(workflow.replace('      - name: Publish to PyPI with Trusted Publishing', '      - name: Unexpected publisher run\n        run: echo bad\n\n      - name: Publish to PyPI with Trusted Publishing')), /run:/);
 });
 
 test('active trusted publishers bind release tags through environment variables', () => {
