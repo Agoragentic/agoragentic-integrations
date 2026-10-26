@@ -1,0 +1,102 @@
+{
+  "schema": "agoragentic.n8n.zod4-compat-fixture.v1",
+  "source_repository": "https://github.com/n8n-io/n8n.git",
+  "source_tag": "n8n@2.28.7",
+  "source_commit": "955be3ef2131afb9ecba5482024d045e710e4f20",
+  "source_archive_sha256": "sha256:0ddad00a619a7df13ad16fedc1b67d8bb66239f0aa68a9ac71a5f90ce89d1b4d",
+  "source_binding": "official codeload archive and raw GitHub commit 955be3ef2131afb9ecba5482024d045e710e4f20; registry tarball integrities are recorded per package",
+  "compiler": {
+    "typescript": "5.9.2",
+    "skipLibCheck": false,
+    "declaration_test_skipLibCheck": false,
+    "newline": "LF"
+  },
+  "build_toolchain": {
+    "manifest": "build/package.json",
+    "lockfile": "build/package-lock.json",
+    "lockfile_sha256": "sha256:2a6c7b4de7379626ebe2217f4fd118731205f5f8f0b30d6cde78c56228813720",
+    "node_engine": ">=24.0.0",
+    "audit": "Zero vulnerabilities at all severities"
+  },
+  "packages": {
+    "n8n-workflow": {
+      "version": "2.28.4",
+      "integrity": "sha512-wNWCEvk5eBxnp5p2y/6FpMsA5t6XZVBm8HIV/u1XiUX/p91UtdBvQW0f8tTr4B79G1aeKl/l8cSroit/WFuK6A==",
+      "source_files": {
+        "packages/workflow/src/schemas.ts": "sha256:e6e438094a8b1ffd575350e27340304bc7f6069ce54841a240bb8bd09c895113",
+        "packages/workflow/src/message-event-bus.ts": "sha256:3562799c40da8eb4742d425fb29e38989fed8e56184d0877a80b1570d950bc6d"
+      }
+    },
+    "@n8n/expression-runtime": {
+      "version": "0.19.1",
+      "integrity": "sha512-tv86UUD+uBqORBOH70BQaRRXYfatPlygvhk80a4dO2SEubXzIFQxshMb1oA7loEj9ZMeYQesUotvgN57JbPQgA==",
+      "source_files": {
+        "packages/@n8n/expression-runtime/src/bridge/bridge-messages.ts": "sha256:e3be2f338df15972fff24f5e4b46579c716d60318e5b37ceb6f3ff08c281737a"
+      }
+    },
+    "zod": {
+      "version": "4.6.7",
+      "integrity": "sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg=="
+    }
+  },
+  "patches": [
+    {
+      "path": "packages/workflow/src/schemas.ts",
+      "before": "sha256:e6e438094a8b1ffd575350e27340304bc7f6069ce54841a240bb8bd09c895113",
+      "after": "sha256:969072b43da5c1eeb43986c9c38a3ddc6c6b2fb962c23a46a5c5c4cb3d50ed09",
+      "reason": "Explicit Zod 4 record keys preserve value validation"
+    },
+    {
+      "path": "packages/workflow/src/message-event-bus.ts",
+      "before": "sha256:3562799c40da8eb4742d425fb29e38989fed8e56184d0877a80b1570d950bc6d",
+      "after": "sha256:8726f542e0324426ac56c053e6f40ac379347fa553250381f309a50e3913c55a",
+      "reason": "Preserve optional credential record"
+    },
+    {
+      "path": "packages/@n8n/expression-runtime/src/bridge/bridge-messages.ts",
+      "before": "sha256:e3be2f338df15972fff24f5e4b46579c716d60318e5b37ceb6f3ff08c281737a",
+      "after": "sha256:16d2197e22cec7cfc51b4929afcdba6c35933b6b900f710be6227de5544d1770",
+      "reason": "Preserve omitted fromAi default"
+    },
+    {
+      "path": "packages/workflow/src/from-ai-parse-utils.ts",
+      "before": "sha256:a6a4ccf81f645203755635c72b4ddba4073eea42d35d0b0db3a636769afe18ac",
+      "after": "sha256:63886002dce0339cfc4fd3065aeda8964313494624ba0b566c172858710baab6",
+      "reason": "Remove obsolete Zod generics; preserve JSON metadata and validation of defaults"
+    },
+    {
+      "path": "packages/workflow/src/workflow-structure-validation.ts",
+      "before": "sha256:8413a3d05a29e007636015dadc92ed1f210399600c8c87a1ec2f87f22e08b09c",
+      "after": "sha256:ff98df77a39bb08db93087343d9b70b57258ce1c2a8d5d399c887e50e5762e39",
+      "reason": "Handle Zod 4 property keys including symbols"
+    },
+    {
+      "path": "packages/workflow/src/index.ts",
+      "before": "sha256:bd08ef74343ef3c7efae8ac421fe41650b352b9b95146cfd980978e2b1db3fd9",
+      "after": "sha256:8e674ab1e83c252f56fc0402400ac8741a57e53f89d03b3b7aa41dd6cc00a55b",
+      "reason": "Resolve the upstream HTTP augmentation type explicitly"
+    },
+    {
+      "path": "packages/workflow/src/log-scope.ts",
+      "before": null,
+      "after": "sha256:fcde88447e3f0ac56c4fb7ec53f2a12b86e3b67512283d348fa6fab4a7a5a66d",
+      "reason": "Verbatim tuple and type from pinned logging.config.ts; no runtime config or Zod 3 dependency"
+    },
+    {
+      "path": "packages/workflow/src/interfaces.ts",
+      "before": "sha256:25829faeafc2807ba0ce1b9e372e5272fee4995cb6fda713e854a5b5c7d39326",
+      "after": "sha256:afd7c98326aafb3cb9300be4c7a6eb417d1e895c1ba9d4c46ab1539988ee925b",
+      "reason": "Use the exact source-bound logging type"
+    }
+  ],
+  "residual_boundary": "Parser collection limits are bounded only where this fixture asserts them; unbounded or sparse consumer collections still require host-level resource budgets.",
+  "artifact_inventory_sha256": "sha256:7f0cc3e83242fc94eb8676b22b133c114b0215aa43cf205f308b94f46ea5e7b9",
+  "build_inputs_sha256": "sha256:074174fc9e8457a89013db89568a584d6700a37e957ab825ccb137214c9cf241",
+  "evidence": {
+    "source-inventory.json": "sha256:dd441c0efac1191c6e180e359d39f3fa6b52df49f46e8e179ba122550eabfb76",
+    "source-changes.patch": "sha256:37b10edc222adfe175333d2cce5f2e53585fcdf4344615f54e99959be8ce7307",
+    "build-inputs.json": "sha256:074174fc9e8457a89013db89568a584d6700a37e957ab825ccb137214c9cf241",
+    "bundle-inputs.json": "sha256:a6e2c35a898d8952b4d5d50d859cea99389f7dde41febc216046b62035916c0b",
+    "artifact-inventory.json": "sha256:7f0cc3e83242fc94eb8676b22b133c114b0215aa43cf205f308b94f46ea5e7b9"
+  }
+}

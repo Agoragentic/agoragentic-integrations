@@ -52,6 +52,13 @@ The node returns the important payment headers on both legs:
 - `paymentResponse`
 - `paymentReceipt`
 
+Quote and call operations require a finite, non-negative price in the service
+catalog. Missing, malformed, negative or infinite prices fail validation before
+the service call. The optional maximum price follows the same validation; `0`
+retains its documented meaning of disabling that comparison. A valid zero-price
+service is still accepted. The node preserves a 402 challenge for the workflow
+to handle and forwards a payment signature only when one is explicitly supplied.
+
 ## Build
 
 ```bash
@@ -59,7 +66,7 @@ npm ci
 npm run check
 ```
 
-The 0.1.4 source candidate uses the official n8n community lint rules directly, a repository-local TypeScript/asset build, Prettier 3.9.6, and a committed lockfile. It pins the compatible ESLint 9 and TypeScript 5 lines, keeps Node.js 20.19 as the consumer floor, and runs locked development and publishing checks on Node.js 24. The October 24 security recheck reports zero production-only lockfile findings but four high development findings through Zod 3; the complete audit and release gate remain blocked. The all-in-one `@n8n/node-cli` is intentionally absent because every available line tested pulls an AI/template-only LangChain branch with vulnerable `uuid@10`, while n8n correctly forbids dependency overrides. This direct toolchain matches the prior lint rules and build output, but closed Creator Portal acceptance remains unverified; do not claim n8n Cloud eligibility until a provenance-published artifact passes the real scanner and Portal review. npm currently serves the existing 0.1.3 release from tag `n8n-v0.1.3`; this candidate can be published only after it is reviewed, merged, tagged exactly as `n8n-v0.1.4`, and passes the trusted-publishing workflow.
+The 0.1.4 candidate uses the direct n8n community lint rules, repository-local TypeScript/asset build, Prettier 3.9.6, and a committed lockfile. Its development-only maintained Zod 4 consumer fixture builds full pinned workflow and expression-runtime sources into CJS and ESM package roots; see [the fixture reproduction record](fixtures/zod4-compat/README.md). Local regeneration and byte-for-byte reproduction passed, the staged strict installed-consumer proof passed, and the full local suite reports 51/51 tests with zero skips; lint, build, audits, and pack dry-run also passed. CI remains pending. No runtime calls were made; Creator Portal acceptance, n8n Cloud eligibility, installed-host behavior, and production behavior remain unverified and must not be inferred from local checks. Publishing requires review, merge, the exact `n8n-v0.1.4` tag, and the trusted-publishing workflow.
 
 See [Toolchain Audit](TOOLCHAIN_AUDIT.md) for the reproducibility and dependency-advisory record.
 

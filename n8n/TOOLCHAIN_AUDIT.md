@@ -7,7 +7,29 @@ peer ranges, clean install, tests, lint, build, dependency audits, and package
 contents. Historical CLI compatibility and Creator Portal acceptance were not
 revalidated.
 
-## Current security recheck: 2026-10-24
+## Current candidate — 2026-10-26
+
+The maintained Zod 4 consumer fixture has passed local `--write` regeneration
+and a byte-for-byte `--check` reproduction: 300 verified source files and 1,193
+generated artifact files. The staged installed-consumer proof passed strict
+NodeNext CJS/ESM declaration checks with `skipLibCheck:false`. The full local
+suite reports 51/51 tests with zero skips; lint, build, production-only audit,
+development audit, dedicated build-closure audit at all severities, staged
+consumer audit, and `npm pack --dry-run` all passed.
+
+These are repository-local results only. No runtime calls were made; native
+isolated-vm execution, an installed n8n host, Creator Portal acceptance, n8n
+Cloud eligibility, payments, and production behavior remain unqualified.
+Hosted CI and approval must be checked separately on the exact PR head.
+
+The fixture is a development-only source migration, not a published n8n
+runtime or vendor reproduction. It binds the official registry packages and
+the official pinned source archive separately, compiles full workflow and
+expression-runtime sources into CJS and ESM roots, regenerates expression
+bundles, retains Zod legacy/v3 bytes, disables lifecycle scripts during fixture
+installs, and records source/patch/toolchain/bundle/artifact evidence.
+
+## Historical security recheck: 2026-10-24
 
 The September audit results below are historical. A fresh audit of the unchanged
 lockfile now fails the complete development gate: **four high findings**, all
@@ -57,7 +79,58 @@ toolchain is a separate design decision requiring consumer type, schema,
 expression-boundary, lint, build, package and security qualification. This
 investigation does not claim that such a migration is impossible or completed.
 
-## Candidate
+## Candidate implementation detail
+
+The maintained Zod 4 consumer fixture is a development-only source migration,
+not a published n8n runtime or vendor reproduction. It binds the official
+registry tarballs (`n8n-workflow@2.28.4`, `@n8n/expression-runtime@0.19.1`,
+and `zod@4.6.7`) separately from the official n8n source archive at commit
+`955be3ef2131afb9ecba5482024d045e710e4f20` / tag `n8n@2.28.7`, SHA-256
+`0ddad00a619a7df13ad16fedc1b67d8bb66239f0aa68a9ac71a5f90ce89d1b4d`.
+
+The full workflow and expression-runtime sources are compiled into CJS and
+ESM public roots with a dedicated locked compiler closure. The fixture applies
+the reviewed Zod 4 record/credentials/default changes, preserves generated JSON
+metadata, handles Zod 4 `PropertyKey` issue paths, derives the exact `LogScope`
+tuple from pinned `LOG_SCOPES`, and regenerates expression bundles with pinned
+esbuild inputs. The Zod package retains its published legacy and `v3` bytes;
+the fixture consumer selects the Zod 4 root. Lifecycle scripts are disabled
+for fixture installs. Native isolated-vm execution, installed-host behavior,
+Creator Portal acceptance, n8n Cloud eligibility, payments, and production
+behavior are excluded.
+
+The builder's default/check/test modes verify committed bytes without replacing
+them; only explicit `--write` updates generated artifacts. The strict consumer
+checker uses the dedicated TypeScript 5.9.2 compiler with NodeNext resolution,
+`skipLibCheck:false`, and positive/negative public type contracts.
+
+The local results are summarized at the top of this audit. CI remains pending;
+no live-host or production claim is made here.
+
+## Historical candidate — October 26 offline node regression coverage
+
+### October 26 offline node regression coverage
+
+The following records the prior development-fixture state and is retained for
+audit continuity; it is not evidence for the current Zod 4 candidate.
+
+The maintained-fixture investigation added behavioral tests that execute the
+real node source with `fetch` stubbed and the installed workflow error classes.
+Two tests reproduced missing validation for non-finite maximum prices and
+malformed catalog prices. Quote and call operations now require finite,
+non-negative numeric amounts while retaining valid numeric strings, zero-price
+services and the existing zero-cap semantics. Missing catalog prices no longer
+default to zero.
+
+Twelve behavioral tests, lint and the node build passed against the prior
+development fixture. They cover credential rejection before network access,
+both x402 legs without router-credential forwarding, exact payment headers,
+no automatic retry, price/payload rejection, request-body values, HTTP/transport
+errors and paired-item continuation. These are offline fixture results; no
+payment, provider call, published release or installed n8n host was exercised.
+The separate consumer migration, strict declaration checks and complete
+development audit must also pass before qualification. Historical byte-identical
+build comparisons below predate this deliberate runtime validation correction.
 
 - Package: `n8n-nodes-agoragentic@0.1.4`
 - Builder: repository-local `scripts/build.mjs`

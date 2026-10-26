@@ -1,0 +1,1 @@
+{"version":3,"file":"user.error.js","sourceRoot":"","sources":["../../../../../../source/packages/workflow/src/errors/base/user.error.ts"],"names":[],"mappings":";;;AACA,gDAAyC;AAOzC;;;;;;GAMG;AACH,MAAa,SAAU,SAAQ,sBAAS;IAGvC,YAAY,OAAe,EAAE,OAAyB,EAAE;QACvD,IAAI,CAAC,KAAK,GAAG,IAAI,CAAC,KAAK,IAAI,MAAM,CAAC;QAElC,KAAK,CAAC,OAAO,EAAE,IAAI,CAAC,CAAC;IACtB,CAAC;CACD;AARD,8BAQC"}

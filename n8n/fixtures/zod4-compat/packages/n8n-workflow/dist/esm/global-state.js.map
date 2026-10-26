@@ -1,0 +1,1 @@
+{"version":3,"file":"global-state.js","sourceRoot":"","sources":["../../../../source/packages/workflow/src/global-state.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,QAAQ,EAAE,mBAAgB;AAMnC,IAAI,WAAW,GAAgB,EAAE,eAAe,EAAE,kBAAkB,EAAE,CAAC;AAEvE,MAAM,UAAU,cAAc,CAAC,KAAkB;IAChD,WAAW,GAAG,KAAK,CAAC;AACrB,CAAC;AAED,MAAM,UAAU,cAAc;IAC7B,OAAO,QAAQ,CAAC,WAAW,CAAC,CAAC;AAC9B,CAAC"}
