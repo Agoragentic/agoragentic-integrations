@@ -139,13 +139,13 @@
     {
       "path": "packages/workflow/src/utils.ts",
       "before": "sha256:c644e7e74fadb8f90fa157772827c185883490c804ddb46a226b70ccff061651",
-      "after": "sha256:4a505e5fd7ea52e15c5f035501e0f4cbd509ba57e0bccdaa71af289961af6d49",
-      "reason": "Use equal-size rejection buckets so cryptographically secure random values are uniform over the requested safe-integer range without modulo bias."
+      "after": "sha256:c41dbe4560b20d97926adac233e5a347a0ec8ec794b9092bd120ae4916e3bff1",
+      "reason": "Use the conventional smallest-power-of-two bitmask with rejection so cryptographically secure values are uniform without modulo bias and the security query recognizes the bound."
     },
     {
       "path": "packages/workflow/src/utils.ts",
-      "before": "sha256:4a505e5fd7ea52e15c5f035501e0f4cbd509ba57e0bccdaa71af289961af6d49",
-      "after": "sha256:4f0625286d4a7812ee50f4271a68bfdc9a44b1cf8dc646e9a5eab2842d069035",
+      "before": "sha256:c41dbe4560b20d97926adac233e5a347a0ec8ec794b9092bd120ae4916e3bff1",
+      "after": "sha256:0b58d190de79517b68970e675eb02b924120cb6631528876bc965e62b2aac7f4",
       "reason": "Preserve Web Crypto's 16,384 Uint32 quota and compatible QuotaExceededError boundary before any allocation or RNG draw, while using unbiased alphabet indexes."
     },
     {
@@ -192,13 +192,13 @@
     }
   ],
   "residual_boundary": "Parser collection limits are bounded only where this fixture asserts them; unbounded or sparse consumer collections still require host-level resource budgets.",
-  "artifact_inventory_sha256": "sha256:ea52f1efb0c96db5890dbdca5ca38c6cf3fe8b82424a1fd7010ab61bd6d0ef6a",
-  "build_inputs_sha256": "sha256:f6f3bc171ff41c798f58150db2574c9f07600c3e84921da3603d37abb5de0995",
+  "artifact_inventory_sha256": "sha256:25549c2a2c10d921a9a4e35144400611038dd22de589075225d7b25bc4b22bff",
+  "build_inputs_sha256": "sha256:8fd6f4124327d54ec36fa3943c7394f9817e42384e7c9eade8ec0bd460d282f0",
   "evidence": {
     "source-inventory.json": "sha256:dd441c0efac1191c6e180e359d39f3fa6b52df49f46e8e179ba122550eabfb76",
-    "source-changes.patch": "sha256:20696cdbfedc4aa4755ef6c2b50bda974f64d554d01868a8f3230ca545ece0e2",
-    "build-inputs.json": "sha256:f6f3bc171ff41c798f58150db2574c9f07600c3e84921da3603d37abb5de0995",
+    "source-changes.patch": "sha256:17ddfffe46915afd94f26a109dddc69745f64ffda1ac3b06b7f9018d8aa2991a",
+    "build-inputs.json": "sha256:8fd6f4124327d54ec36fa3943c7394f9817e42384e7c9eade8ec0bd460d282f0",
     "bundle-inputs.json": "sha256:b769fb92081013dee566fefb860c90fb8d37c0c942a23e45b1a3bc34af4d75b7",
-    "artifact-inventory.json": "sha256:ea52f1efb0c96db5890dbdca5ca38c6cf3fe8b82424a1fd7010ab61bd6d0ef6a"
+    "artifact-inventory.json": "sha256:25549c2a2c10d921a9a4e35144400611038dd22de589075225d7b25bc4b22bff"
   }
 }

@@ -361,10 +361,10 @@ index 2b1cbea..bd88b2d 100644
  			}
  
 diff --git a/original/packages/workflow/src/utils.ts b/source/packages/workflow/src/utils.ts
-index 69a31e6..c4a3fd1 100644
+index 69a31e6..e191b3c 100644
 --- a/original/packages/workflow/src/utils.ts
 +++ b/source/packages/workflow/src/utils.ts
-@@ -345,7 +345,18 @@ export function randomInt(min: number, max?: number): number {
+@@ -345,7 +345,17 @@ export function randomInt(min: number, max?: number): number {
  		max = min;
  		min = 0;
  	}
@@ -374,17 +374,16 @@ index 69a31e6..c4a3fd1 100644
 +	if (!Number.isSafeInteger(min) || !Number.isSafeInteger(max) || !Number.isSafeInteger(range) || range <= 0 || range > maxUint32) {
 +		throw new RangeError('randomInt bounds must be safe integers with a positive range no larger than 2^32');
 +	}
-+	const bucketSize = Math.floor(maxUint32 / range);
-+	const limit = bucketSize * range;
++	const mask = 2 ** Math.ceil(Math.log2(range)) - 1;
 +	let random: number;
 +	do {
-+		random = crypto.getRandomValues(new Uint32Array(1))[0];
-+	} while (random >= limit);
-+	return min + Math.floor(random / bucketSize);
++		random = (crypto.getRandomValues(new Uint32Array(1))[0] & mask) >>> 0;
++	} while (random >= range);
++	return min + random;
  }
  
  export function randomString(length: number): string;
-@@ -359,9 +370,12 @@ export function randomString(minLength: number, maxLength: number): string;
+@@ -359,9 +369,12 @@ export function randomString(minLength: number, maxLength: number): string;
   */
  export function randomString(minLength: number, maxLength?: number): string {
  	const length = maxLength === undefined ? minLength : randomInt(minLength, maxLength + 1);

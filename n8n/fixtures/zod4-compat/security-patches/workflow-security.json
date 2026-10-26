@@ -2,8 +2,8 @@
   {
     "path": "packages/workflow/src/utils.ts",
     "before": "export function randomInt(min: number, max?: number): number {\n\tif (max === undefined) {\n\t\tmax = min;\n\t\tmin = 0;\n\t}\n\treturn min + (crypto.getRandomValues(new Uint32Array(1))[0] % (max - min));\n}",
-    "after": "export function randomInt(min: number, max?: number): number {\n\tif (max === undefined) {\n\t\tmax = min;\n\t\tmin = 0;\n\t}\n\tconst range = max - min;\n\tconst maxUint32 = 0x1_0000_0000;\n\tif (!Number.isSafeInteger(min) || !Number.isSafeInteger(max) || !Number.isSafeInteger(range) || range <= 0 || range > maxUint32) {\n\t\tthrow new RangeError('randomInt bounds must be safe integers with a positive range no larger than 2^32');\n\t}\n\tconst bucketSize = Math.floor(maxUint32 / range);\n\tconst limit = bucketSize * range;\n\tlet random: number;\n\tdo {\n\t\trandom = crypto.getRandomValues(new Uint32Array(1))[0];\n\t} while (random >= limit);\n\treturn min + Math.floor(random / bucketSize);\n}",
-    "reason": "Use equal-size rejection buckets so cryptographically secure random values are uniform over the requested safe-integer range without modulo bias."
+    "after": "export function randomInt(min: number, max?: number): number {\n\tif (max === undefined) {\n\t\tmax = min;\n\t\tmin = 0;\n\t}\n\tconst range = max - min;\n\tconst maxUint32 = 0x1_0000_0000;\n\tif (!Number.isSafeInteger(min) || !Number.isSafeInteger(max) || !Number.isSafeInteger(range) || range <= 0 || range > maxUint32) {\n\t\tthrow new RangeError('randomInt bounds must be safe integers with a positive range no larger than 2^32');\n\t}\n\tconst mask = 2 ** Math.ceil(Math.log2(range)) - 1;\n\tlet random: number;\n\tdo {\n\t\trandom = (crypto.getRandomValues(new Uint32Array(1))[0] & mask) >>> 0;\n\t} while (random >= range);\n\treturn min + random;\n}",
+    "reason": "Use the conventional smallest-power-of-two bitmask with rejection so cryptographically secure values are uniform without modulo bias and the security query recognizes the bound."
   },
   {
     "path": "packages/workflow/src/utils.ts",

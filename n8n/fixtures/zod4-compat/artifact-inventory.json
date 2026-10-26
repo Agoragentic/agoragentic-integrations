@@ -1336,7 +1336,7 @@
     {
       "path": "expression-runtime/package.json",
       "bytes": 1491,
-      "sha256": "f12beacc1cd2b3def09d3ee230569177955f4aa677a8814b7ebf24325f645b12"
+      "sha256": "8e13e1bb704d5b917d99dbcedca4d10a0e1f314c7adc7e2facf8027e9e058ea5"
     },
     {
       "path": "n8n-workflow/LICENSE.md",
@@ -3426,17 +3426,17 @@
     {
       "path": "n8n-workflow/dist/cjs/utils.d.ts.map",
       "bytes": 2957,
-      "sha256": "7dde5bd8dbaec30c1e8220313087d68dbbe84641c94f86a9459b4a97f9487aaf"
+      "sha256": "e951927bced6bb9cfb8b165557a86f02748d63665770a06050051a516100fa8d"
     },
     {
       "path": "n8n-workflow/dist/cjs/utils.js",
-      "bytes": 21393,
-      "sha256": "9327084e712a8a8ceb6067d86809f107112021835e24dd15af82e8db8608288a"
+      "bytes": 21346,
+      "sha256": "93805e06b5085fb8a43ba470b8f8a278f512c7a99f54858f386d6b293957c22b"
     },
     {
       "path": "n8n-workflow/dist/cjs/utils.js.map",
-      "bytes": 14029,
-      "sha256": "196b092b5644e447b85a4be288baabe0d1e278773e1fd3c7eac3b085a5d42a36"
+      "bytes": 14018,
+      "sha256": "07b635da09eed1b473f46e4e2d387b455e886e069a6306151f357c07b3b07400"
     },
     {
       "path": "n8n-workflow/dist/cjs/versioned-node-type.d.ts",
@@ -5731,17 +5731,17 @@
     {
       "path": "n8n-workflow/dist/esm/utils.d.ts.map",
       "bytes": 2957,
-      "sha256": "7dde5bd8dbaec30c1e8220313087d68dbbe84641c94f86a9459b4a97f9487aaf"
+      "sha256": "e951927bced6bb9cfb8b165557a86f02748d63665770a06050051a516100fa8d"
     },
     {
       "path": "n8n-workflow/dist/esm/utils.js",
-      "bytes": 18197,
-      "sha256": "cb4956433156bb9d56b98e32f5509cb337afd2fadcb48ffc91da1172987c3968"
+      "bytes": 18150,
+      "sha256": "73928d7e11f82be56009be131c93c75cf32b4666fa1b447a216d707fc653a7a6"
     },
     {
       "path": "n8n-workflow/dist/esm/utils.js.map",
-      "bytes": 13838,
-      "sha256": "4147f9948a92a712da5d43556686dca72857df4b78a979bde9a15ac60871da39"
+      "bytes": 13827,
+      "sha256": "0af602c17633fcd8a13652e880690217aba09c17cd8852ba38de7f67ab2fde98"
     },
     {
       "path": "n8n-workflow/dist/esm/versioned-node-type.d.ts",
@@ -5966,7 +5966,7 @@
     {
       "path": "n8n-workflow/package.json",
       "bytes": 1928,
-      "sha256": "67d9e672ee6169e4280dd668cc64019592b3b960ac65451fc105f9aa8a5661db"
+      "sha256": "f06edef2518d731d213091dab474bc0ad33c88f1f947ef929b2e7c42c17a8239"
     }
   ]
 }

@@ -49,7 +49,7 @@ compatibility. The maintained consumer imports the Zod 4 root; it does not
 modify or delete those compatibility subpaths.
 
 The maintained source also fixes findings exposed by scanning the complete
-fixture: uniform random-number selection through equal-size rejection buckets,
+fixture: uniform random-number selection through masked values with rejection,
 parsed Google hostname boundaries, prototype-safe connection keys, and
 fixed-point text tag removal in both host and isolated-runtime sources. The
 tag-removal helpers are not general HTML sanitizers. Exact replacements and

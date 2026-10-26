@@ -377,13 +377,12 @@ function randomInt(min, max) {
     if (!Number.isSafeInteger(min) || !Number.isSafeInteger(max) || !Number.isSafeInteger(range) || range <= 0 || range > maxUint32) {
         throw new RangeError('randomInt bounds must be safe integers with a positive range no larger than 2^32');
     }
-    const bucketSize = Math.floor(maxUint32 / range);
-    const limit = bucketSize * range;
+    const mask = 2 ** Math.ceil(Math.log2(range)) - 1;
     let random;
     do {
-        random = crypto.getRandomValues(new Uint32Array(1))[0];
-    } while (random >= limit);
-    return min + Math.floor(random / bucketSize);
+        random = (crypto.getRandomValues(new Uint32Array(1))[0] & mask) >>> 0;
+    } while (random >= range);
+    return min + random;
 }
 /**
  * Generates a random alphanumeric string of a specified length, or within a range of lengths.

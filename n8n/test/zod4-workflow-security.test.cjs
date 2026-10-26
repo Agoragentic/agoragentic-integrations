@@ -42,33 +42,31 @@ function withRandomWords(words, callback) {
 function exerciseWorkflowSecurity(workflow) {
 	const { randomInt, randomString } = workflow;
 	assert.equal(withRandomWords([0xffffffff, 1431655765], () => randomInt(3)), 1);
-	assert.equal(withRandomWords([1, 1, 1], () => randomString(3)), workflow.ALPHABET.at(0).repeat(3));
+	assert.equal(withRandomWords([1, 1, 1], () => randomString(3)), workflow.ALPHABET.at(1).repeat(3));
 	assert.equal(withRandomWords(Array(16_384).fill(1), () => randomString(16_384)).length, 16_384);
 	assert.throws(() => withRandomWords([], () => randomString(16_385)), (error) => error.name === 'QuotaExceededError');
 	assert.throws(() => withRandomWords([], () => randomString(Number.MAX_SAFE_INTEGER)), (error) => error.name === 'QuotaExceededError');
 	assert.throws(() => withRandomWords([], () => randomString(Infinity)), RangeError);
-	const bucketSize32 = Math.floor(0x1_0000_0000 / 10);
-	const limit32 = bucketSize32 * 10;
-	for (let bucket = 0; bucket < 10; bucket++) {
-		assert.equal(withRandomWords([bucket * bucketSize32], () => randomInt(10)), bucket);
-		assert.equal(withRandomWords([(bucket + 1) * bucketSize32 - 1], () => randomInt(10)), bucket);
-	}
-	assert.equal(withRandomWords([limit32, 0xffffffff, 0], () => randomInt(10)), 0);
-	assert.equal(withRandomWords([bucketSize32 * 4], () => randomInt(5, 15)), 9);
+	assert.equal(withRandomWords([0], () => randomInt(10)), 0);
+	assert.equal(withRandomWords([9], () => randomInt(10)), 9);
+	assert.equal(withRandomWords([15, 9], () => randomInt(10)), 9);
+	assert.equal(withRandomWords([0xffffffff, 9], () => randomInt(10)), 9);
+	assert.equal(withRandomWords([4], () => randomInt(5, 15)), 9);
 	assert.equal(withRandomWords([0xffffffff], () => randomInt(8)), 7);
+	assert.equal(withRandomWords([0xffffffff], () => randomInt(1)), 0);
+	assert.equal(withRandomWords([0xffffffff], () => randomInt(Number.MAX_SAFE_INTEGER - 1, Number.MAX_SAFE_INTEGER)), Number.MAX_SAFE_INTEGER - 1);
 	assert.equal(withRandomWords([0xffffffff], () => randomInt(0, 0x1_0000_0000)), 0xffffffff);
 	assert.throws(() => randomInt(0.5, 2.5), RangeError);
 	assert.throws(() => randomInt(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER + 2), RangeError);
 	assert.throws(() => randomInt(Number.MAX_SAFE_INTEGER + 1), RangeError);
 	assert.throws(() => randomString(-1), RangeError);
 
-	// Exhaustive small-domain analogue: 256 source values, range 10 gives
-	// ten equal buckets of 25 and rejects the six-value remainder.
-	const bucketSize = Math.floor(256 / 10);
-	const limit = bucketSize * 10;
-	const accepted = Array.from({ length: 256 }, (_, value) => value).filter((value) => value < limit);
-	assert.equal(accepted.length, 250);
-	assert.deepEqual(accepted.map((value) => Math.floor(value / bucketSize)).reduce((counts, bucket) => { counts[bucket]++; return counts; }, Array(10).fill(0)), Array(10).fill(25));
+	// Exhaustive small-domain analogue: M256/range10 uses mask 15,
+	// accepts ten buckets of 16 values, and rejects 96 masked values.
+	const accepted = Array.from({ length: 256 }, (_, value) => value & 15).filter((value) => value < 10);
+	assert.equal(accepted.length, 160);
+	assert.equal(256 - accepted.length, 96);
+	assert.deepEqual(accepted.reduce((counts, bucket) => { counts[bucket]++; return counts; }, Array(10).fill(0)), Array(10).fill(16));
 
 	const malicious = JSON.parse('{"__proto__":{"main":[[{"node":"__proto__","type":"main","index":0}]]}}');
 	const mapped = workflow.mapConnectionsByDestination(malicious);

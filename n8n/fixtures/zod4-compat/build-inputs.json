@@ -1,7 +1,7 @@
 {
   "archive": "sha256:0ddad00a619a7df13ad16fedc1b67d8bb66239f0aa68a9ac71a5f90ce89d1b4d",
   "source_inventory": "sha256:dd441c0efac1191c6e180e359d39f3fa6b52df49f46e8e179ba122550eabfb76",
-  "source_patch": "sha256:20696cdbfedc4aa4755ef6c2b50bda974f64d554d01868a8f3230ca545ece0e2",
+  "source_patch": "sha256:17ddfffe46915afd94f26a109dddc69745f64ffda1ac3b06b7f9018d8aa2991a",
   "files": [
     {
       "path": "scripts/build-zod4-fixture.mjs",
@@ -45,7 +45,7 @@
     },
     {
       "path": "fixtures/zod4-compat/security-patches/workflow-security.json",
-      "sha256": "sha256:e0420c09fd2c99db0106cb42dc99a702ed4c987cfe274a619d75aaee41b798e2"
+      "sha256": "sha256:01ff482af2c17547c0efb0c33aff545c6ca22a77d269c89fb7c1ec5db118a8a8"
     }
   ]
 }
