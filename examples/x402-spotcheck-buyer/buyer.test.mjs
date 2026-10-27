@@ -2,11 +2,16 @@
 // Mock fetch and a throwaway signing key only: no live endpoints, credentials, chain calls or spend.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import test from "node:test";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { decodePaymentRequiredHeader, encodePaymentRequiredHeader } from "@x402/core/http";
+import { Any, parsePaymentPayload, parsePaymentRequired, parsePaymentRequirements } from "@x402/core/schemas";
 import { SpotCheckBlockedError, VERSION, spotCheckFetch } from "x402-spotcheck";
 import { createCheckedBuyer } from "./buyer.mjs";
+
+const require = createRequire(import.meta.url);
+const cjsSchemas = require("@x402/core/schemas");
 
 const URL_ = "https://seller.test/v1/text-summarizer";
 const USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
@@ -58,6 +63,36 @@ test("the installed @x402 public header codec round-trips valid V2 and rejects m
   const encoded = encodePaymentRequiredHeader(challenge);
   assert.deepEqual(decodePaymentRequiredHeader(encoded), challenge);
   assert.throws(() => decodePaymentRequiredHeader("%%%not-base64%%%"), /Invalid payment required header/);
+});
+
+test("the installed @x402 public Zod schemas accept valid V1/V2 maps and reject malformed types", () => {
+  const v1 = {
+    scheme: "exact", network: "base", maxAmountRequired: "10000", resource: URL_, description: "demo",
+    mimeType: "application/json", outputSchema: { type: "object" }, payTo: PAY_TO, maxTimeoutSeconds: 300,
+    asset: USDC, extra: { name: "USD Coin", version: "2" },
+  };
+  const v2 = {
+    scheme: "exact", network: "eip155:8453", amount: "10000", asset: USDC, payTo: PAY_TO,
+    maxTimeoutSeconds: 300, extra: { name: "USD Coin", version: "2" },
+  };
+  const requiredV1 = { x402Version: 1, accepts: [v1] };
+  const requiredV2 = { x402Version: 2, resource: { url: URL_ }, accepts: [v2], extensions: { trace: { id: "offline" } } };
+  const payloadV1 = { x402Version: 1, scheme: "exact", network: "base", payload: { signature: "0x00" } };
+  const payloadV2 = { x402Version: 2, resource: { url: URL_ }, accepted: v2, payload: { signature: "0x00" }, extensions: { trace: { id: "offline" } } };
+  assert.equal(Any.safeParse({ name: "USD Coin", version: "2" }).success, true);
+  assert.equal(parsePaymentRequirements(v1).success, true);
+  assert.equal(parsePaymentRequirements(v2).success, true);
+  assert.equal(parsePaymentRequired(requiredV1).success, true);
+  assert.equal(parsePaymentRequired(requiredV2).success, true);
+  assert.equal(parsePaymentPayload(payloadV1).success, true);
+  assert.equal(parsePaymentPayload(payloadV2).success, true);
+  assert.equal(typeof cjsSchemas.parsePaymentRequired, "function");
+  assert.equal(cjsSchemas.parsePaymentRequired(requiredV2).success, true);
+  assert.equal(parsePaymentRequired({ ...requiredV2, unexpected: true }).data.unexpected, undefined);
+  assert.equal(parsePaymentRequired({ ...requiredV2, accepts: [{ ...v2, amount: 10000 }] }).success, false);
+  assert.equal(parsePaymentRequired({ ...requiredV2, accepts: [{ ...v2, network: "not-caip" }] }).success, false);
+  assert.equal(parsePaymentRequired({ ...requiredV2, accepts: [{ ...v2, extra: "bad" }] }).success, false);
+  assert.equal(parsePaymentPayload({ ...payloadV2, payload: [] }).success, false);
 });
 
 test("pinned to x402-spotcheck 1.0.0", () => {
