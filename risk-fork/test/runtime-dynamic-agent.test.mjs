@@ -57,7 +57,8 @@ test('live Dynamic dependency lock excludes the known vulnerable transitive rang
  assert.deepEqual(manifest.overrides,{
   '@walletconnect/utils':'$@walletconnect/utils','axios@^1.0.0':'1.20.0',
   'ws@^8.0.0':'8.21.3','decode-uri-component@^0.2.2':'0.5.0',
-  'uuid@^11.0.0':'11.1.1','bn.js@^4.0.0':'4.12.3'
+  'uuid@^11.0.0':'11.1.1','bn.js@^4.0.0':'4.12.3',
+  'follow-redirects':'1.16.1','zod':'4.6.6'
  });
  assert.deepEqual(lock.packages[''].dependencies,manifest.dependencies);
  assert.equal(Object.hasOwn(manifest.overrides,'viem'),false,'nested parent override breaks npm 11 tree validation');

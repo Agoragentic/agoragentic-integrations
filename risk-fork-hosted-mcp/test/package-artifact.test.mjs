@@ -600,6 +600,49 @@ test('hosted lock, bundle advertisement, and attested fast-uri records stay alig
   }
 });
 
+test('attested dependency inventory binds the actual selected Zod package, not source metadata', async () => {
+  const hostedRoot = path.join(repositoryRoot, 'risk-fork-hosted-mcp');
+  const manifest = JSON.parse(await readFile(path.join(hostedRoot, 'integrity-manifest.json'), 'utf8'));
+  const zodInputPath = 'risk-fork-hosted-mcp/node_modules/zod/package.json';
+  const zodInput = manifest.inputs.find((input) => input.path === zodInputPath);
+  assert.ok(zodInput, 'attested Zod package metadata must be an integrity input');
+  const zodPackagePath = path.join(hostedRoot, 'node_modules', 'zod', 'package.json');
+  const zodPackageBytes = await readFile(zodPackagePath);
+  const zodPackage = JSON.parse(zodPackageBytes);
+  assert.equal(zodPackage.version, '4.6.7');
+  assert.equal(zodInput.bytes, zodPackageBytes.byteLength);
+  assert.equal(zodInput.sha256, sha256(zodPackageBytes));
+
+  const fixture = await createHostedFixture('risk-fork-hosted-zod-attestation-');
+  try {
+    const fixtureZodPackagePath = path.join(
+      fixture.packageRoot,
+      'node_modules',
+      'zod',
+      'package.json',
+    );
+    const staleZodPackage = JSON.parse(await readFile(fixtureZodPackagePath, 'utf8'));
+    staleZodPackage.version = '4.4.3';
+    await writeFile(
+      fixtureZodPackagePath,
+      `${JSON.stringify(staleZodPackage, null, 2)}\n`,
+      'utf8',
+    );
+    const rejected = runResult(
+      process.execPath,
+      ['scripts/verify-integrity.mjs'],
+      { cwd: fixture.packageRoot },
+    );
+    assert.notEqual(rejected.status, 0);
+    assert.match(
+      `${rejected.stdout}\n${rejected.stderr}`,
+      /integrity input|sha-256|zod/i,
+    );
+  } finally {
+    await cleanupTemporary(fixture.temporary);
+  }
+});
+
 test('standalone license discovery preserves actual casing and fails closed on ambiguity or non-files', async () => {
   const entry = (name, type = 'file') => ({
     name,

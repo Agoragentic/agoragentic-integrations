@@ -1,0 +1,73 @@
+{
+  "name": "n8n-workflow",
+  "version": "2.28.4",
+  "description": "Workflow base code of n8n",
+  "types": "dist/esm/index.d.ts",
+  "module": "dist/esm/index.js",
+  "main": "dist/cjs/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    },
+    "./common": {
+      "types": "./dist/esm/common/index.d.ts",
+      "import": "./dist/esm/common/index.js",
+      "require": "./dist/cjs/common/index.js"
+    },
+    "./expression-sandboxing": {
+      "types": "./dist/esm/expression-sandboxing.d.ts",
+      "import": "./dist/esm/expression-sandboxing.js",
+      "require": "./dist/cjs/expression-sandboxing.js"
+    },
+    "./*": "./*"
+  },
+  "files": [
+    "dist/**/*",
+    "LICENSE.md",
+    "LICENSE_EE.md"
+  ],
+  "dependencies": {
+    "ast-types": "0.16.1",
+    "callsites": "3.1.0",
+    "esprima-next": "5.8.4",
+    "form-data": "4.0.6",
+    "jmespath": "0.16.0",
+    "js-base64": "3.7.8",
+    "jssha": "3.3.1",
+    "lodash": "4.18.1",
+    "luxon": "3.7.2",
+    "md5": "2.3.0",
+    "recast": "0.22.0",
+    "title-case": "3.0.3",
+    "transliteration": "2.3.5",
+    "uuid": "11.1.1",
+    "xml2js": "0.6.2",
+    "jsonrepair": "3.13.2",
+    "@n8n/expression-runtime": "0.19.1",
+    "@n8n/errors": "0.10.0",
+    "@n8n/tournament": "1.4.0"
+  },
+  "peerDependencies": {
+    "zod": "4.6.7"
+  },
+  "license": "SEE LICENSE IN LICENSE.md",
+  "homepage": "https://n8n.io",
+  "author": {
+    "name": "Jan Oberhauser",
+    "email": "jan@n8n.io"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/n8n-io/n8n.git"
+  },
+  "type": "module",
+  "private": true,
+  "xAgoragenticFixture": {
+    "upstreamVersion": "2.28.4",
+    "upstreamSourceCommit": "955be3ef2131afb9ecba5482024d045e710e4f20",
+    "zodVersion": "4.6.7",
+    "buildInputs": "sha256:8fd6f4124327d54ec36fa3943c7394f9817e42384e7c9eade8ec0bd460d282f0"
+  }
+}

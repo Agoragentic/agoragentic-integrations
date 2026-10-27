@@ -1,0 +1,1 @@
+Development-only modified fixture of @n8n/expression-runtime@0.19.1. Source commit 955be3ef2131afb9ecba5482024d045e710e4f20. Built by Agoragentic with the changes in ../../source-changes.patch; not an upstream release. Upstream licenses apply.

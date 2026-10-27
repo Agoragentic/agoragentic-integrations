@@ -1,0 +1,1 @@
+{"version":3,"file":"db-connection-timeout-error.d.ts","sourceRoot":"","sources":["../../../../../source/packages/workflow/src/errors/db-connection-timeout-error.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,gBAAgB,EAAE,oBAAoB;AAE/C,MAAM,MAAM,4BAA4B,GAAG;IAC1C,qBAAqB,EAAE,MAAM,CAAC;IAC9B,KAAK,EAAE,KAAK,CAAC;CACb,CAAC;AAEF,qBAAa,wBAAyB,SAAQ,gBAAgB;gBACjD,IAAI,EAAE,4BAA4B;CAK9C"}
