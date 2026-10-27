@@ -1,0 +1,1 @@
+{"version":3,"file":"data-table.types.js","sourceRoot":"","sources":["../../../../source/packages/workflow/src/data-table.types.ts"],"names":[],"mappings":"AAkGA,MAAM,CAAC,MAAM,iCAAiC,GAAwC;IACrF,EAAE,EAAE,QAAQ;IACZ,SAAS,EAAE,MAAM;IACjB,SAAS,EAAE,MAAM;CACjB,CAAC;AAEF,MAAM,CAAC,MAAM,yBAAyB,GAAG,MAAM,CAAC,IAAI,CAAC,iCAAiC,CAAC,CAAC;AACxF,MAAM,CAAC,MAAM,gCAAgC,GAAG,aAAa,CAAC"}

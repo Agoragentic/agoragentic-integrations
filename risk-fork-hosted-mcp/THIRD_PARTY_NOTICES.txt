@@ -548,7 +548,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ========================================================================
-fast-uri@3.1.8
+fast-uri@3.1.9
 Declared license: BSD-3-Clause
 Notice source: risk-fork-hosted-mcp/node_modules/fast-uri/LICENSE
 Notice source method: standalone_license_file
@@ -1022,7 +1022,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ========================================================================
-zod@4.4.3
+zod@4.6.7
 Declared license: MIT
 Notice source: risk-fork-hosted-mcp/node_modules/zod/LICENSE
 Notice source method: standalone_license_file
