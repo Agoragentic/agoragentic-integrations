@@ -1,0 +1,5 @@
+scripts/fixture-*.mjs text eol=lf
+scripts/build-zod4-fixture.mjs text eol=lf
+scripts/check-zod4-consumer.mjs text eol=lf
+scripts/audit-dev-dependencies.cjs text eol=lf
+fixtures/zod4-compat/** text eol=lf

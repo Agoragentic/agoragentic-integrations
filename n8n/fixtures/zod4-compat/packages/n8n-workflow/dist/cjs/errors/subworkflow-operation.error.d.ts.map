@@ -1,0 +1,1 @@
+{"version":3,"file":"subworkflow-operation.error.d.ts","sourceRoot":"","sources":["../../../../../source/packages/workflow/src/errors/subworkflow-operation.error.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,sBAAsB,EAAE,sCAAmC;AAEpE,qBAAa,yBAA0B,SAAQ,sBAAsB;IAC3D,WAAW,SAAM;IAEjB,KAAK,EAAE,KAAK,CAAC;gBAEV,OAAO,EAAE,MAAM,EAAE,WAAW,EAAE,MAAM;CAWhD"}

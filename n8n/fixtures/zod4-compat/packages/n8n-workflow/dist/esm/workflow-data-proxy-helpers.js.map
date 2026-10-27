@@ -1,0 +1,1 @@
+{"version":3,"file":"workflow-data-proxy-helpers.js","sourceRoot":"","sources":["../../../../source/packages/workflow/src/workflow-data-proxy-helpers.ts"],"names":[],"mappings":"AAEA,MAAM,UAAU,2BAA2B,CAC1C,QAAkB,EAClB,QAAgB,EAChB,IAAyB;IAEzB,IAAI,IAAI,KAAK,QAAQ,EAAE,CAAC;QACvB,OAAO,SAAS,CAAC;IAClB,CAAC;IACD,OAAO,QAAQ,CAAC,gBAAgB,CAAC,QAAQ,CAAC,CAAC;AAC5C,CAAC"}

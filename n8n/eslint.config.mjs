@@ -9,7 +9,7 @@ import tseslint from 'typescript-eslint';
 const communityNodesRecommended = n8nCommunityNodesPlugin.configs.recommended;
 
 export default tseslint.config(
-	globalIgnores(['dist']),
+	globalIgnores(['dist', 'fixtures/zod4-compat/packages/**']),
 	{
 		files: ['**/*.ts'],
 		extends: [
