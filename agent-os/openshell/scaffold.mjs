@@ -220,5 +220,5 @@ export function openShellReadiness() {
 
 export class OpenShellScaffoldAdapter {
   prepare(request) { return buildOpenShellPlan(request); }
-  async invoke() { fail('openshell_activation_not_implemented'); }
+  async invoke(_operation, _input) { fail('openshell_activation_not_implemented'); }
 }
