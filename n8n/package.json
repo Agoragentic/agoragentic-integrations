@@ -58,7 +58,7 @@
         "n8n-workflow": "file:fixtures/zod4-compat/packages/n8n-workflow",
         "prettier": "3.9.6",
         "typescript": "5.9.2",
-        "typescript-eslint": "8.70.0",
+        "typescript-eslint": "8.72.0",
         "zod": "4.6.7"
     },
     "peerDependencies": {
