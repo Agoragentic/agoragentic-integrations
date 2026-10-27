@@ -1,0 +1,1 @@
+{"version":3,"file":"ensure-error.js","sourceRoot":"","sources":["../../../../../source/packages/workflow/src/errors/ensure-error.ts"],"names":[],"mappings":";;AACA,kCAOC;AARD,mCAAmC;AACnC,SAAgB,WAAW,CAAC,KAAc;IACzC,OAAO,KAAK,YAAY,KAAK;QAC5B,CAAC,CAAC,KAAK;QACP,CAAC,CAAC,IAAI,KAAK,CAAC,oDAAoD,EAAE;YAChE,0EAA0E;YAC1E,KAAK,EAAE,KAAK;SACZ,CAAC,CAAC;AACN,CAAC"}

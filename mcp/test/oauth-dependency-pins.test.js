@@ -6,7 +6,11 @@ const path = require('node:path');
 const test = require('node:test');
 
 const repositoryRoot = path.resolve(__dirname, '..', '..');
-const sdkPin = '1.31.0';
+const sdkPins = Object.freeze({
+    mcp: '1.32.0',
+    'risk-fork-hosted-mcp': '1.32.0',
+    'claude-agent-sdk': '1.32.0',
+});
 const clientPin = '2.3.0';
 const modernPins = Object.freeze({
     '@modelcontextprotocol/client': clientPin,
@@ -19,7 +23,7 @@ const load = (directory, name) => JSON.parse(readFileSync(
 ));
 
 // These are source-checkout tooling contracts, not a live OAuth qualification.
-// GHSA-6qxp-vccf-f47h was fixed at SDK 1.31.0 / client 2.2.0; retain that baseline.
+// The coordinated roots use SDK 1.32.0 under separately reviewed exact contracts.
 // Scan every
 // nested lock entry so a second vulnerable copy cannot hide behind a fixed root.
 for (const directory of ['mcp', 'risk-fork-hosted-mcp', 'claude-agent-sdk']) {
@@ -29,11 +33,11 @@ for (const directory of ['mcp', 'risk-fork-hosted-mcp', 'claude-agent-sdk']) {
         assert.equal(lock.lockfileVersion, 3);
         assert.equal(manifest.private, true, 'qualification tooling stays unpublished');
         if (directory === 'claude-agent-sdk') {
-            assert.equal(manifest.overrides?.['@modelcontextprotocol/sdk'], sdkPin);
+            assert.equal(manifest.overrides?.['@modelcontextprotocol/sdk'], sdkPins[directory]);
         } else {
-            assert.equal(manifest.devDependencies['@modelcontextprotocol/sdk'], sdkPin);
+            assert.equal(manifest.devDependencies['@modelcontextprotocol/sdk'], sdkPins[directory]);
             assert.equal(manifest.devDependencies['@modelcontextprotocol/client'], clientPin);
-            assert.equal(lock.packages[''].devDependencies['@modelcontextprotocol/sdk'], sdkPin);
+            assert.equal(lock.packages[''].devDependencies['@modelcontextprotocol/sdk'], sdkPins[directory]);
             assert.equal(lock.packages[''].devDependencies['@modelcontextprotocol/client'], clientPin);
         }
         let sdkCount = 0;
@@ -41,7 +45,7 @@ for (const directory of ['mcp', 'risk-fork-hosted-mcp', 'claude-agent-sdk']) {
         for (const [entryPath, entry] of Object.entries(lock.packages)) {
             if (entryPath.endsWith('node_modules/@modelcontextprotocol/sdk')) {
                 sdkCount += 1;
-                assert.equal(entry.version, sdkPin, `${directory}/${entryPath}`);
+                assert.equal(entry.version, sdkPins[directory], `${directory}/${entryPath}`);
                 assert.equal(entry.dev, true, 'no new runtime dependency');
             }
             if (entryPath.endsWith('node_modules/@modelcontextprotocol/client')) {

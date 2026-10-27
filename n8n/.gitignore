@@ -1,0 +1,3 @@
+/fixtures/zod4-compat/build/node_modules/
+/fixtures/zod4-compat/build/.fixture-*/
+/fixtures/zod4-compat/build/.tmp-*/

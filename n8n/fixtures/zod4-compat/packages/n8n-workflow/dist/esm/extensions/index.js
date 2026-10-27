@@ -1,0 +1,2 @@
+export { extend, extendOptional, hasExpressionExtension, hasNativeMethod, extendTransform, EXTENSION_OBJECTS as ExpressionExtensions, } from "./expression-extension.js";
+//# sourceMappingURL=index.js.map
