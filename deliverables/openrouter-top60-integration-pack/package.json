@@ -17,7 +17,7 @@
   "devDependencies": {
     "@openrouter/agent": "0.8.0",
     "@types/node": "20.19.43",
-    "tsx": "4.23.12",
+    "tsx": "4.23.15",
     "typescript": "5.9.3",
     "zod": "4.6.7"
   }
