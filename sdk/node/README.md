@@ -523,10 +523,12 @@ Notes:
 
 ### Optional: Check the 402 Against the Listing Before Signing
 
-This is an optional add-on to the example above, which does not need it. [x402-spotcheck](https://github.com/withgrokbot/x402-spotcheck) 1.0.0 wraps the fetch you hand to the x402 client and compares each 402 challenge with listing terms you already reviewed (for example an `x402Listings()` entry or a quote). It is tested with `@x402/fetch` and `@x402/evm` 2.28.0.
+This is an optional add-on to the example above, which does not need it. [x402-spotcheck](https://github.com/withgrokbot/x402-spotcheck) 1.0.0 wraps the fetch you hand to the x402 client and compares each 402 challenge with listing terms you already reviewed (for example an `x402Listings()` entry or a quote). It is tested with `@x402/fetch` and `@x402/evm` 2.28.0. The example pins Zod 4.6.6 through its checked-in package and lockfile override; that is an example-local qualification, not a general upstream Zod 4 or SDK compatibility guarantee.
 
 ```bash
-npm i @x402/fetch@2.28.0 @x402/evm@2.28.0 viem zod@4.6.6 github:withgrokbot/x402-spotcheck#v1.0.0
+# Run from the repository root. This applies the checked-in lockfile and
+# example-local override; do not replace it with a free-form npm install.
+npm ci --ignore-scripts --prefix examples/x402-spotcheck-buyer
 ```
 
 ```javascript
@@ -551,12 +553,13 @@ const fetchWithPayment = wrapFetchWithPayment(checkedFetch, client);
 
 Scope of the guard:
 - A Base mainnet challenge whose pay-to or network differs from the `expected` terms, whose asset is not canonical USDC, or whose price is more than 1% above the expected price throws `SpotCheckBlockedError` before anything is signed. A cheaper price, or one up to 1% above, is accepted (for an expected 10000 atomic units, 10100 signs and 10101 is blocked). A signed retry that fails these same checks is refused before it is sent.
+- The local checker does not cryptographically verify an already-present payment payload; it compares the accepted terms and forwards that existing payload unchanged. Signature and settlement validity remain the x402 client/facilitator's responsibility.
 - Without a listing for the URL, it only checks the challenge itself (readable amount, valid pay-to, USDC). It does not know your intended price or recipient.
 - Unknown and error cases pass through: an unreadable 402, an error thrown by `expected`, or an internal check error.
 - The checker judges Base mainnet only and passes other networks through. That is why the client above registers only `eip155:8453`: it does not sign on any other network.
 - Service mode and paid checks are not used here. Your own spend limits still apply.
 
-Offline tests for this example (mock fetch, throwaway key, no network or spend): [`examples/x402-spotcheck-buyer`](../../examples/x402-spotcheck-buyer) (`npm ci && npm test`).
+Offline tests for this example (mock fetch, throwaway key, no network or spend): [`examples/x402-spotcheck-buyer`](../../examples/x402-spotcheck-buyer) (`npm ci --ignore-scripts --prefix examples/x402-spotcheck-buyer && npm test --prefix examples/x402-spotcheck-buyer`).
 
 ### Guarded x402 Retry Helper
 
