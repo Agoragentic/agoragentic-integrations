@@ -1,4 +1,6 @@
-FROM node:20-slim AS build
+# Node 24.22.1 includes the October 2026 security fixes. Keep the digest
+# pinned so rebuilds cannot silently move to a different image.
+FROM node:24.22.1-slim@sha256:55fb5f5a527ea2c5c4a95f963e48ef90aa38c7b346054fdc8ee9957a2b55d205 AS build
 
 WORKDIR /app
 
@@ -11,7 +13,7 @@ COPY mcp/mcp-server.js ./mcp/mcp-server.js
 COPY mcp/scripts/build.js ./mcp/scripts/build.js
 RUN cd mcp && npm run build
 
-FROM node:20-slim
+FROM node:24.22.1-slim@sha256:55fb5f5a527ea2c5c4a95f963e48ef90aa38c7b346054fdc8ee9957a2b55d205
 
 WORKDIR /app
 
