@@ -2,7 +2,7 @@ version: 2
 
 # This repository previously had no Dependabot configuration and no automated
 # security fixes, so nine open advisories (three of them high) sat with no
-# remediation pull request. Version updates are scoped to the two npm packages
+# remediation pull request. Version updates are scoped to selected npm packages
 # that carry a committed lockfile.
 
 updates:
@@ -18,8 +18,25 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 5
 
+  - package-ecosystem: "npm"
+    directory: "/claude-agent-sdk"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "npm"
+    directory: "/deliverables/openrouter-top60-integration-pack"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    groups:
+      codeql-action:
+        applies-to: version-updates
+        patterns:
+          - "github/codeql-action/*"
