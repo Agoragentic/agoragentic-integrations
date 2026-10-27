@@ -1,0 +1,1 @@
+{"version":3,"file":"error-classification.d.ts","sourceRoot":"","sources":["../../../../../../source/packages/@n8n/expression-runtime/src/evaluator/error-classification.ts"],"names":[],"mappings":"AAEA,MAAM,MAAM,mBAAmB,GAAG,SAAS,GAAG,cAAc,GAAG,UAAU,GAAG,QAAQ,GAAG,SAAS,CAAC;AAEjG,wBAAgB,uBAAuB,CAAC,KAAK,EAAE,OAAO,GAAG,mBAAmB,CAM3E"}

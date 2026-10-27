@@ -1,0 +1,50 @@
+[
+  {
+    "path": "packages/workflow/src/extensions/string-extensions.ts",
+    "before": "function removeMarkdown(value: string): string {",
+    "after": "function stripHtmlTags(value: string): string {\n\tlet output = value;\n\twhile (true) {\n\t\tconst previous = output;\n\t\toutput = output.replace(/<+\\/?[_A-Za-z][^>]*(?:>|$)/gm, '');\n\t\tif (output === previous) return output;\n\t}\n}\n\nfunction removeMarkdown(value: string): string {",
+    "reason": "Add fixed-point tag removal so adversarial repeated-leading-angle markup cannot reform into a tag after one pass."
+  },
+  {
+    "path": "packages/workflow/src/extensions/string-extensions.ts",
+    "before": "\t\toutput = output\n\t\t\t// Remove HTML tags\n\t\t\t.replace(/<[\\w|\\s|=|'|\"|:|(|)|,|;|/|0-9|.|-]+[>|\\\\>]/g, '')\n\t\t\t// Remove setext-style headers",
+    "after": "\t\toutput = stripHtmlTags(output);\n\n\t\toutput = output\n\t\t\t// Remove setext-style headers",
+    "reason": "Apply the fixed-point text tag remover before Markdown cleanup; do not claim context-safe HTML sanitization."
+  },
+  {
+    "path": "packages/workflow/src/extensions/string-extensions.ts",
+    "before": "\t\t\t.replace(/(`{3,})(.*?)\\1/gm, '$2')\n\t\t\t.replace(/^-{3,}\\s*$/g, '')\n\t\t\t.replace(/`(.+?)`/g, '$1')\n\t\t\t.replace(/\\n{2,}/g, '\\n\\n');\n\t} catch (e) {\n\t\treturn value;\n\t}\n\treturn output;\n}",
+    "after": "\t\t\t.replace(/(`{3,})(.*?)\\1/gm, '$2')\n\t\t\t.replace(/^-{3,}\\s*$/g, '')\n\t\t\t.replace(/`(.+?)`/g, '$1')\n\t\t\t.replace(/\\n{2,}/g, '\\n\\n');\n\t} catch (e) {\n\t\treturn value;\n\t}\n\toutput = stripHtmlTags(output);\n\treturn output;\n}",
+    "reason": "Run the same fixed-point text tag remover after Markdown substitutions so formatting can never reform inert markup into an executable-looking tag."
+  },
+  {
+    "path": "packages/workflow/src/extensions/string-extensions.ts",
+    "before": "function removeTags(value: string): string {\n\treturn value.replace(/<[^>]*>?/gm, '');\n}",
+    "after": "function removeTags(value: string): string {\n\treturn stripHtmlTags(value);\n}",
+    "reason": "Share the fixed-point tag removal with removeMarkdown while preserving ordinary less-than text."
+  },
+  {
+    "path": "packages/@n8n/expression-runtime/src/extensions/string-extensions.ts",
+    "before": "function removeMarkdown(value: string): string {",
+    "after": "function stripHtmlTags(value: string): string {\n\tlet output = value;\n\twhile (true) {\n\t\tconst previous = output;\n\t\toutput = output.replace(/<+\\/?[_A-Za-z][^>]*(?:>|$)/gm, '');\n\t\tif (output === previous) return output;\n\t}\n}\n\nfunction removeMarkdown(value: string): string {",
+    "reason": "Keep isolated runtime tag removal fixed-point and aligned with the host extension."
+  },
+  {
+    "path": "packages/@n8n/expression-runtime/src/extensions/string-extensions.ts",
+    "before": "\t\toutput = output\n\t\t\t// Remove HTML tags\n\t\t\t.replace(/<[\\w|\\s|=|'|\"|:|(|)|,|;|/|0-9|.|-]+[>|\\\\>]/g, '')\n\t\t\t// Remove setext-style headers",
+    "after": "\t\toutput = stripHtmlTags(output);\n\n\t\toutput = output\n\t\t\t// Remove setext-style headers",
+    "reason": "Use the fixed-point text tag remover for Markdown cleanup without treating it as a general HTML sanitizer."
+  },
+  {
+    "path": "packages/@n8n/expression-runtime/src/extensions/string-extensions.ts",
+    "before": "\t\t\t.replace(/(`{3,})(.*?)\\1/gm, '$2')\n\t\t\t.replace(/^-{3,}\\s*$/g, '')\n\t\t\t.replace(/`(.+?)`/g, '$1')\n\t\t\t.replace(/\\n{2,}/g, '\\n\\n');\n\t} catch (e) {\n\t\treturn value;\n\t}\n\treturn output;\n}",
+    "after": "\t\t\t.replace(/(`{3,})(.*?)\\1/gm, '$2')\n\t\t\t.replace(/^-{3,}\\s*$/g, '')\n\t\t\t.replace(/`(.+?)`/g, '$1')\n\t\t\t.replace(/\\n{2,}/g, '\\n\\n');\n\t} catch (e) {\n\t\treturn value;\n\t}\n\toutput = stripHtmlTags(output);\n\treturn output;\n}",
+    "reason": "Keep the isolated expression runtime from reforming inert Markdown into executable-looking markup after cleanup."
+  },
+  {
+    "path": "packages/@n8n/expression-runtime/src/extensions/string-extensions.ts",
+    "before": "function removeTags(value: string): string {\n\treturn value.replace(/<[^>]*>?/gm, '');\n}",
+    "after": "function removeTags(value: string): string {\n\treturn stripHtmlTags(value);\n}",
+    "reason": "Share fixed-point tag removal in the isolated expression runtime."
+  }
+]

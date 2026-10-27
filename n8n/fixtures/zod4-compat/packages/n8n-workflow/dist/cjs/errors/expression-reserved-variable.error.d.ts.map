@@ -1,0 +1,1 @@
+{"version":3,"file":"expression-reserved-variable.error.d.ts","sourceRoot":"","sources":["../../../../../source/packages/workflow/src/errors/expression-reserved-variable.error.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,eAAe,EAAE,8BAA2B;AAErD,qBAAa,+BAAgC,SAAQ,eAAe;gBACvD,YAAY,EAAE,MAAM;CAGhC"}

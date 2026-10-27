@@ -1,0 +1,1577 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+import get from "lodash/get.js";
+import isEqual from "lodash/isEqual.js";
+import { v4 as uuid } from "uuid";
+import { EXECUTE_WORKFLOW_NODE_TYPE, WORKFLOW_TOOL_LANGCHAIN_NODE_TYPE } from "./constants.js";
+import { UnexpectedError, UserError } from "./errors/index.js";
+import { isExpression } from "./expressions/expression-helpers.js";
+import { isFromAIOnlyExpression } from "./from-ai-parse-utils.js";
+import { NodeConnectionTypes } from "./interfaces.js";
+import { validateFilterParameter } from "./node-parameters/filter-parameter.js";
+import { isFilterValue, isINodePropertyOptionsList, isResourceLocatorValue, isResourceMapperValue, isValidResourceLocatorParameterValue, } from "./type-guards.js";
+import { validateFieldType } from "./type-validation.js";
+import { deepCopy } from "./utils.js";
+export const cronNodeOptions = [
+    {
+        name: 'item',
+        displayName: 'Item',
+        values: [
+            {
+                displayName: 'Mode',
+                name: 'mode',
+                type: 'options',
+                options: [
+                    {
+                        name: 'Every Minute',
+                        value: 'everyMinute',
+                    },
+                    {
+                        name: 'Every Hour',
+                        value: 'everyHour',
+                    },
+                    {
+                        name: 'Every Day',
+                        value: 'everyDay',
+                    },
+                    {
+                        name: 'Every Week',
+                        value: 'everyWeek',
+                    },
+                    {
+                        name: 'Every Month',
+                        value: 'everyMonth',
+                    },
+                    {
+                        name: 'Every X',
+                        value: 'everyX',
+                    },
+                    {
+                        name: 'Custom',
+                        value: 'custom',
+                    },
+                ],
+                default: 'everyDay',
+                description: 'How often to trigger.',
+            },
+            {
+                displayName: 'Hour',
+                name: 'hour',
+                type: 'number',
+                typeOptions: {
+                    minValue: 0,
+                    maxValue: 23,
+                },
+                displayOptions: {
+                    hide: {
+                        mode: ['custom', 'everyHour', 'everyMinute', 'everyX'],
+                    },
+                },
+                default: 14,
+                description: 'The hour of the day to trigger (24h format)',
+            },
+            {
+                displayName: 'Minute',
+                name: 'minute',
+                type: 'number',
+                typeOptions: {
+                    minValue: 0,
+                    maxValue: 59,
+                },
+                displayOptions: {
+                    hide: {
+                        mode: ['custom', 'everyMinute', 'everyX'],
+                    },
+                },
+                default: 0,
+                description: 'The minute past the hour to trigger (0-59)',
+            },
+            {
+                displayName: 'Day of Month',
+                name: 'dayOfMonth',
+                type: 'number',
+                displayOptions: {
+                    show: {
+                        mode: ['everyMonth'],
+                    },
+                },
+                typeOptions: {
+                    minValue: 1,
+                    maxValue: 31,
+                },
+                default: 1,
+                description: 'The day of the month to trigger',
+            },
+            {
+                displayName: 'Weekday',
+                name: 'weekday',
+                type: 'options',
+                displayOptions: {
+                    show: {
+                        mode: ['everyWeek'],
+                    },
+                },
+                options: [
+                    {
+                        name: 'Monday',
+                        value: '1',
+                    },
+                    {
+                        name: 'Tuesday',
+                        value: '2',
+                    },
+                    {
+                        name: 'Wednesday',
+                        value: '3',
+                    },
+                    {
+                        name: 'Thursday',
+                        value: '4',
+                    },
+                    {
+                        name: 'Friday',
+                        value: '5',
+                    },
+                    {
+                        name: 'Saturday',
+                        value: '6',
+                    },
+                    {
+                        name: 'Sunday',
+                        value: '0',
+                    },
+                ],
+                default: '1',
+                description: 'The weekday to trigger',
+            },
+            {
+                displayName: 'Cron Expression',
+                name: 'cronExpression',
+                type: 'string',
+                displayOptions: {
+                    show: {
+                        mode: ['custom'],
+                    },
+                },
+                default: '* * * * * *',
+                description: 'Use custom cron expression. Values and ranges as follows:<ul><li>Seconds: 0-59</li><li>Minutes: 0 - 59</li><li>Hours: 0 - 23</li><li>Day of Month: 1 - 31</li><li>Months: 0 - 11 (Jan - Dec)</li><li>Day of Week: 0 - 6 (Sun - Sat)</li></ul>',
+            },
+            {
+                displayName: 'Value',
+                name: 'value',
+                type: 'number',
+                typeOptions: {
+                    minValue: 0,
+                    maxValue: 1000,
+                },
+                displayOptions: {
+                    show: {
+                        mode: ['everyX'],
+                    },
+                },
+                default: 2,
+                description: 'All how many X minutes/hours it should trigger',
+            },
+            {
+                displayName: 'Unit',
+                name: 'unit',
+                type: 'options',
+                displayOptions: {
+                    show: {
+                        mode: ['everyX'],
+                    },
+                },
+                options: [
+                    {
+                        name: 'Minutes',
+                        value: 'minutes',
+                    },
+                    {
+                        name: 'Hours',
+                        value: 'hours',
+                    },
+                ],
+                default: 'hours',
+                description: 'If it should trigger all X minutes or hours',
+            },
+        ],
+    },
+];
+/**
+ * Determines if the provided node type has any output types other than the main connection type.
+ * @param typeDescription The node's type description to check.
+ */
+export function isSubNodeType(typeDescription) {
+    if (!typeDescription?.outputs || typeof typeDescription.outputs === 'string') {
+        return false;
+    }
+    const outputTypes = getConnectionTypes(typeDescription.outputs);
+    return outputTypes
+        ? outputTypes.filter((output) => output !== NodeConnectionTypes.Main).length > 0
+        : false;
+}
+/**
+ * Evaluates a feature condition against a node version.
+ * @param featureDef The feature condition definition
+ * @param nodeVersion The node version to evaluate against
+ * @returns true if the feature is enabled, false otherwise
+ */
+function evaluateFeature(featureDef, nodeVersion) {
+    return checkConditions(featureDef['@version'], [nodeVersion]);
+}
+/**
+ * Evaluates all feature definitions for a node type and returns the computed features.
+ * @param featuresDef The feature definitions from the node type description
+ * @param nodeVersion The node version to evaluate against
+ * @returns A record of feature names to their enabled state
+ */
+export function getNodeFeatures(featuresDef, nodeVersion) {
+    if (!featuresDef) {
+        return {};
+    }
+    const features = {};
+    for (const [featureName, condition] of Object.entries(featuresDef)) {
+        features[featureName] = evaluateFeature(condition, nodeVersion);
+    }
+    return features;
+}
+const getPropertyValues = (nodeValues, propertyName, node, nodeTypeDescription, nodeValuesRoot) => {
+    let value;
+    if (propertyName.charAt(0) === '/') {
+        // Get the value from the root of the node
+        value = get(nodeValuesRoot, propertyName.slice(1));
+    }
+    else if (propertyName === '@version') {
+        value = node?.typeVersion || 0;
+    }
+    else if (propertyName === '@tool') {
+        value = nodeTypeDescription?.name.endsWith('Tool') ?? false;
+    }
+    else if (propertyName === '@feature') {
+        if (!nodeTypeDescription?.features || !node?.typeVersion) {
+            return [];
+        }
+        const features = getNodeFeatures(nodeTypeDescription.features, node.typeVersion);
+        return Object.entries(features)
+            .filter(([_, enabled]) => enabled)
+            .map(([name]) => name);
+    }
+    else {
+        // Get the value from current level
+        value = get(nodeValues, propertyName);
+    }
+    if (value && typeof value === 'object' && '__rl' in value && value.__rl) {
+        value = value.value;
+    }
+    if (!Array.isArray(value)) {
+        return [value];
+    }
+    else {
+        return value;
+    }
+};
+export const checkConditions = (conditions, actualValues) => {
+    return conditions.some((condition) => {
+        if (condition &&
+            typeof condition === 'object' &&
+            condition._cnd &&
+            Object.keys(condition).length === 1) {
+            const [key, targetValue] = Object.entries(condition._cnd)[0];
+            // Special case: empty array handling
+            if (actualValues.length === 0) {
+                if (key === 'not')
+                    return true; // Value is not present, so 'not' is true
+                return false; // For all other keys, empty array means condition is not met
+            }
+            return actualValues.every((propertyValue) => {
+                if (key === 'eq') {
+                    return isEqual(propertyValue, targetValue);
+                }
+                if (key === 'not') {
+                    return !isEqual(propertyValue, targetValue);
+                }
+                if (key === 'gte') {
+                    return propertyValue >= targetValue;
+                }
+                if (key === 'lte') {
+                    return propertyValue <= targetValue;
+                }
+                if (key === 'gt') {
+                    return propertyValue > targetValue;
+                }
+                if (key === 'lt') {
+                    return propertyValue < targetValue;
+                }
+                if (key === 'between') {
+                    const { from, to } = targetValue;
+                    return propertyValue >= from && propertyValue <= to;
+                }
+                if (key === 'includes') {
+                    return typeof propertyValue === 'string' && propertyValue.includes(targetValue);
+                }
+                if (key === 'startsWith') {
+                    return (typeof propertyValue === 'string' && propertyValue.startsWith(targetValue));
+                }
+                if (key === 'endsWith') {
+                    return typeof propertyValue === 'string' && propertyValue.endsWith(targetValue);
+                }
+                if (key === 'regex') {
+                    return (typeof propertyValue === 'string' &&
+                        new RegExp(targetValue).test(propertyValue));
+                }
+                if (key === 'exists') {
+                    return propertyValue !== null && propertyValue !== undefined && propertyValue !== '';
+                }
+                return false;
+            });
+        }
+        return actualValues.includes(condition);
+    });
+};
+/**
+ * Returns if the parameter should be displayed or not
+ *
+ * @param {INodeParameters} nodeValues The data on the node which decides if the parameter
+ *                                    should be displayed
+ * @param {(INodeProperties | INodeCredentialDescription)} parameter The parameter to check if it should be displayed
+ * @param {INodeParameters} [nodeValuesRoot] The root node-parameter-data
+ */
+export function displayParameter(nodeValues, parameter, node, // Allow null as it does also get used by credentials and they do not have versioning yet
+nodeTypeDescription, nodeValuesRoot, displayKey = 'displayOptions') {
+    if (!parameter[displayKey]) {
+        return true;
+    }
+    const { show, hide } = parameter[displayKey];
+    nodeValuesRoot = nodeValuesRoot || nodeValues;
+    if (show) {
+        // All the defined rules have to match to display parameter
+        for (const propertyName of Object.keys(show)) {
+            const values = getPropertyValues(nodeValues, propertyName, node, nodeTypeDescription, nodeValuesRoot);
+            if (values.some((v) => typeof v === 'string' && v.charAt(0) === '=')) {
+                return true;
+            }
+            if (!checkConditions(show[propertyName], values)) {
+                return false;
+            }
+        }
+    }
+    if (hide) {
+        // Any of the defined hide rules have to match to hide the parameter
+        for (const propertyName of Object.keys(hide)) {
+            const values = getPropertyValues(nodeValues, propertyName, node, nodeTypeDescription, nodeValuesRoot);
+            if (values.length !== 0 && checkConditions(hide[propertyName], values)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+/**
+ * Returns if the given parameter should be displayed or not considering the path
+ * to the properties
+ *
+ * @param {INodeParameters} nodeValues The data on the node which decides if the parameter
+ *                                    should be displayed
+ * @param {(INodeProperties | INodeCredentialDescription)} parameter The parameter to check if it should be displayed
+ * @param {string} path The path to the property
+ */
+export function displayParameterPath(nodeValues, parameter, path, node, nodeTypeDescription, displayKey = 'displayOptions') {
+    let resolvedNodeValues = nodeValues;
+    if (path !== '') {
+        resolvedNodeValues = get(nodeValues, path);
+    }
+    // Get the root parameter data
+    let nodeValuesRoot = nodeValues;
+    if (path && path.split('.').indexOf('parameters') === 0) {
+        nodeValuesRoot = get(nodeValues, 'parameters');
+    }
+    return displayParameter(resolvedNodeValues, parameter, node, nodeTypeDescription, nodeValuesRoot, displayKey);
+}
+/**
+ * Returns the context data
+ *
+ * @param {IRunExecutionData} runExecutionData The run execution data
+ * @param {string} type The data type. "node"/"flow"
+ * @param {INode} [node] If type "node" is set the node to return the context of has to be supplied
+ */
+export function getContext(runExecutionData, type, node) {
+    if (runExecutionData.executionData === undefined) {
+        // TODO: Should not happen leave it for test now
+        throw new UnexpectedError('`executionData` is not initialized');
+    }
+    let key;
+    if (type === 'flow') {
+        key = 'flow';
+    }
+    else if (type === 'node') {
+        if (node === undefined) {
+            // @TODO: What does this mean?
+            throw new UnexpectedError('The request data of context type "node" the node parameter has to be set!');
+        }
+        key = `node:${node.name}`;
+    }
+    else {
+        throw new UnexpectedError('Unknown context type. Only `flow` and `node` are supported.', {
+            extra: { contextType: type },
+        });
+    }
+    if (runExecutionData.executionData.contextData[key] === undefined) {
+        runExecutionData.executionData.contextData[key] = {};
+    }
+    return runExecutionData.executionData.contextData[key];
+}
+/**
+ * Returns which parameters are dependent on which
+ */
+function getParameterDependencies(nodePropertiesArray) {
+    const dependencies = {};
+    for (const nodeProperties of nodePropertiesArray) {
+        const { name, displayOptions } = nodeProperties;
+        if (!dependencies[name]) {
+            dependencies[name] = [];
+        }
+        if (!displayOptions) {
+            // Does not have any dependencies
+            continue;
+        }
+        for (const displayRule of Object.values(displayOptions)) {
+            for (const parameterName of Object.keys(displayRule)) {
+                if (!dependencies[name].includes(parameterName)) {
+                    if (parameterName.charAt(0) === '@') {
+                        // Is a special parameter so can be skipped
+                        continue;
+                    }
+                    dependencies[name].push(parameterName);
+                }
+            }
+        }
+    }
+    return dependencies;
+}
+/**
+ * Returns in which order the parameters should be resolved
+ * to have the parameters available they depend on
+ */
+function getParameterResolveOrder(nodePropertiesArray, parameterDependencies) {
+    const executionOrder = [];
+    const indexToResolve = Array.from({ length: nodePropertiesArray.length }, (_, k) => k);
+    const resolvedParameters = [];
+    let index;
+    let property;
+    let lastIndexLength = indexToResolve.length;
+    let lastIndexReduction = -1;
+    let iterations = 0;
+    while (indexToResolve.length !== 0) {
+        iterations += 1;
+        index = indexToResolve.shift();
+        property = nodePropertiesArray[index];
+        if (parameterDependencies[property.name].length === 0) {
+            // Does not have any dependencies so simply add
+            executionOrder.push(index);
+            resolvedParameters.push(property.name);
+            continue;
+        }
+        // Parameter has dependencies
+        for (const dependency of parameterDependencies[property.name]) {
+            if (!resolvedParameters.includes(dependency)) {
+                if (dependency.charAt(0) === '/') {
+                    // Assume that root level dependencies are resolved
+                    continue;
+                }
+                // Dependencies for that parameter are still missing so
+                // try to add again later
+                indexToResolve.push(index);
+                continue;
+            }
+        }
+        // All dependencies got found so add
+        executionOrder.push(index);
+        resolvedParameters.push(property.name);
+        if (indexToResolve.length < lastIndexLength) {
+            lastIndexReduction = iterations;
+        }
+        if (iterations > lastIndexReduction + nodePropertiesArray.length) {
+            throw new UserError('Could not resolve parameter dependencies. Max iterations reached! Hint: If `displayOptions` are specified in any child parameter of a parent `collection` or `fixedCollection`, remove the `displayOptions` from the child parameter.');
+        }
+        lastIndexLength = indexToResolve.length;
+    }
+    return executionOrder;
+}
+/**
+ * Returns the node parameter values. Depending on the settings it either just returns the none
+ * default values or it applies all the default values.
+ *
+ * @param {INodeProperties[]} nodePropertiesArray The properties which exist and their settings
+ * @param {INodeParameters} nodeValues The node parameter data
+ * @param {boolean} returnDefaults If default values get added or only none default values returned
+ * @param {boolean} returnNoneDisplayed If also values which should not be displayed should be returned
+ * @param {GetNodeParametersOptions} options Optional properties
+ */
+// eslint-disable-next-line complexity
+export function getNodeParameters(nodePropertiesArray, nodeValues, returnDefaults, returnNoneDisplayed, node, nodeTypeDescription, options) {
+    let { nodeValuesRoot, parameterDependencies } = options ?? {};
+    const { onlySimpleTypes = false, dataIsResolved = false, parentType } = options ?? {};
+    if (parameterDependencies === undefined) {
+        parameterDependencies = getParameterDependencies(nodePropertiesArray);
+    }
+    // Get the parameter names which get used multiple times as for this
+    // ones we have to always check which ones get displayed and which ones not
+    const duplicateParameterNames = [];
+    const parameterNames = [];
+    for (const nodeProperties of nodePropertiesArray) {
+        if (parameterNames.includes(nodeProperties.name)) {
+            if (!duplicateParameterNames.includes(nodeProperties.name)) {
+                duplicateParameterNames.push(nodeProperties.name);
+            }
+        }
+        else {
+            parameterNames.push(nodeProperties.name);
+        }
+    }
+    const nodeParameters = {};
+    const nodeParametersFull = {};
+    let nodeValuesDisplayCheck = nodeParametersFull;
+    if (!dataIsResolved && !returnNoneDisplayed) {
+        nodeValuesDisplayCheck = getNodeParameters(nodePropertiesArray, nodeValues, true, true, node, nodeTypeDescription, {
+            onlySimpleTypes: true,
+            dataIsResolved: true,
+            nodeValuesRoot,
+            parentType,
+            parameterDependencies,
+        });
+    }
+    nodeValuesRoot = nodeValuesRoot || nodeValuesDisplayCheck;
+    // Go through the parameters in order of their dependencies
+    const parameterIterationOrderIndex = getParameterResolveOrder(nodePropertiesArray, parameterDependencies);
+    for (const parameterIndex of parameterIterationOrderIndex) {
+        const nodeProperties = nodePropertiesArray[parameterIndex];
+        if (!nodeValues ||
+            (nodeValues[nodeProperties.name] === undefined &&
+                (!returnDefaults || parentType === 'collection'))) {
+            // The value is not defined so go to the next
+            continue;
+        }
+        if (!returnNoneDisplayed &&
+            !displayParameter(nodeValuesDisplayCheck, nodeProperties, node, nodeTypeDescription, nodeValuesRoot)) {
+            if (!returnNoneDisplayed || !returnDefaults) {
+                continue;
+            }
+        }
+        if (!['collection', 'fixedCollection'].includes(nodeProperties.type)) {
+            // Is a simple property so can be set as it is
+            if (duplicateParameterNames.includes(nodeProperties.name)) {
+                if (!displayParameter(nodeValuesDisplayCheck, nodeProperties, node, nodeTypeDescription, nodeValuesRoot)) {
+                    continue;
+                }
+            }
+            if (returnDefaults) {
+                // Set also when it has the default value
+                if (['boolean', 'number', 'options'].includes(nodeProperties.type)) {
+                    // Boolean, numbers and options are special as false and 0 are valid values
+                    // and should not be replaced with default value
+                    nodeParameters[nodeProperties.name] =
+                        nodeValues[nodeProperties.name] !== undefined
+                            ? deepCopy(nodeValues[nodeProperties.name])
+                            : nodeProperties.default;
+                }
+                else if (nodeProperties.type === 'resourceLocator' &&
+                    typeof nodeProperties.default === 'object') {
+                    nodeParameters[nodeProperties.name] =
+                        nodeValues[nodeProperties.name] !== undefined
+                            ? deepCopy(nodeValues[nodeProperties.name])
+                            : { __rl: true, ...nodeProperties.default };
+                }
+                else if (
+                // Filter parameters may be missing "combinator" or "options" and
+                // still be considered valid (e.g. happens when generated by AI).
+                // this patches in the same way the UI does in FilterConditions.vue
+                nodeProperties.type === 'filter' &&
+                    nodeValues[nodeProperties.name] !== undefined &&
+                    typeof nodeValues[nodeProperties.name] === 'object' &&
+                    nodeValues[nodeProperties.name] !== null) {
+                    const defaultOptions = {
+                        caseSensitive: true,
+                        leftValue: '',
+                        typeValidation: 'strict',
+                        version: 1,
+                    };
+                    const filter = deepCopy(nodeValues[nodeProperties.name]);
+                    filter.combinator ??= 'and';
+                    filter.options = { ...defaultOptions, ...filter.options };
+                    nodeParameters[nodeProperties.name] = filter;
+                }
+                else {
+                    nodeParameters[nodeProperties.name] =
+                        deepCopy(nodeValues[nodeProperties.name]) ?? nodeProperties.default;
+                }
+                nodeParametersFull[nodeProperties.name] = nodeParameters[nodeProperties.name];
+            }
+            else if ((nodeValues[nodeProperties.name] !== nodeProperties.default &&
+                typeof nodeValues[nodeProperties.name] !== 'object') ||
+                (typeof nodeValues[nodeProperties.name] === 'object' &&
+                    !isEqual(nodeValues[nodeProperties.name], nodeProperties.default)) ||
+                (nodeValues[nodeProperties.name] !== undefined && parentType === 'collection')) {
+                // Set only if it is different to the default value
+                nodeParameters[nodeProperties.name] = deepCopy(nodeValues[nodeProperties.name]);
+                nodeParametersFull[nodeProperties.name] = nodeParameters[nodeProperties.name];
+                continue;
+            }
+            // Strip expression prefix if noDataExpression is true
+            if (nodeProperties.noDataExpression && nodeParameters[nodeProperties.name] !== undefined) {
+                const value = nodeParameters[nodeProperties.name];
+                // A lone $fromAI() placeholder must keep its "=" or the AI tool call never resolves it (#30531)
+                if (isExpression(value) && !isFromAIOnlyExpression(value)) {
+                    nodeParameters[nodeProperties.name] = value.slice(1);
+                    nodeParametersFull[nodeProperties.name] = nodeParameters[nodeProperties.name];
+                }
+            }
+        }
+        if (onlySimpleTypes) {
+            // It is only supposed to resolve the simple types. So continue.
+            continue;
+        }
+        // Is a complex property so check lower levels
+        let tempValue;
+        if (nodeProperties.type === 'collection') {
+            // Is collection
+            if (nodeProperties.typeOptions !== undefined &&
+                nodeProperties.typeOptions.multipleValues === true) {
+                // Multiple can be set so will be an array
+                // Return directly the values like they are
+                if (nodeValues[nodeProperties.name] !== undefined) {
+                    nodeParameters[nodeProperties.name] = deepCopy(nodeValues[nodeProperties.name]);
+                }
+                else if (returnDefaults) {
+                    // Does not have values defined but defaults should be returned
+                    if (Array.isArray(nodeProperties.default)) {
+                        nodeParameters[nodeProperties.name] = deepCopy(nodeProperties.default);
+                    }
+                    else {
+                        // As it is probably wrong for many nodes, do we keep on returning an empty array if
+                        // anything else than an array is set as default
+                        nodeParameters[nodeProperties.name] = [];
+                    }
+                }
+                nodeParametersFull[nodeProperties.name] = nodeParameters[nodeProperties.name];
+            }
+            else if (nodeValues[nodeProperties.name] !== undefined) {
+                // Has values defined so get them
+                const tempNodeParameters = getNodeParameters(nodeProperties.options, nodeValues[nodeProperties.name], returnDefaults, returnNoneDisplayed, node, nodeTypeDescription, {
+                    onlySimpleTypes: false,
+                    dataIsResolved: false,
+                    nodeValuesRoot,
+                    parentType: nodeProperties.type,
+                });
+                if (tempNodeParameters !== null) {
+                    nodeParameters[nodeProperties.name] = tempNodeParameters;
+                    nodeParametersFull[nodeProperties.name] = nodeParameters[nodeProperties.name];
+                }
+            }
+            else if (returnDefaults) {
+                // Does not have values defined but defaults should be returned
+                nodeParameters[nodeProperties.name] = deepCopy(nodeProperties.default);
+                nodeParametersFull[nodeProperties.name] = nodeParameters[nodeProperties.name];
+            }
+        }
+        else if (nodeProperties.type === 'fixedCollection') {
+            // Is fixedCollection
+            const collectionValues = {};
+            let tempNodeParameters;
+            let tempNodePropertiesArray;
+            let nodePropertyOptions;
+            let propertyValues = deepCopy(nodeValues[nodeProperties.name]);
+            if (returnDefaults) {
+                if (propertyValues === undefined) {
+                    propertyValues = deepCopy(nodeProperties.default);
+                }
+            }
+            if (!returnDefaults &&
+                nodeProperties.typeOptions?.multipleValues === false &&
+                propertyValues &&
+                Object.keys(propertyValues).length === 0) {
+                // For fixedCollections, which only allow one value, it is important to still return
+                // the empty object which indicates that a value got added, even if it does not have
+                // anything set. If that is not done, the value would get lost.
+                return deepCopy(nodeValues);
+            }
+            // Track if any visible fields were processed across all collection items
+            let hadAnyVisibleFields = false;
+            // Iterate over all collections
+            for (const itemName of Object.keys(propertyValues || {})) {
+                if (nodeProperties.typeOptions !== undefined &&
+                    nodeProperties.typeOptions.multipleValues === true) {
+                    // Multiple can be set so will be an array
+                    const tempArrayValue = [];
+                    // Collection values should always be an object
+                    if (typeof propertyValues !== 'object' || Array.isArray(propertyValues)) {
+                        continue;
+                    }
+                    nodePropertyOptions = nodeProperties.options.find((nodePropertyOptions) => nodePropertyOptions.name === itemName);
+                    if (nodePropertyOptions === undefined) {
+                        continue;
+                    }
+                    // Iterate over all items as it contains multiple ones
+                    for (const nodeValue of propertyValues[itemName]) {
+                        tempNodePropertiesArray = nodePropertyOptions.values;
+                        tempValue = getNodeParameters(tempNodePropertiesArray, nodeValue, returnDefaults, returnNoneDisplayed, node, nodeTypeDescription, {
+                            onlySimpleTypes: false,
+                            dataIsResolved: false,
+                            nodeValuesRoot,
+                            parentType: nodeProperties.type,
+                        });
+                        if (tempValue !== null) {
+                            tempArrayValue.push(tempValue);
+                        }
+                    }
+                    collectionValues[itemName] = tempArrayValue;
+                }
+                else {
+                    // Only one can be set so is an object of objects
+                    tempNodeParameters = {};
+                    let hadVisibleFields = false;
+                    // Get the options of the current item
+                    const nodePropertyOptions = nodeProperties.options.find((data) => data.name === itemName);
+                    if (nodePropertyOptions !== undefined) {
+                        tempNodePropertiesArray = nodePropertyOptions.values;
+                        const itemNodeValues = nodeValues[nodeProperties.name][itemName];
+                        tempValue = getNodeParameters(tempNodePropertiesArray, itemNodeValues, returnDefaults, returnNoneDisplayed, node, nodeTypeDescription, {
+                            onlySimpleTypes: false,
+                            dataIsResolved: false,
+                            nodeValuesRoot,
+                            parentType: nodeProperties.type,
+                        });
+                        if (tempValue !== null) {
+                            Object.assign(tempNodeParameters, tempValue);
+                            if (Object.keys(tempValue).length > 0) {
+                                // tempValue has content, so fields are visible
+                                hadVisibleFields = true;
+                                hadAnyVisibleFields = true;
+                            }
+                            else {
+                                // tempValue is empty. Check if user provided non-default values that got filtered
+                                const hasNonDefaultValues = itemNodeValues &&
+                                    Object.keys(itemNodeValues).some((key) => {
+                                        const field = tempNodePropertiesArray.find((f) => f.name === key);
+                                        return field && !isEqual(itemNodeValues[key], field.default);
+                                    });
+                                if (!hasNonDefaultValues) {
+                                    // All values are defaults, so the collection is explicitly added with default values
+                                    // We should preserve this (GitHub case)
+                                    hadVisibleFields = true;
+                                    hadAnyVisibleFields = true;
+                                }
+                                // If hasNonDefaultValues is true, values were filtered by displayOptions (test case)
+                                // So we don't set hadVisibleFields
+                            }
+                        }
+                    }
+                    if (Object.keys(tempNodeParameters).length !== 0) {
+                        collectionValues[itemName] = tempNodeParameters;
+                    }
+                    else if (!returnDefaults &&
+                        hadVisibleFields &&
+                        propertyValues &&
+                        propertyValues[itemName] !== undefined) {
+                        // Preserve explicitly set empty collections when the user added an option
+                        // that contains only default values. Only preserve if there were visible fields
+                        // (hadVisibleFields), otherwise the collection is empty because all fields
+                        // are hidden by displayOptions.
+                        collectionValues[itemName] = tempNodeParameters;
+                    }
+                }
+            }
+            if (!returnDefaults &&
+                hadAnyVisibleFields &&
+                nodeProperties.typeOptions?.multipleValues === false &&
+                collectionValues &&
+                Object.keys(collectionValues).length === 0 &&
+                propertyValues &&
+                propertyValues?.constructor.name === 'Object' &&
+                Object.keys(propertyValues).length !== 0) {
+                // For fixedCollections, which only allow one value, it is important to still return
+                // the object with an empty collection property which indicates that a value got added
+                // which contains all default values. Only preserve if there were visible fields,
+                // otherwise the collection is empty because all fields are hidden by displayOptions.
+                const returnValue = {};
+                Object.keys(propertyValues || {}).forEach((value) => {
+                    returnValue[value] = {};
+                });
+                nodeParameters[nodeProperties.name] = returnValue;
+            }
+            if (Object.keys(collectionValues).length !== 0 || returnDefaults) {
+                // Set only if value got found
+                if (returnDefaults) {
+                    // Set also when it has the default value
+                    if (collectionValues === undefined) {
+                        nodeParameters[nodeProperties.name] = deepCopy(nodeProperties.default);
+                    }
+                    else {
+                        nodeParameters[nodeProperties.name] = collectionValues;
+                    }
+                    nodeParametersFull[nodeProperties.name] = nodeParameters[nodeProperties.name];
+                }
+                else if (collectionValues !== nodeProperties.default) {
+                    // Set only if values got found and it is not the default
+                    nodeParameters[nodeProperties.name] = collectionValues;
+                    nodeParametersFull[nodeProperties.name] = nodeParameters[nodeProperties.name];
+                }
+            }
+        }
+    }
+    return nodeParameters;
+}
+/**
+ * Returns the webhook path
+ */
+export function getNodeWebhookPath(workflowId, node, path, isFullPath, restartWebhook) {
+    let webhookPath = '';
+    if (restartWebhook === true) {
+        return path;
+    }
+    if (node.webhookId === undefined) {
+        const nodeName = encodeURIComponent(node.name.toLowerCase());
+        webhookPath = `${workflowId}/${nodeName}/${path}`;
+    }
+    else {
+        if (isFullPath === true) {
+            return path || node.webhookId;
+        }
+        webhookPath = `${node.webhookId}/${path}`;
+    }
+    return webhookPath;
+}
+/**
+ * Returns the webhook URL
+ */
+export function getNodeWebhookUrl(baseUrl, workflowId, node, path, isFullPath) {
+    if ((path.startsWith(':') || path.includes('/:')) && node.webhookId) {
+        // setting this to false to prefix the webhookId
+        isFullPath = false;
+    }
+    if (path.startsWith('/')) {
+        path = path.slice(1);
+    }
+    return `${baseUrl}/${getNodeWebhookPath(workflowId, node, path, isFullPath)}`;
+}
+/**
+ * Assigns a webhookId to a node if its type has webhook definitions
+ * and the node doesn't already have one.
+ */
+export function resolveNodeWebhookId(node, nodeTypeDescription) {
+    if (nodeTypeDescription.webhooks?.length && !node.webhookId) {
+        node.webhookId = uuid();
+    }
+}
+export function getConnectionTypes(connections) {
+    return connections
+        .map((connection) => {
+        if (typeof connection === 'string') {
+            return connection;
+        }
+        return connection.type;
+    })
+        .filter((connection) => connection !== undefined);
+}
+export function getNodeInputs(workflow, node, nodeTypeData) {
+    if (Array.isArray(nodeTypeData?.inputs)) {
+        return nodeTypeData.inputs;
+    }
+    // Calculate the outputs dynamically
+    try {
+        return (workflow.expression.getSimpleParameterValue(node, nodeTypeData.inputs, 'internal', {}) || []);
+    }
+    catch (e) {
+        console.warn('Could not calculate inputs dynamically for node: ', node.name);
+        return [];
+    }
+}
+export function getNodeOutputs(workflow, node, nodeTypeData) {
+    let outputs = [];
+    if (!nodeTypeData) {
+        return [];
+    }
+    if (Array.isArray(nodeTypeData.outputs)) {
+        outputs = nodeTypeData.outputs;
+    }
+    else {
+        // Calculate the outputs dynamically
+        try {
+            const result = workflow.expression.getSimpleParameterValue(node, nodeTypeData.outputs, 'internal', {});
+            outputs = Array.isArray(result)
+                ? result
+                : [];
+        }
+        catch (e) {
+            console.warn('Could not calculate outputs dynamically for node: ', node.name);
+        }
+    }
+    if (node.onError === 'continueErrorOutput') {
+        // Copy the data to make sure that we do not change the data of the
+        // node type and so change the displayNames for all nodes in the flow
+        outputs = deepCopy(outputs);
+        if (outputs.length === 1) {
+            // Set the displayName to "Success"
+            if (typeof outputs[0] === 'string') {
+                outputs[0] = {
+                    type: outputs[0],
+                };
+            }
+            outputs[0].displayName = 'Success';
+        }
+        return [
+            ...outputs,
+            {
+                category: 'error',
+                type: NodeConnectionTypes.Main,
+                displayName: 'Error',
+            },
+        ];
+    }
+    return outputs;
+}
+/**
+ * Returns all the parameter-issues of the node
+ *
+ * @param {INodeProperties[]} nodePropertiesArray The properties of the node
+ * @param {INode} node The data of the node
+ */
+export function getNodeParametersIssues(nodePropertiesArray, node, nodeTypeDescription, pinDataNodeNames) {
+    const foundIssues = {};
+    let propertyIssues;
+    if (node.disabled === true || pinDataNodeNames?.includes(node.name)) {
+        // Ignore issues on disabled and pindata nodes
+        return null;
+    }
+    for (const nodeProperty of nodePropertiesArray) {
+        propertyIssues = getParameterIssues(nodeProperty, node.parameters, '', node, nodeTypeDescription);
+        mergeIssues(foundIssues, propertyIssues);
+    }
+    if (Object.keys(foundIssues).length === 0) {
+        return null;
+    }
+    return foundIssues;
+}
+/**
+ * Returns the node's issues as a flat list of human-readable strings,
+ * covering execution errors, parameter/credential/input issues, and unknown node types.
+ */
+export function nodeIssuesToString(issues, node) {
+    const messages = [];
+    if (issues.execution !== undefined) {
+        messages.push('Execution Error.');
+    }
+    for (const propertyIssues of [issues.parameters, issues.credentials, issues.input]) {
+        if (propertyIssues === undefined)
+            continue;
+        for (const parameterName of Object.keys(propertyIssues)) {
+            messages.push(...propertyIssues[parameterName]);
+        }
+    }
+    if (issues.typeUnknown !== undefined) {
+        messages.push(node !== undefined ? `Node Type "${node.type}" is not known.` : 'Node Type is not known.');
+    }
+    return messages;
+}
+/*
+ * Validates resource locator node parameters based on validation ruled defined in each parameter mode
+ */
+const validateResourceLocatorParameter = (value, parameterMode) => {
+    const valueToValidate = value?.value?.toString() || '';
+    if (valueToValidate.startsWith('=')) {
+        return [];
+    }
+    const validationErrors = [];
+    // Each mode can have multiple validations specified
+    if (parameterMode.validation) {
+        for (const validation of parameterMode.validation) {
+            if (validation && validation.type === 'regex') {
+                const regexValidation = validation;
+                const regex = new RegExp(`^${regexValidation.properties.regex}$`);
+                if (!regex.test(valueToValidate)) {
+                    validationErrors.push(regexValidation.properties.errorMessage);
+                }
+            }
+        }
+    }
+    return validationErrors;
+};
+/*
+ * Validates resource mapper values based on service schema
+ */
+const validateResourceMapperParameter = (nodeProperties, value, skipRequiredCheck = false) => {
+    // No issues to raise in automatic mapping mode, no user input to validate
+    if (value.mappingMode === 'autoMapInputData') {
+        return {};
+    }
+    const issues = {};
+    let fieldWordSingular = nodeProperties.typeOptions?.resourceMapper?.fieldWords?.singular || 'Field';
+    fieldWordSingular = fieldWordSingular.charAt(0).toUpperCase() + fieldWordSingular.slice(1);
+    value.schema.forEach((field) => {
+        const fieldValue = value.value ? value.value[field.id] : null;
+        const key = `${nodeProperties.name}.${field.id}`;
+        const fieldErrors = [];
+        if (field.required && !skipRequiredCheck) {
+            if (value.value === null || fieldValue === undefined) {
+                const error = `${fieldWordSingular} "${field.id}" is required`;
+                fieldErrors.push(error);
+            }
+        }
+        if (!fieldValue?.toString().startsWith('=') && field.type) {
+            const validationResult = validateFieldType(field.id, fieldValue, field.type, {
+                valueOptions: field.options,
+            });
+            if (!validationResult.valid && validationResult.errorMessage) {
+                fieldErrors.push(validationResult.errorMessage);
+            }
+        }
+        if (fieldErrors.length > 0) {
+            issues[key] = fieldErrors;
+        }
+    });
+    return issues;
+};
+const validateParameter = (nodeProperties, value, type) => {
+    const nodeName = nodeProperties.name;
+    const options = type === 'options' ? nodeProperties.options : undefined;
+    if (!value?.toString().startsWith('=')) {
+        const validationResult = validateFieldType(nodeName, value, type, {
+            valueOptions: options,
+        });
+        if (!validationResult.valid && validationResult.errorMessage) {
+            return validationResult.errorMessage;
+        }
+    }
+    return undefined;
+};
+/**
+ * Adds an issue if the parameter is not defined
+ *
+ * @param {INodeIssues} foundIssues The already found issues
+ * @param {INodeProperties} nodeProperties The properties of the node
+ * @param {NodeParameterValue} value The value of the parameter
+ */
+function addToIssuesIfMissing(foundIssues, nodeProperties, value) {
+    // TODO: Check what it really has when undefined
+    if ((nodeProperties.type === 'string' && (value === '' || value === undefined)) ||
+        (nodeProperties.type === 'multiOptions' && Array.isArray(value) && value.length === 0) ||
+        (nodeProperties.type === 'dateTime' && (value === '' || value === undefined)) ||
+        (nodeProperties.type === 'options' && (value === '' || value === undefined)) ||
+        ((nodeProperties.type === 'resourceLocator' || nodeProperties.type === 'workflowSelector') &&
+            !isValidResourceLocatorParameterValue(value))) {
+        // Parameter is required but empty
+        if (foundIssues.parameters === undefined) {
+            foundIssues.parameters = {};
+        }
+        if (foundIssues.parameters[nodeProperties.name] === undefined) {
+            foundIssues.parameters[nodeProperties.name] = [];
+        }
+        foundIssues.parameters[nodeProperties.name].push(`Parameter "${nodeProperties.displayName}" is required.`);
+    }
+}
+/**
+ * Returns the parameter value
+ *
+ * @param {INodeParameters} nodeValues The values of the node
+ * @param {string} parameterName The name of the parameter to return the value of
+ * @param {string} path The path to the properties
+ */
+export function getParameterValueByPath(nodeValues, parameterName, path) {
+    return get(nodeValues, path ? `${path}.${parameterName}` : parameterName);
+}
+function isINodeParameterResourceLocator(value) {
+    return typeof value === 'object' && value !== null && 'value' in value && 'mode' in value;
+}
+/**
+ * Returns all the issues with the given node-values
+ *
+ * @param {INodeProperties} nodeProperties The properties of the node
+ * @param {INodeParameters} nodeValues The values of the node
+ * @param {string} path The path to the properties
+ */
+// eslint-disable-next-line complexity
+export function getParameterIssues(nodeProperties, nodeValues, path, node, nodeTypeDescription) {
+    const foundIssues = {};
+    const isDisplayed = displayParameterPath(nodeValues, nodeProperties, path, node, nodeTypeDescription);
+    if (nodeProperties.required === true) {
+        if (isDisplayed) {
+            const value = getParameterValueByPath(nodeValues, nodeProperties.name, path);
+            if (
+            // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+            nodeProperties.typeOptions !== undefined &&
+                nodeProperties.typeOptions.multipleValues !== undefined) {
+                // Multiple can be set so will be an array
+                if (Array.isArray(value)) {
+                    for (const singleValue of value) {
+                        addToIssuesIfMissing(foundIssues, nodeProperties, singleValue);
+                    }
+                }
+            }
+            else {
+                // Only one can be set so will be a single value
+                addToIssuesIfMissing(foundIssues, nodeProperties, value);
+            }
+        }
+    }
+    if ((nodeProperties.type === 'resourceLocator' || nodeProperties.type === 'workflowSelector') &&
+        isDisplayed) {
+        const value = getParameterValueByPath(nodeValues, nodeProperties.name, path);
+        if (isINodeParameterResourceLocator(value)) {
+            const mode = nodeProperties.modes?.find((option) => option.name === value.mode);
+            if (mode) {
+                const errors = validateResourceLocatorParameter(value, mode);
+                errors.forEach((error) => {
+                    if (foundIssues.parameters === undefined) {
+                        foundIssues.parameters = {};
+                    }
+                    if (foundIssues.parameters[nodeProperties.name] === undefined) {
+                        foundIssues.parameters[nodeProperties.name] = [];
+                    }
+                    foundIssues.parameters[nodeProperties.name].push(error);
+                });
+            }
+        }
+    }
+    else if (nodeProperties.type === 'resourceMapper' && isDisplayed) {
+        const skipRequiredCheck = nodeProperties.typeOptions?.resourceMapper?.mode !== 'add';
+        const value = getParameterValueByPath(nodeValues, nodeProperties.name, path);
+        if (isResourceMapperValue(value)) {
+            const issues = validateResourceMapperParameter(nodeProperties, value, skipRequiredCheck);
+            if (Object.keys(issues).length > 0) {
+                if (foundIssues.parameters === undefined) {
+                    foundIssues.parameters = {};
+                }
+                if (foundIssues.parameters[nodeProperties.name] === undefined) {
+                    foundIssues.parameters[nodeProperties.name] = [];
+                }
+                foundIssues.parameters = { ...foundIssues.parameters, ...issues };
+            }
+        }
+    }
+    else if (nodeProperties.type === 'filter' && isDisplayed) {
+        const value = getParameterValueByPath(nodeValues, nodeProperties.name, path);
+        if (isFilterValue(value)) {
+            const issues = validateFilterParameter(nodeProperties, value);
+            if (Object.keys(issues).length > 0) {
+                foundIssues.parameters = { ...foundIssues.parameters, ...issues };
+            }
+        }
+    }
+    else if (nodeProperties.validateType) {
+        const value = getParameterValueByPath(nodeValues, nodeProperties.name, path);
+        const error = validateParameter(nodeProperties, value, nodeProperties.validateType);
+        if (error) {
+            if (foundIssues.parameters === undefined) {
+                foundIssues.parameters = {};
+            }
+            if (foundIssues.parameters[nodeProperties.name] === undefined) {
+                foundIssues.parameters[nodeProperties.name] = [];
+            }
+            foundIssues.parameters[nodeProperties.name].push(error);
+        }
+    }
+    // Check if there are any child parameters
+    if (nodeProperties.options === undefined) {
+        // There are none so nothing else to check
+        return foundIssues;
+    }
+    // Check the child parameters
+    // Important:
+    // Checks the child properties only if the property is defined on current level.
+    // That means that the required flag works only for the current level only. If
+    // it is set on a lower level it means that the property is only required in case
+    // the parent property got set.
+    let basePath = path ? `${path}.` : '';
+    const checkChildNodeProperties = [];
+    // Collect all the properties to check
+    if (nodeProperties.type === 'collection') {
+        for (const option of nodeProperties.options) {
+            checkChildNodeProperties.push({
+                basePath,
+                data: option,
+            });
+        }
+    }
+    else if (nodeProperties.type === 'fixedCollection' && isDisplayed) {
+        basePath = basePath ? `${basePath}.` : `${nodeProperties.name}.`;
+        let propertyOptions;
+        for (propertyOptions of nodeProperties.options) {
+            // Check if the option got set and if not skip it
+            const value = getParameterValueByPath(nodeValues, propertyOptions.name, basePath.slice(0, -1));
+            // Validate allowed field counts
+            const valueArray = Array.isArray(value) ? value : [];
+            const { minRequiredFields, maxAllowedFields } = nodeProperties.typeOptions ?? {};
+            let error = '';
+            if (minRequiredFields && valueArray.length < minRequiredFields) {
+                error = `At least ${minRequiredFields} ${minRequiredFields === 1 ? 'field is' : 'fields are'} required.`;
+            }
+            if (maxAllowedFields && valueArray.length > maxAllowedFields) {
+                error = `At most ${maxAllowedFields} ${maxAllowedFields === 1 ? 'field is' : 'fields are'} allowed.`;
+            }
+            if (error) {
+                foundIssues.parameters ??= {};
+                foundIssues.parameters[nodeProperties.name] ??= [];
+                foundIssues.parameters[nodeProperties.name].push(error);
+            }
+            if (value === undefined) {
+                continue;
+            }
+            if (
+            // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+            nodeProperties.typeOptions !== undefined &&
+                nodeProperties.typeOptions.multipleValues !== undefined) {
+                // Multiple can be set so will be an array of objects
+                if (Array.isArray(value)) {
+                    for (let i = 0; i < value.length; i++) {
+                        for (const option of propertyOptions.values) {
+                            checkChildNodeProperties.push({
+                                basePath: `${basePath}${propertyOptions.name}[${i}]`,
+                                data: option,
+                            });
+                        }
+                    }
+                }
+            }
+            else {
+                // Only one can be set so will be an object
+                for (const option of propertyOptions.values) {
+                    checkChildNodeProperties.push({
+                        basePath: basePath + propertyOptions.name,
+                        data: option,
+                    });
+                }
+            }
+        }
+    }
+    else {
+        // For all other types there is nothing to check so return
+        return foundIssues;
+    }
+    let propertyIssues;
+    for (const optionData of checkChildNodeProperties) {
+        propertyIssues = getParameterIssues(optionData.data, nodeValues, optionData.basePath, node, nodeTypeDescription);
+        mergeIssues(foundIssues, propertyIssues);
+    }
+    return foundIssues;
+}
+/**
+ * Merges multiple NodeIssues together
+ *
+ * @param {INodeIssues} destination The issues to merge into
+ * @param {(INodeIssues | null)} source The issues to merge
+ */
+export function mergeIssues(destination, source) {
+    if (source === null) {
+        // Nothing to merge
+        return;
+    }
+    if (source.execution === true) {
+        destination.execution = true;
+    }
+    const objectProperties = ['parameters', 'credentials'];
+    let destinationProperty;
+    for (const propertyName of objectProperties) {
+        if (source[propertyName] !== undefined) {
+            if (destination[propertyName] === undefined) {
+                destination[propertyName] = {};
+            }
+            let parameterName;
+            for (parameterName of Object.keys(source[propertyName])) {
+                destinationProperty = destination[propertyName];
+                if (destinationProperty[parameterName] === undefined) {
+                    destinationProperty[parameterName] = [];
+                }
+                destinationProperty[parameterName].push.apply(destinationProperty[parameterName], source[propertyName][parameterName]);
+            }
+        }
+    }
+    if (source.typeUnknown === true) {
+        destination.typeUnknown = true;
+    }
+}
+/**
+ * Merges the given node properties
+ */
+export function mergeNodeProperties(mainProperties, addProperties) {
+    let existingIndex;
+    for (const property of addProperties) {
+        if (property.doNotInherit)
+            continue;
+        existingIndex = mainProperties.findIndex((element) => element.name === property.name);
+        if (existingIndex === -1) {
+            // Property does not exist yet, so add
+            mainProperties.push(property);
+        }
+        else {
+            // Property exists already, so overwrite
+            mainProperties[existingIndex] = property;
+        }
+    }
+}
+export function getVersionedNodeType(object, version) {
+    if ('nodeVersions' in object) {
+        return object.getNodeType(version);
+    }
+    return object;
+}
+export function isTriggerNode(nodeTypeData) {
+    return nodeTypeData.group.includes('trigger');
+}
+export function isExecutable(workflow, node, nodeTypeData) {
+    if (!nodeTypeData) {
+        return false;
+    }
+    const outputs = getNodeOutputs(workflow, node, nodeTypeData);
+    const outputNames = getConnectionTypes(outputs);
+    return (outputNames.includes(NodeConnectionTypes.Main) ||
+        outputNames.includes(NodeConnectionTypes.AiTool) ||
+        isTriggerNode(nodeTypeData));
+}
+export function isNodeWithWorkflowSelector(node) {
+    return [EXECUTE_WORKFLOW_NODE_TYPE, WORKFLOW_TOOL_LANGCHAIN_NODE_TYPE].includes(node.type);
+}
+/**
+ * @returns An object containing either the resolved operation's action if available,
+ * else the resource and operation if both exist.
+ * If neither can be resolved, returns an empty object.
+ */
+function resolveResourceAndOperation(nodeParameters, nodeTypeDescription) {
+    if (nodeTypeDescription.name === 'n8n-nodes-base.code') {
+        const language = nodeParameters.language;
+        const langProp = nodeTypeDescription.properties.find((p) => p.name === 'language');
+        if (langProp?.options && isINodePropertyOptionsList(langProp.options)) {
+            const found = langProp.options.find((o) => o.value === language);
+            if (found?.action)
+                return { action: found.action };
+        }
+    }
+    const resource = nodeParameters.resource;
+    const operation = nodeParameters.operation;
+    const nodeTypeOperation = nodeTypeDescription.properties.find((p) => p.name === 'operation' && p.displayOptions?.show?.resource?.includes(resource));
+    if (nodeTypeOperation?.options && isINodePropertyOptionsList(nodeTypeOperation.options)) {
+        const foundOperation = nodeTypeOperation.options.find((option) => option.value === operation);
+        if (foundOperation?.action) {
+            return { action: foundOperation.action };
+        }
+    }
+    if (resource && operation) {
+        return { operation, resource };
+    }
+    else {
+        return {};
+    }
+}
+/**
+ * Generates a human-readable description for a node based on its parameters and type definition.
+ *
+ * This function creates a descriptive string that represents what the node does,
+ * based on its resource, operation, and node type information. The description is
+ * formatted in one of the following ways:
+ *
+ * 1. "{action} in {displayName}" if the operation has a defined action
+ * 2. "{operation} {resource} in {displayName}" if resource and operation exist
+ * 3. The node type's description field as a fallback
+ */
+export function makeDescription(nodeParameters, nodeTypeDescription) {
+    const { action, operation, resource } = resolveResourceAndOperation(nodeParameters, nodeTypeDescription);
+    if (action) {
+        return `${action} in ${nodeTypeDescription.defaults.name}`;
+    }
+    if (resource && operation) {
+        return `${operation} ${resource} in ${nodeTypeDescription.defaults.name}`;
+    }
+    return nodeTypeDescription.description;
+}
+/**
+ * Trigger node types that don't have "trigger" in their name
+ * but still function as workflow entry points
+ */
+const TRIGGER_NODE_TYPES = new Set([
+    'n8n-nodes-base.webhook',
+    'n8n-nodes-base.cron', // Legacy schedule trigger
+    'n8n-nodes-base.emailReadImap', // Email polling trigger
+    'n8n-nodes-base.telegramBot', // Can act as webhook trigger
+    'n8n-nodes-base.start', // Legacy trigger
+]);
+/**
+ * Check if a node type is a trigger
+ */
+export function isTriggerNodeType(type) {
+    if (TRIGGER_NODE_TYPES.has(type)) {
+        return true;
+    }
+    return type.toLowerCase().includes('trigger');
+}
+export function isToolType(nodeType, { includeHitl = true } = {}) {
+    if (!nodeType)
+        return false;
+    const node = nodeType.split('.').pop();
+    if (node?.endsWith('Tool') || node?.startsWith('tool')) {
+        // don't check if it's hitl
+        if (includeHitl) {
+            return true;
+        }
+        return !isHitlToolType(nodeType);
+    }
+    return false;
+}
+export function isHitlToolType(nodeType) {
+    if (!nodeType)
+        return false;
+    return nodeType.endsWith('HitlTool');
+}
+export function isTool(nodeTypeDescription, parameters) {
+    // Check if node is a vector store in retrieve-as-tool mode
+    if (nodeTypeDescription.name.includes('vectorStore')) {
+        const mode = parameters.mode;
+        return mode === 'retrieve-as-tool';
+    }
+    // Check for other tool nodes
+    if (Array.isArray(nodeTypeDescription.outputs)) {
+        // Handle static outputs (array case)
+        for (const output of nodeTypeDescription.outputs) {
+            if (typeof output === 'string') {
+                return output === NodeConnectionTypes.AiTool;
+            }
+            else if (output?.type && output.type === NodeConnectionTypes.AiTool) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+/**
+ * Generates a resource and operation aware node name.
+ *
+ * Appends `in {nodeTypeDisplayName}` if nodeType is a tool
+ *
+ * 1. "{action}" if the operation has a defined action
+ * 2. "{operation} {resource}" if resource and operation exist
+ * 3. The node type's defaults.name field or displayName as a fallback
+ */
+export function makeNodeName(nodeParameters, nodeTypeDescription) {
+    // If skipNameGeneration is set, skip resource/operation resolution
+    if (nodeTypeDescription.skipNameGeneration) {
+        return nodeTypeDescription.defaults.name ?? nodeTypeDescription.displayName;
+    }
+    const { action, operation, resource } = resolveResourceAndOperation(nodeParameters, nodeTypeDescription);
+    const postfix = isTool(nodeTypeDescription, nodeParameters)
+        ? ` in ${nodeTypeDescription.defaults.name}`
+        : '';
+    if (action) {
+        return `${action}${postfix}`;
+    }
+    if (resource && operation) {
+        const operationProper = operation[0].toUpperCase() + operation.slice(1);
+        return `${operationProper} ${resource}${postfix}`;
+    }
+    return nodeTypeDescription.defaults.name ?? nodeTypeDescription.displayName;
+}
+/**
+ * Returns true if the node name is of format `<defaultNodeName>\d*` , which includes auto-renamed nodes
+ */
+export function isDefaultNodeName(name, nodeType, parameters) {
+    const currentDefaultName = makeNodeName(parameters, nodeType);
+    return name.startsWith(currentDefaultName) && /^\d*$/.test(name.slice(currentDefaultName.length));
+}
+/**
+ * Determines whether a tool description should be updated and returns the new description if needed.
+ * Returns undefined if no update is needed.
+ */
+export const getUpdatedToolDescription = (currentNodeType, newParameters, currentParameters) => {
+    if (!currentNodeType)
+        return;
+    if (newParameters?.descriptionType === 'manual' && currentParameters) {
+        const previousDescription = makeDescription(currentParameters, currentNodeType);
+        const newDescription = makeDescription(newParameters, currentNodeType);
+        if (newParameters.toolDescription === previousDescription ||
+            !newParameters.toolDescription?.toString().trim() ||
+            newParameters.toolDescription === currentNodeType.description) {
+            return newDescription;
+        }
+    }
+    return;
+};
+/**
+ * Generates a tool description for a given node based on its parameters and type.
+ *
+ * When the user-provided `toolDescription` is an n8n expression (starts with `=`),
+ * the optional `resolveToolDescription` callback is used to evaluate it against
+ * the upstream input data — matching how other tool nodes (e.g. `toolWorkflow`)
+ * resolve their description parameter via `getNodeParameter`. Without a resolver,
+ * the raw value is returned unchanged for backward compatibility.
+ */
+export function getToolDescriptionForNode(node, nodeType, resolveToolDescription) {
+    let toolDescription;
+    if (node.parameters.descriptionType === 'auto' ||
+        !node?.parameters.toolDescription?.toString().trim()) {
+        toolDescription = makeDescription(node.parameters, nodeType.description);
+    }
+    else if (node?.parameters.toolDescription) {
+        const raw = node.parameters.toolDescription;
+        if (resolveToolDescription && typeof raw === 'string' && raw.startsWith('=')) {
+            toolDescription = resolveToolDescription();
+        }
+        else {
+            toolDescription = raw;
+        }
+    }
+    else {
+        toolDescription = nodeType.description.description;
+    }
+    return toolDescription;
+}
+/**
+ * Attempts to retrieve the ID of a subworkflow from a execute workflow node.
+ */
+export function getSubworkflowId(node) {
+    if (isNodeWithWorkflowSelector(node) && isResourceLocatorValue(node.parameters.workflowId)) {
+        return node.parameters.workflowId.value;
+    }
+    return;
+}
+/**
+ * Check if a node type accepts a specific input connection type
+ * @param nodeType - The node type description
+ * @param connectionType - The connection type to check (e.g., 'main', 'ai_tool')
+ * @returns True if the node accepts the input type
+ */
+export function nodeAcceptsInputType(nodeType, connectionType) {
+    // Handle string-based inputs (expression or simple string)
+    if (typeof nodeType.inputs === 'string') {
+        return nodeType.inputs === connectionType || nodeType.inputs.includes(connectionType);
+    }
+    // Handle array-based inputs
+    if (!nodeType.inputs || !Array.isArray(nodeType.inputs)) {
+        return false;
+    }
+    return nodeType.inputs.some((input) => {
+        if (typeof input === 'string') {
+            return input === connectionType || input.includes(connectionType);
+        }
+        return input.type === connectionType;
+    });
+}
+/**
+ * Check if a node type has a specific output connection type
+ * @param nodeType - The node type description
+ * @param connectionType - The connection type to check (e.g., 'main', 'ai_tool')
+ * @returns True if the node supports the output type
+ */
+export function nodeHasOutputType(nodeType, connectionType) {
+    // Handle string-based outputs (expression or simple string)
+    if (typeof nodeType.outputs === 'string') {
+        return nodeType.outputs === connectionType || nodeType.outputs.includes(connectionType);
+    }
+    // Handle array-based outputs
+    if (!nodeType.outputs || !Array.isArray(nodeType.outputs)) {
+        return false;
+    }
+    return nodeType.outputs.some((output) => {
+        if (typeof output === 'string') {
+            return output === connectionType || output.includes(connectionType);
+        }
+        return output.type === connectionType;
+    });
+}
+//# sourceMappingURL=node-helpers.js.map

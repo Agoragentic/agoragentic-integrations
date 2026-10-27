@@ -19,11 +19,12 @@ test('0.1.4 release metadata is locked to the audited direct toolchain', () => {
 		'eslint-import-resolver-typescript': '4.4.5',
 		'eslint-plugin-import-x': '4.17.1',
 		'eslint-plugin-n8n-nodes-base': '2.0.0',
-		'n8n-workflow': '2.28.4',
+		'@n8n/expression-runtime': 'file:fixtures/zod4-compat/packages/expression-runtime',
+		'n8n-workflow': 'file:fixtures/zod4-compat/packages/n8n-workflow',
 		prettier: '3.9.6',
 		typescript: '5.9.2',
 		'typescript-eslint': '8.70.0',
-		zod: '3.25.67',
+		zod: '4.6.7',
 	};
 
 	assert.equal(pkg.version, '0.1.4');
@@ -43,7 +44,8 @@ test('0.1.4 release metadata is locked to the audited direct toolchain', () => {
 	assert.equal(lock.packages['node_modules/@n8n/node-cli'], undefined);
 	assert.equal(lock.packages['node_modules/@langchain/classic'], undefined);
 	assert.equal(lock.packages['node_modules/@langchain/community'], undefined);
-	assert.equal(lock.packages['node_modules/n8n-workflow/node_modules/uuid'].version, '11.1.1');
+	assert.equal(lock.packages['node_modules/n8n-workflow'].resolved, 'fixtures/zod4-compat/packages/n8n-workflow');
+	assert.equal(lock.packages['node_modules/uuid'].version, '11.1.1');
 });
 
 test('current n8n metadata includes required subtitle and themed icons', () => {

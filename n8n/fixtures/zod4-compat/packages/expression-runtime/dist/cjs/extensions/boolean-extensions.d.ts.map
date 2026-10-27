@@ -1,0 +1,1 @@
+{"version":3,"file":"boolean-extensions.d.ts","sourceRoot":"","sources":["../../../../../../source/packages/@n8n/expression-runtime/src/extensions/boolean-extensions.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAa,YAAY,EAAE,wBAAqB;AAE5D,wBAAgB,SAAS,CAAC,KAAK,EAAE,OAAO,WAEvC;AAED,wBAAgB,KAAK,CAAC,KAAK,EAAE,OAAO,SAEnC;AAED,wBAAgB,UAAU,cAEzB;AAmBD,eAAO,MAAM,iBAAiB,EAAE,YAS/B,CAAC"}
