@@ -2,10 +2,16 @@
 // Mock fetch and a throwaway signing key only: no live endpoints, credentials, chain calls or spend.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import test from "node:test";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { decodePaymentRequiredHeader, encodePaymentRequiredHeader } from "@x402/core/http";
+import { Any, parsePaymentPayload, parsePaymentRequired, parsePaymentRequirements } from "@x402/core/schemas";
 import { SpotCheckBlockedError, VERSION, spotCheckFetch } from "x402-spotcheck";
 import { createCheckedBuyer } from "./buyer.mjs";
+
+const require = createRequire(import.meta.url);
+const cjsSchemas = require("@x402/core/schemas");
 
 const URL_ = "https://seller.test/v1/text-summarizer";
 const USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
@@ -52,6 +58,43 @@ const blocked = (code) => (err) => {
   return true;
 };
 
+test("the installed @x402 public header codec round-trips valid V2 and rejects malformed encoding", () => {
+  const challenge = { x402Version: 2, resource: { url: URL_ }, accepts: [requirement()] };
+  const encoded = encodePaymentRequiredHeader(challenge);
+  assert.deepEqual(decodePaymentRequiredHeader(encoded), challenge);
+  assert.throws(() => decodePaymentRequiredHeader("%%%not-base64%%%"), /Invalid payment required header/);
+});
+
+test("the installed @x402 public Zod schemas accept valid V1/V2 maps and reject malformed types", () => {
+  const v1 = {
+    scheme: "exact", network: "base", maxAmountRequired: "10000", resource: URL_, description: "demo",
+    mimeType: "application/json", outputSchema: { type: "object" }, payTo: PAY_TO, maxTimeoutSeconds: 300,
+    asset: USDC, extra: { name: "USD Coin", version: "2" },
+  };
+  const v2 = {
+    scheme: "exact", network: "eip155:8453", amount: "10000", asset: USDC, payTo: PAY_TO,
+    maxTimeoutSeconds: 300, extra: { name: "USD Coin", version: "2" },
+  };
+  const requiredV1 = { x402Version: 1, accepts: [v1] };
+  const requiredV2 = { x402Version: 2, resource: { url: URL_ }, accepts: [v2], extensions: { trace: { id: "offline" } } };
+  const payloadV1 = { x402Version: 1, scheme: "exact", network: "base", payload: { signature: "0x00" } };
+  const payloadV2 = { x402Version: 2, resource: { url: URL_ }, accepted: v2, payload: { signature: "0x00" }, extensions: { trace: { id: "offline" } } };
+  assert.equal(Any.safeParse({ name: "USD Coin", version: "2" }).success, true);
+  assert.equal(parsePaymentRequirements(v1).success, true);
+  assert.equal(parsePaymentRequirements(v2).success, true);
+  assert.equal(parsePaymentRequired(requiredV1).success, true);
+  assert.equal(parsePaymentRequired(requiredV2).success, true);
+  assert.equal(parsePaymentPayload(payloadV1).success, true);
+  assert.equal(parsePaymentPayload(payloadV2).success, true);
+  assert.equal(typeof cjsSchemas.parsePaymentRequired, "function");
+  assert.equal(cjsSchemas.parsePaymentRequired(requiredV2).success, true);
+  assert.equal(parsePaymentRequired({ ...requiredV2, unexpected: true }).data.unexpected, undefined);
+  assert.equal(parsePaymentRequired({ ...requiredV2, accepts: [{ ...v2, amount: 10000 }] }).success, false);
+  assert.equal(parsePaymentRequired({ ...requiredV2, accepts: [{ ...v2, network: "not-caip" }] }).success, false);
+  assert.equal(parsePaymentRequired({ ...requiredV2, accepts: [{ ...v2, extra: "bad" }] }).success, false);
+  assert.equal(parsePaymentPayload({ ...payloadV2, payload: [] }).success, false);
+});
+
 test("pinned to x402-spotcheck 1.0.0", () => {
   assert.equal(VERSION, "1.0.0");
   const pkg = JSON.parse(readFileSync(new URL("./package.json", import.meta.url)));
@@ -59,12 +102,17 @@ test("pinned to x402-spotcheck 1.0.0", () => {
   assert.equal(pkg.dependencies["@x402/fetch"], "2.28.0");
   const lock = readFileSync(new URL("./package-lock.json", import.meta.url), "utf8");
   assert.match(lock, /x402-spotcheck\.git#a863ee089f69320e4f3da104c8c5f6077211d7bd/);
+  const lockJson = JSON.parse(lock);
+  assert.equal(pkg.dependencies.zod, "4.6.6");
+  assert.equal(pkg.overrides?.zod, "4.6.6");
+  assert.equal(lockJson.packages["node_modules/zod"]?.version, "4.6.6", "the fixed Zod major must remain resolved");
 });
 
 test("README optional example matches buyer.mjs imports and wrapper order", () => {
   const readme = readFileSync(new URL("../../sdk/node/README.md", import.meta.url), "utf8");
   assert.match(readme, /const fetchWithPayment = wrapFetchWithPayment\(fetch, wallet\);/, "default example unchanged");
-  assert.match(readme, /npm i @x402\/fetch@2\.28\.0 @x402\/evm@2\.28\.0 viem github:withgrokbot\/x402-spotcheck#v1\.0\.0/);
+  assert.match(readme, /npm ci --ignore-scripts --prefix examples\/x402-spotcheck-buyer/);
+  assert.doesNotMatch(readme, /npm i @x402\/fetch@2\.28\.0/);
   assert.match(readme, /import \{ x402Client, wrapFetchWithPayment \} from "@x402\/fetch";/);
   assert.match(readme, /import \{ spotCheckFetch \} from "x402-spotcheck";/);
   assert.match(readme, /wrapFetchWithPayment\(checkedFetch, client\)/);
@@ -82,6 +130,28 @@ test("valid terms: signs once and pays the listed recipient", async () => {
   assert.equal(s.payments()[0].paid.accepted.payTo, PAY_TO);
   assert.equal(s.payments()[0].paid.accepted.amount, "10000");
   assert.equal(lastAccount.signs, 1);
+});
+
+for (const [name, accepts] of [
+  ["malformed amount", [requirement({ amount: "not-a-number" })]],
+  ["invalid network", [requirement({ network: "not-a-caip-network" })]],
+  ["invalid extra", [requirement({ extra: "not-an-object" })]],
+  ["empty accepts", []],
+]) {
+  test(`malformed 402 ${name}: rejects before signing`, async () => {
+    const s = seller({ accepts });
+    await assert.rejects(post(buyer(s)));
+    assert.equal(lastAccount.signs, 0, "malformed challenge must not reach a signer");
+    assert.equal(s.payments().length, 0, "malformed challenge must not produce a payment retry");
+  });
+}
+
+test("unknown challenge fields do not alter the signed terms", async () => {
+  const s = seller({ accepts: [requirement({ unexpected: "ignored" })] });
+  assert.equal((await post(buyer(s))).status, 200);
+  assert.equal(lastAccount.signs, 1);
+  assert.equal(s.payments().length, 1);
+  assert.equal(s.payments()[0].paid.accepted.amount, "10000");
 });
 
 // Price rule of x402-spotcheck 1.0.0 (rules.js, tolerance 0.01): cheaper is accepted, up to 1% above is accepted.
@@ -145,6 +215,15 @@ test("changed signed retry: a payment header for different terms is refused befo
   const forged = b64({ x402Version: 2, resource: { url: URL_ }, accepted: requirement({ payTo: "0x" + "ee".repeat(20) }), payload: { signature: "0x00" } });
   await assert.rejects(guarded(URL_, { method: "POST", headers: { "PAYMENT-SIGNATURE": forged } }), blocked("pay_to_mismatch"));
   assert.equal(s.log.length, 0, "nothing reached the seller");
+});
+
+test("malformed signed payload is outside the local terms check and is forwarded unchanged", async () => {
+  const s = seller();
+  const guarded = spotCheckFetch(s.fetch, { mode: "local", expected: (url) => new Map([[URL_, LISTING]]).get(url) });
+  const malformed = b64({ x402Version: 2, resource: { url: URL_ }, accepted: requirement(), payload: {} });
+  assert.equal((await guarded(URL_, { method: "POST", headers: { "PAYMENT-SIGNATURE": malformed } })).status, 200);
+  assert.equal(s.log.length, 1, "the local checker does not claim to verify an existing payload");
+  assert.deepEqual(s.log[0].paid.payload, {}, "the existing payload is forwarded unchanged");
 });
 
 test("local mode makes no requests other than to the seller", async () => {
