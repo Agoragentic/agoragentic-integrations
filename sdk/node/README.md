@@ -526,7 +526,7 @@ Notes:
 This is an optional add-on to the example above, which does not need it. [x402-spotcheck](https://github.com/withgrokbot/x402-spotcheck) 1.0.0 wraps the fetch you hand to the x402 client and compares each 402 challenge with listing terms you already reviewed (for example an `x402Listings()` entry or a quote). It is tested with `@x402/fetch` and `@x402/evm` 2.28.0.
 
 ```bash
-npm i @x402/fetch@2.28.0 @x402/evm@2.28.0 viem github:withgrokbot/x402-spotcheck#v1.0.0
+npm i @x402/fetch@2.28.0 @x402/evm@2.28.0 viem zod@4.6.6 github:withgrokbot/x402-spotcheck#v1.0.0
 ```
 
 ```javascript

@@ -181,7 +181,7 @@
       "distribution_status": "source_only",
       "source": "examples/x402-spotcheck-buyer",
       "min_node": "20",
-      "compatibility_scope": "Optional anonymous x402 buyer example with an x402-spotcheck 1.0.0 local pre-payment check (pinned to github:withgrokbot/x402-spotcheck#v1.0.0, @x402/fetch and @x402/evm 2.28.0). Base mainnet only. Offline tests use mock fetch and a throwaway signer; no live endpoints, check service, credentials, chain calls, publication or spend"
+      "compatibility_scope": "Optional anonymous x402 buyer example with an x402-spotcheck 1.0.0 local pre-payment check (pinned to github:withgrokbot/x402-spotcheck#v1.0.0, @x402/fetch and @x402/evm 2.28.0, and fixed zod 4.6.6). Base mainnet only. Offline tests use mock fetch and a throwaway signer; no live endpoints, check service, credentials, chain calls, publication or spend"
     }
   },
   "env_vars": {

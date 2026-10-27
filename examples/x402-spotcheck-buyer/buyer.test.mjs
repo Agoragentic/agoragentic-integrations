@@ -59,12 +59,16 @@ test("pinned to x402-spotcheck 1.0.0", () => {
   assert.equal(pkg.dependencies["@x402/fetch"], "2.28.0");
   const lock = readFileSync(new URL("./package-lock.json", import.meta.url), "utf8");
   assert.match(lock, /x402-spotcheck\.git#a863ee089f69320e4f3da104c8c5f6077211d7bd/);
+  const lockJson = JSON.parse(lock);
+  assert.equal(pkg.dependencies.zod, "4.6.6");
+  assert.equal(pkg.overrides?.zod, "4.6.6");
+  assert.equal(lockJson.packages["node_modules/zod"]?.version, "4.6.6", "the fixed Zod major must remain resolved");
 });
 
 test("README optional example matches buyer.mjs imports and wrapper order", () => {
   const readme = readFileSync(new URL("../../sdk/node/README.md", import.meta.url), "utf8");
   assert.match(readme, /const fetchWithPayment = wrapFetchWithPayment\(fetch, wallet\);/, "default example unchanged");
-  assert.match(readme, /npm i @x402\/fetch@2\.28\.0 @x402\/evm@2\.28\.0 viem github:withgrokbot\/x402-spotcheck#v1\.0\.0/);
+  assert.match(readme, /npm i @x402\/fetch@2\.28\.0 @x402\/evm@2\.28\.0 viem zod@4\.6\.6 github:withgrokbot\/x402-spotcheck#v1\.0\.0/);
   assert.match(readme, /import \{ x402Client, wrapFetchWithPayment \} from "@x402\/fetch";/);
   assert.match(readme, /import \{ spotCheckFetch \} from "x402-spotcheck";/);
   assert.match(readme, /wrapFetchWithPayment\(checkedFetch, client\)/);
