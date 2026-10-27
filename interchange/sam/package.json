@@ -19,6 +19,7 @@
     "ajv-formats": "^3.0.1"
   },
   "overrides": {
-    "fast-uri": "3.1.8"
+    "fast-uri": "3.1.9",
+    "zod": "4.6.6"
   }
 }

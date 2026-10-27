@@ -1064,7 +1064,7 @@
       "path": "hyperframes/package.json",
       "occurrences": 1,
       "line_numbers": [
-        33
+        36
       ],
       "categories": [
         "installer_or_clone",
@@ -1454,7 +1454,7 @@
       "occurrences": 2,
       "line_numbers": [
         21,
-        72
+        74
       ],
       "categories": [
         "installer_or_clone",
@@ -1739,8 +1739,8 @@
       "occurrences": 3,
       "line_numbers": [
         12,
-        150,
-        154
+        152,
+        156
       ],
       "categories": [
         "installer_or_clone",

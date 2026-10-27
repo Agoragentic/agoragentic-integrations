@@ -12,15 +12,13 @@ on:
   release:
     types: [published]
 
-permissions:
-  contents: read
-  id-token: write
-
 jobs:
-  publish:
+  build:
     # Gate on Python SDK release tags so npm-tag releases do not trigger a PyPI publish.
     if: startsWith(github.event.release.tag_name, 'py-v')
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: sdk/python
@@ -41,12 +39,36 @@ jobs:
           test "${RELEASE_TAG}" = "py-v${package_version}"
 
       - name: Install build tooling
-        run: python -m pip install --upgrade build
+        run: |
+          python -m pip install --require-hashes --only-binary=:all: -r requirements-build.txt
 
       - name: Build sdist and wheel
-        run: python -m build
+        # Use the hash-pinned tooling installed above; do not resolve a second
+        # mutable build environment from the package index.
+        run: python -m build --no-isolation
+
+      - name: Upload distributions for the publish job
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: agoragentic-python-${{ github.event.release.tag_name }}
+          path: sdk/python/dist/
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    if: startsWith(github.event.release.tag_name, 'py-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: agoragentic-python-${{ github.event.release.tag_name }}
+          path: dist/
 
       - name: Publish to PyPI with Trusted Publishing
-        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3 (release/v1)
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
         with:
-          packages-dir: sdk/python/dist/
+          packages-dir: dist/
