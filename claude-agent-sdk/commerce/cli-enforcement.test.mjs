@@ -20,7 +20,7 @@ const platform = `${process.platform}-${process.arch}`;
 const binary = path.join(sdkRoot, '..', `claude-agent-sdk-${platform}`, manifest.platforms[platform].binary);
 const bytes = await readFile(binary);
 assert.equal(createHash('sha256').update(bytes).digest('hex'), manifest.platforms[platform].checksum);
-assert.equal(manifest.version, '2.1.263');
+assert.equal(manifest.version, '2.1.310');
 
 function sse(response, block, stopReason) {
   response.writeHead(200, { 'Content-Type': 'text/event-stream' });
@@ -126,7 +126,7 @@ async function exercise(deny) {
       assert.notEqual(results[0].is_error, true);
       assert.deepEqual(postHooks, ['Write']);
     }
-    return { cli: manifest.version, sdk: '0.3.263', boundary: 'real CLI with synthetic Messages fixture',
+    return { cli: manifest.version, sdk: '0.3.310', boundary: 'real CLI with synthetic Messages fixture',
       hook_calls: hooks.length, successful_post_tool_events: postHooks.length,
       fixture_effect_count: deny ? 0 : 1, provider_called: false };
   } finally {

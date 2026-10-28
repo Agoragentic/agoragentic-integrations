@@ -4,6 +4,10 @@ Continue this PR on its existing branch. Do not scaffold another integration.
 Read repository AGENTS.md, the current PR diff/reviews, and
 [QUALIFICATION.md](QUALIFICATION.md) before changing scope or readiness.
 
+The SDK and CLI evidence described below is historical for TypeScript SDK
+`0.3.263` and CLI `2.1.263`. The current source candidate uses SDK `0.3.310`
+and CLI `2.1.310`; its exact-head tests and review must be established separately.
+
 ## Completed source and qualification work
 
 The initial preflight hardening and synthetic SQLite store remain intact.

@@ -4,6 +4,12 @@ Verified locally on September 8, 2026 with Python 3.14.2 and Node 24.13.0.
 This is a source integration with reproducible dependency-backed checks, not a
 live merchant connector or a qualified complete Commerce runtime. The catalog remains experimental.
 
+The current source candidate locks TypeScript SDK `0.3.310` and its CLI
+`2.1.310`. The September 8 evidence below applies to the older SDK `0.3.263`
+and CLI `2.1.263`; fresh exact-head type, wire, dependency-audit, and real-CLI
+fixture results are required for the updated candidate. No live provider or
+production qualification is implied.
+
 | Boundary | Evidence | Scope |
 | --- | --- | --- |
 | Preflight and synthetic SQLite store | 31 Python and 14 JavaScript regression tests | Approval expiry/revocation/binding, retries, persistence, atomic local evidence, receipt projection |
@@ -23,8 +29,8 @@ Python dependencies follow the upstream requirements pins (including anthropic
 are resolved during setup; this is not a fully hash-locked Python supply chain.
 The npm dependency closure is committed in `../package-lock.json`.
 
-The development closure now explicitly overrides the transitive
-`@modelcontextprotocol/sdk` to `1.31.0` for
+The development closure overrides the transitive
+`@modelcontextprotocol/sdk` to `1.32.0` for
 [GHSA-6qxp-vccf-f47h](https://github.com/advisories/GHSA-6qxp-vccf-f47h).
 This does not change the Claude SDK or CLI pin, enable OAuth/MCP, or qualify a
 live host. Use the exact-head type, wire, CLI, and dependency-audit results when
