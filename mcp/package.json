@@ -58,13 +58,13 @@
     "devDependencies": {
         "@modelcontextprotocol/client": "2.3.0",
         "@modelcontextprotocol/node": "2.1.1",
-        "@modelcontextprotocol/sdk": "1.32.0",
+        "@modelcontextprotocol/sdk": "1.32.2",
         "@modelcontextprotocol/server": "2.3.0",
         "esbuild": "0.28.2"
     },
     "overrides": {
         "@hono/node-server": "2.0.11",
-        "@modelcontextprotocol/sdk": "1.32.0",
+        "@modelcontextprotocol/sdk": "1.32.2",
         "body-parser": "2.4.0",
         "fast-uri": "3.1.9",
         "hono": "4.13.11",
