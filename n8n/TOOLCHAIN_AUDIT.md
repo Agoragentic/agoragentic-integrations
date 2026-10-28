@@ -7,6 +7,23 @@ peer ranges, clean install, tests, lint, build, dependency audits, and package
 contents. Historical CLI compatibility and Creator Portal acceptance were not
 revalidated.
 
+## Toolchain patch candidate - 2026-10-28
+
+The direct TypeScript ESLint stack moves from 8.70.0 to 8.72.0 and Prettier
+from 3.9.6 to 3.9.10. The exact ESLint 9.29.0 community-plugin peer and the
+TypeScript 5.9.2 compiler remain unchanged. The lock also resolves the
+TypeScript ESLint `ignore` dependency to 7.0.14.
+
+On Windows with Node 24, the clean npm install completed, but npm reported
+three lifecycle scripts not covered by its existing allowScripts policy.
+Fixture reproduction verified 300 source files and 1,193 artifacts and passed
+the strict installed-consumer proof. The test suite passed 63 tests and skipped
+one symlink-creation test because of EPERM; lint and build passed. Production
+and complete development audits were clean, and the post-build pack dry run
+contained the expected compiled assets. Hosted CI and approval remain pending.
+These checks do not qualify native isolated-vm execution, an installed n8n
+host, Creator Portal acceptance, n8n Cloud eligibility, or production behavior.
+
 ## Current candidate — 2026-10-26
 
 The maintained Zod 4 consumer fixture has passed local `--write` regeneration
