@@ -37,3 +37,12 @@ test('MCP host research is blocked and contains no runnable configuration',async
 test('Codebuff candidate deliberately omits execute',async()=>{const source=await readFile(new URL('../adapters/codebuff-tools.ts',import.meta.url),'utf8');assert.doesNotMatch(source,/toolName:\s*'agoragentic_execute'/)});
 test('Oration creation has dual gate plus telephony and DND gates',async()=>{const source=await readFile(new URL('../adapters/oration-client.mjs',import.meta.url),'utf8');for(const required of ['ORATION_ENABLE_CREATE','ownerApproved','ORATION_ENABLE_TELEPHONY','ORATION_ALLOW_IGNORE_DND']) assert.ok(source.includes(required))});
 test('Oration creation network failure is outcome-unknown and non-retryable',async()=>{const prior=process.env.ORATION_ENABLE_CREATE;process.env.ORATION_ENABLE_CREATE='true';try{const client=new OrationClient({token:'test-token',fetchImpl:async()=>{throw new Error('offline')}});await assert.rejects(client.createConversations({ownerApproved:true,conversations:[{conversationType:'chat'}]}),e=>e.code==='conversation_creation_outcome_unknown'&&e.retryable===false&&e.outcomeUnknown===true&&e.reconciliationRequired===true)}finally{if(prior===undefined)delete process.env.ORATION_ENABLE_CREATE;else process.env.ORATION_ENABLE_CREATE=prior}});
+
+test('candidate and locked test closure use the same OpenRouter agent version', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
+  const candidate = JSON.parse(await readFile(new URL('../openrouter-agent-sdk/package.json', import.meta.url), 'utf8'));
+  const lock = JSON.parse(await readFile(new URL('../package-lock.json', import.meta.url), 'utf8'));
+  const version = candidate.dependencies['@openrouter/agent'];
+  assert.equal(manifest.devDependencies['@openrouter/agent'], version);
+  assert.equal(lock.packages['node_modules/@openrouter/agent'].version, version);
+});
