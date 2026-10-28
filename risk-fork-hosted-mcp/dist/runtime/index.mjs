@@ -108,14 +108,14 @@ var require_package = __commonJS({
         url: "https://github.com/rhein1/agoragentic-integrations/issues"
       },
       devDependencies: {
-        "@modelcontextprotocol/client": "2.3.0",
-        "@modelcontextprotocol/node": "2.1.1",
+        "@modelcontextprotocol/client": "2.4.0",
+        "@modelcontextprotocol/node": "2.1.2",
         "@modelcontextprotocol/sdk": "1.32.2",
-        "@modelcontextprotocol/server": "2.3.0",
+        "@modelcontextprotocol/server": "2.4.0",
         esbuild: "0.28.2"
       },
       overrides: {
-        "@hono/node-server": "2.0.11",
+        "@hono/node-server": "2.1.5",
         "@modelcontextprotocol/sdk": "1.32.2",
         "body-parser": "2.4.0",
         "fast-uri": "3.1.9",
@@ -23551,9 +23551,9 @@ var require_v4 = __commonJS({
   }
 });
 
-// risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/core/dist/auth-D1CeV_Jr.cjs
-var require_auth_D1CeV_Jr = __commonJS({
-  "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/core/dist/auth-D1CeV_Jr.cjs"(exports) {
+// risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/core/dist/schemas-lGLjBX8n.cjs
+var require_schemas_lGLjBX8n = __commonJS({
+  "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/core/dist/schemas-lGLjBX8n.cjs"(exports) {
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -24376,158 +24376,6 @@ var require_auth_D1CeV_Jr = __commonJS({
       ListToolsResultSchema,
       SubscriptionsListenResultSchema
     ]);
-    var SafeUrlSchema = zod_v4.url().superRefine((val, ctx) => {
-      if (!URL.canParse(val)) {
-        ctx.addIssue({
-          code: zod_v4.ZodIssueCode.custom,
-          message: "URL must be parseable",
-          fatal: true
-        });
-        return zod_v4.NEVER;
-      }
-    }).refine((url) => {
-      const u = new URL(url);
-      return u.protocol !== "javascript:" && u.protocol !== "data:" && u.protocol !== "vbscript:";
-    }, { message: "URL cannot use javascript:, data:, or vbscript: scheme" });
-    var OAuthProtectedResourceMetadataSchema = zod_v4.looseObject({
-      resource: zod_v4.string().url(),
-      authorization_servers: zod_v4.array(SafeUrlSchema).optional(),
-      jwks_uri: zod_v4.string().url().optional(),
-      scopes_supported: zod_v4.array(zod_v4.string()).optional(),
-      bearer_methods_supported: zod_v4.array(zod_v4.string()).optional(),
-      resource_signing_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
-      resource_name: zod_v4.string().optional(),
-      resource_documentation: zod_v4.string().optional(),
-      resource_policy_uri: zod_v4.string().url().optional(),
-      resource_tos_uri: zod_v4.string().url().optional(),
-      tls_client_certificate_bound_access_tokens: zod_v4.boolean().optional(),
-      authorization_details_types_supported: zod_v4.array(zod_v4.string()).optional(),
-      dpop_signing_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
-      dpop_bound_access_tokens_required: zod_v4.boolean().optional()
-    });
-    var OAuthMetadataSchema = zod_v4.looseObject({
-      issuer: zod_v4.string(),
-      authorization_endpoint: SafeUrlSchema,
-      token_endpoint: SafeUrlSchema,
-      registration_endpoint: SafeUrlSchema.optional(),
-      scopes_supported: zod_v4.array(zod_v4.string()).optional(),
-      response_types_supported: zod_v4.array(zod_v4.string()),
-      response_modes_supported: zod_v4.array(zod_v4.string()).optional(),
-      grant_types_supported: zod_v4.array(zod_v4.string()).optional(),
-      token_endpoint_auth_methods_supported: zod_v4.array(zod_v4.string()).optional(),
-      token_endpoint_auth_signing_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
-      service_documentation: SafeUrlSchema.optional(),
-      revocation_endpoint: SafeUrlSchema.optional(),
-      revocation_endpoint_auth_methods_supported: zod_v4.array(zod_v4.string()).optional(),
-      revocation_endpoint_auth_signing_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
-      introspection_endpoint: zod_v4.string().optional(),
-      introspection_endpoint_auth_methods_supported: zod_v4.array(zod_v4.string()).optional(),
-      introspection_endpoint_auth_signing_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
-      code_challenge_methods_supported: zod_v4.array(zod_v4.string()).optional(),
-      client_id_metadata_document_supported: zod_v4.boolean().optional(),
-      authorization_response_iss_parameter_supported: zod_v4.boolean().optional().catch(void 0),
-      dpop_signing_alg_values_supported: zod_v4.array(zod_v4.string()).optional()
-    });
-    var OpenIdProviderMetadataSchema = zod_v4.looseObject({
-      issuer: zod_v4.string(),
-      authorization_endpoint: SafeUrlSchema,
-      token_endpoint: SafeUrlSchema,
-      userinfo_endpoint: SafeUrlSchema.optional(),
-      jwks_uri: SafeUrlSchema,
-      registration_endpoint: SafeUrlSchema.optional(),
-      scopes_supported: zod_v4.array(zod_v4.string()).optional(),
-      response_types_supported: zod_v4.array(zod_v4.string()),
-      response_modes_supported: zod_v4.array(zod_v4.string()).optional(),
-      grant_types_supported: zod_v4.array(zod_v4.string()).optional(),
-      acr_values_supported: zod_v4.array(zod_v4.string()).optional(),
-      subject_types_supported: zod_v4.array(zod_v4.string()),
-      id_token_signing_alg_values_supported: zod_v4.array(zod_v4.string()),
-      id_token_encryption_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
-      id_token_encryption_enc_values_supported: zod_v4.array(zod_v4.string()).optional(),
-      userinfo_signing_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
-      userinfo_encryption_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
-      userinfo_encryption_enc_values_supported: zod_v4.array(zod_v4.string()).optional(),
-      request_object_signing_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
-      request_object_encryption_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
-      request_object_encryption_enc_values_supported: zod_v4.array(zod_v4.string()).optional(),
-      token_endpoint_auth_methods_supported: zod_v4.array(zod_v4.string()).optional(),
-      token_endpoint_auth_signing_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
-      display_values_supported: zod_v4.array(zod_v4.string()).optional(),
-      claim_types_supported: zod_v4.array(zod_v4.string()).optional(),
-      claims_supported: zod_v4.array(zod_v4.string()).optional(),
-      service_documentation: zod_v4.string().optional(),
-      claims_locales_supported: zod_v4.array(zod_v4.string()).optional(),
-      ui_locales_supported: zod_v4.array(zod_v4.string()).optional(),
-      claims_parameter_supported: zod_v4.boolean().optional(),
-      request_parameter_supported: zod_v4.boolean().optional(),
-      request_uri_parameter_supported: zod_v4.boolean().optional(),
-      require_request_uri_registration: zod_v4.boolean().optional(),
-      op_policy_uri: SafeUrlSchema.optional(),
-      op_tos_uri: SafeUrlSchema.optional(),
-      client_id_metadata_document_supported: zod_v4.boolean().optional(),
-      authorization_response_iss_parameter_supported: zod_v4.boolean().optional().catch(void 0)
-    });
-    var OpenIdProviderDiscoveryMetadataSchema = zod_v4.object({
-      ...OpenIdProviderMetadataSchema.shape,
-      ...OAuthMetadataSchema.pick({ code_challenge_methods_supported: true }).shape
-    });
-    var OAuthTokensSchema = zod_v4.object({
-      access_token: zod_v4.string(),
-      id_token: zod_v4.string().optional(),
-      token_type: zod_v4.string(),
-      expires_in: zod_v4.coerce.number().optional(),
-      scope: zod_v4.string().optional(),
-      refresh_token: zod_v4.string().optional(),
-      issuer: zod_v4.string().optional().catch(void 0)
-    }).strip();
-    var IdJagTokenExchangeResponseSchema = zod_v4.object({
-      issued_token_type: zod_v4.literal("urn:ietf:params:oauth:token-type:id-jag"),
-      access_token: zod_v4.string(),
-      token_type: zod_v4.string().optional(),
-      expires_in: zod_v4.number().optional(),
-      scope: zod_v4.string().optional()
-    }).strip();
-    var OAuthErrorResponseSchema = zod_v4.object({
-      error: zod_v4.string(),
-      error_description: zod_v4.string().optional(),
-      error_uri: zod_v4.string().optional()
-    });
-    var OptionalSafeUrlSchema = SafeUrlSchema.optional().or(zod_v4.literal("").transform(() => void 0));
-    var OAuthClientMetadataSchema = zod_v4.object({
-      redirect_uris: zod_v4.array(SafeUrlSchema),
-      token_endpoint_auth_method: zod_v4.string().optional(),
-      grant_types: zod_v4.array(zod_v4.string()).optional(),
-      response_types: zod_v4.array(zod_v4.string()).optional(),
-      application_type: zod_v4.string().optional(),
-      client_name: zod_v4.string().optional(),
-      client_uri: SafeUrlSchema.optional(),
-      logo_uri: OptionalSafeUrlSchema,
-      scope: zod_v4.string().optional(),
-      contacts: zod_v4.array(zod_v4.string()).optional(),
-      tos_uri: OptionalSafeUrlSchema,
-      policy_uri: zod_v4.string().optional(),
-      jwks_uri: SafeUrlSchema.optional(),
-      jwks: zod_v4.any().optional(),
-      software_id: zod_v4.string().optional(),
-      software_version: zod_v4.string().optional(),
-      software_statement: zod_v4.string().optional()
-    }).strip();
-    var OAuthClientInformationSchema = zod_v4.object({
-      client_id: zod_v4.string(),
-      client_secret: zod_v4.string().optional(),
-      client_id_issued_at: zod_v4.number().optional(),
-      client_secret_expires_at: zod_v4.number().optional(),
-      issuer: zod_v4.string().optional().catch(void 0)
-    }).strip();
-    var OAuthClientInformationFullSchema = OAuthClientMetadataSchema.merge(OAuthClientInformationSchema);
-    var OAuthClientRegistrationErrorSchema = zod_v4.object({
-      error: zod_v4.string(),
-      error_description: zod_v4.string().optional()
-    }).strip();
-    var OAuthTokenRevocationRequestSchema = zod_v4.object({
-      token: zod_v4.string(),
-      token_type_hint: zod_v4.string().optional()
-    }).strip();
     Object.defineProperty(exports, "AnnotationsSchema", {
       enumerable: true,
       get: function() {
@@ -24870,12 +24718,6 @@ var require_auth_D1CeV_Jr = __commonJS({
         return IconsSchema;
       }
     });
-    Object.defineProperty(exports, "IdJagTokenExchangeResponseSchema", {
-      enumerable: true,
-      get: function() {
-        return IdJagTokenExchangeResponseSchema;
-      }
-    });
     Object.defineProperty(exports, "ImageContentSchema", {
       enumerable: true,
       get: function() {
@@ -25128,78 +24970,6 @@ var require_auth_D1CeV_Jr = __commonJS({
         return NumberSchemaSchema;
       }
     });
-    Object.defineProperty(exports, "OAuthClientInformationFullSchema", {
-      enumerable: true,
-      get: function() {
-        return OAuthClientInformationFullSchema;
-      }
-    });
-    Object.defineProperty(exports, "OAuthClientInformationSchema", {
-      enumerable: true,
-      get: function() {
-        return OAuthClientInformationSchema;
-      }
-    });
-    Object.defineProperty(exports, "OAuthClientMetadataSchema", {
-      enumerable: true,
-      get: function() {
-        return OAuthClientMetadataSchema;
-      }
-    });
-    Object.defineProperty(exports, "OAuthClientRegistrationErrorSchema", {
-      enumerable: true,
-      get: function() {
-        return OAuthClientRegistrationErrorSchema;
-      }
-    });
-    Object.defineProperty(exports, "OAuthErrorResponseSchema", {
-      enumerable: true,
-      get: function() {
-        return OAuthErrorResponseSchema;
-      }
-    });
-    Object.defineProperty(exports, "OAuthMetadataSchema", {
-      enumerable: true,
-      get: function() {
-        return OAuthMetadataSchema;
-      }
-    });
-    Object.defineProperty(exports, "OAuthProtectedResourceMetadataSchema", {
-      enumerable: true,
-      get: function() {
-        return OAuthProtectedResourceMetadataSchema;
-      }
-    });
-    Object.defineProperty(exports, "OAuthTokenRevocationRequestSchema", {
-      enumerable: true,
-      get: function() {
-        return OAuthTokenRevocationRequestSchema;
-      }
-    });
-    Object.defineProperty(exports, "OAuthTokensSchema", {
-      enumerable: true,
-      get: function() {
-        return OAuthTokensSchema;
-      }
-    });
-    Object.defineProperty(exports, "OpenIdProviderDiscoveryMetadataSchema", {
-      enumerable: true,
-      get: function() {
-        return OpenIdProviderDiscoveryMetadataSchema;
-      }
-    });
-    Object.defineProperty(exports, "OpenIdProviderMetadataSchema", {
-      enumerable: true,
-      get: function() {
-        return OpenIdProviderMetadataSchema;
-      }
-    });
-    Object.defineProperty(exports, "OptionalSafeUrlSchema", {
-      enumerable: true,
-      get: function() {
-        return OptionalSafeUrlSchema;
-      }
-    });
     Object.defineProperty(exports, "PARSE_ERROR", {
       enumerable: true,
       get: function() {
@@ -25444,12 +25214,6 @@ var require_auth_D1CeV_Jr = __commonJS({
       enumerable: true,
       get: function() {
         return SUPPORTED_PROTOCOL_VERSIONS;
-      }
-    });
-    Object.defineProperty(exports, "SafeUrlSchema", {
-      enumerable: true,
-      get: function() {
-        return SafeUrlSchema;
       }
     });
     Object.defineProperty(exports, "SamplingContentSchema", {
@@ -25722,113 +25486,365 @@ var require_auth_D1CeV_Jr = __commonJS({
         return UntitledSingleSelectEnumSchemaSchema;
       }
     });
+    Object.defineProperty(exports, "__toESM", {
+      enumerable: true,
+      get: function() {
+        return __toESM2;
+      }
+    });
+  }
+});
+
+// risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/core/dist/auth-CV4m0LEJ.cjs
+var require_auth_CV4m0LEJ = __commonJS({
+  "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/core/dist/auth-CV4m0LEJ.cjs"(exports) {
+    var require_schemas3 = require_schemas_lGLjBX8n();
+    var zod_v4 = require_v4();
+    zod_v4 = require_schemas3.__toESM(zod_v4);
+    var SafeUrlSchema = zod_v4.url().superRefine((val, ctx) => {
+      if (!URL.canParse(val)) {
+        ctx.addIssue({
+          code: zod_v4.ZodIssueCode.custom,
+          message: "URL must be parseable",
+          fatal: true
+        });
+        return zod_v4.NEVER;
+      }
+    }).refine((url) => {
+      const u = new URL(url);
+      return u.protocol !== "javascript:" && u.protocol !== "data:" && u.protocol !== "vbscript:";
+    }, { message: "URL cannot use javascript:, data:, or vbscript: scheme" });
+    var OAuthProtectedResourceMetadataSchema = zod_v4.looseObject({
+      resource: zod_v4.string().url(),
+      authorization_servers: zod_v4.array(SafeUrlSchema).optional(),
+      jwks_uri: zod_v4.string().url().optional(),
+      scopes_supported: zod_v4.array(zod_v4.string()).optional(),
+      bearer_methods_supported: zod_v4.array(zod_v4.string()).optional(),
+      resource_signing_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
+      resource_name: zod_v4.string().optional(),
+      resource_documentation: zod_v4.string().optional(),
+      resource_policy_uri: zod_v4.string().url().optional(),
+      resource_tos_uri: zod_v4.string().url().optional(),
+      tls_client_certificate_bound_access_tokens: zod_v4.boolean().optional(),
+      authorization_details_types_supported: zod_v4.array(zod_v4.string()).optional(),
+      dpop_signing_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
+      dpop_bound_access_tokens_required: zod_v4.boolean().optional()
+    });
+    var OAuthMetadataSchema = zod_v4.looseObject({
+      issuer: zod_v4.string(),
+      authorization_endpoint: SafeUrlSchema,
+      token_endpoint: SafeUrlSchema,
+      registration_endpoint: SafeUrlSchema.optional(),
+      scopes_supported: zod_v4.array(zod_v4.string()).optional(),
+      response_types_supported: zod_v4.array(zod_v4.string()),
+      response_modes_supported: zod_v4.array(zod_v4.string()).optional(),
+      grant_types_supported: zod_v4.array(zod_v4.string()).optional(),
+      token_endpoint_auth_methods_supported: zod_v4.array(zod_v4.string()).optional(),
+      token_endpoint_auth_signing_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
+      service_documentation: SafeUrlSchema.optional(),
+      revocation_endpoint: SafeUrlSchema.optional(),
+      revocation_endpoint_auth_methods_supported: zod_v4.array(zod_v4.string()).optional(),
+      revocation_endpoint_auth_signing_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
+      introspection_endpoint: zod_v4.string().optional(),
+      introspection_endpoint_auth_methods_supported: zod_v4.array(zod_v4.string()).optional(),
+      introspection_endpoint_auth_signing_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
+      code_challenge_methods_supported: zod_v4.array(zod_v4.string()).optional(),
+      client_id_metadata_document_supported: zod_v4.boolean().optional(),
+      authorization_response_iss_parameter_supported: zod_v4.boolean().optional().catch(void 0),
+      dpop_signing_alg_values_supported: zod_v4.array(zod_v4.string()).optional()
+    });
+    var OpenIdProviderMetadataSchema = zod_v4.looseObject({
+      issuer: zod_v4.string(),
+      authorization_endpoint: SafeUrlSchema,
+      token_endpoint: SafeUrlSchema,
+      userinfo_endpoint: SafeUrlSchema.optional(),
+      jwks_uri: SafeUrlSchema,
+      registration_endpoint: SafeUrlSchema.optional(),
+      scopes_supported: zod_v4.array(zod_v4.string()).optional(),
+      response_types_supported: zod_v4.array(zod_v4.string()),
+      response_modes_supported: zod_v4.array(zod_v4.string()).optional(),
+      grant_types_supported: zod_v4.array(zod_v4.string()).optional(),
+      acr_values_supported: zod_v4.array(zod_v4.string()).optional(),
+      subject_types_supported: zod_v4.array(zod_v4.string()),
+      id_token_signing_alg_values_supported: zod_v4.array(zod_v4.string()),
+      id_token_encryption_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
+      id_token_encryption_enc_values_supported: zod_v4.array(zod_v4.string()).optional(),
+      userinfo_signing_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
+      userinfo_encryption_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
+      userinfo_encryption_enc_values_supported: zod_v4.array(zod_v4.string()).optional(),
+      request_object_signing_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
+      request_object_encryption_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
+      request_object_encryption_enc_values_supported: zod_v4.array(zod_v4.string()).optional(),
+      token_endpoint_auth_methods_supported: zod_v4.array(zod_v4.string()).optional(),
+      token_endpoint_auth_signing_alg_values_supported: zod_v4.array(zod_v4.string()).optional(),
+      display_values_supported: zod_v4.array(zod_v4.string()).optional(),
+      claim_types_supported: zod_v4.array(zod_v4.string()).optional(),
+      claims_supported: zod_v4.array(zod_v4.string()).optional(),
+      service_documentation: zod_v4.string().optional(),
+      claims_locales_supported: zod_v4.array(zod_v4.string()).optional(),
+      ui_locales_supported: zod_v4.array(zod_v4.string()).optional(),
+      claims_parameter_supported: zod_v4.boolean().optional(),
+      request_parameter_supported: zod_v4.boolean().optional(),
+      request_uri_parameter_supported: zod_v4.boolean().optional(),
+      require_request_uri_registration: zod_v4.boolean().optional(),
+      op_policy_uri: SafeUrlSchema.optional(),
+      op_tos_uri: SafeUrlSchema.optional(),
+      client_id_metadata_document_supported: zod_v4.boolean().optional(),
+      authorization_response_iss_parameter_supported: zod_v4.boolean().optional().catch(void 0)
+    });
+    var OpenIdProviderDiscoveryMetadataSchema = zod_v4.object({
+      ...OpenIdProviderMetadataSchema.shape,
+      ...OAuthMetadataSchema.pick({ code_challenge_methods_supported: true }).shape
+    });
+    var OAuthTokensSchema = zod_v4.object({
+      access_token: zod_v4.string(),
+      id_token: zod_v4.string().optional(),
+      token_type: zod_v4.string(),
+      expires_in: zod_v4.coerce.number().optional(),
+      scope: zod_v4.string().optional(),
+      refresh_token: zod_v4.string().optional(),
+      issuer: zod_v4.string().optional().catch(void 0)
+    }).strip();
+    var IdJagTokenExchangeResponseSchema = zod_v4.object({
+      issued_token_type: zod_v4.literal("urn:ietf:params:oauth:token-type:id-jag"),
+      access_token: zod_v4.string(),
+      token_type: zod_v4.string().optional(),
+      expires_in: zod_v4.number().optional(),
+      scope: zod_v4.string().optional()
+    }).strip();
+    var OAuthErrorResponseSchema = zod_v4.object({
+      error: zod_v4.string(),
+      error_description: zod_v4.string().optional(),
+      error_uri: zod_v4.string().optional()
+    });
+    var OptionalSafeUrlSchema = SafeUrlSchema.optional().or(zod_v4.literal("").transform(() => void 0));
+    var OAuthClientMetadataSchema = zod_v4.object({
+      redirect_uris: zod_v4.array(SafeUrlSchema),
+      token_endpoint_auth_method: zod_v4.string().optional(),
+      grant_types: zod_v4.array(zod_v4.string()).optional(),
+      response_types: zod_v4.array(zod_v4.string()).optional(),
+      application_type: zod_v4.string().optional(),
+      client_name: zod_v4.string().optional(),
+      client_uri: SafeUrlSchema.optional(),
+      logo_uri: OptionalSafeUrlSchema,
+      scope: zod_v4.string().optional(),
+      contacts: zod_v4.array(zod_v4.string()).optional(),
+      tos_uri: OptionalSafeUrlSchema,
+      policy_uri: zod_v4.string().optional(),
+      jwks_uri: SafeUrlSchema.optional(),
+      jwks: zod_v4.any().optional(),
+      software_id: zod_v4.string().optional(),
+      software_version: zod_v4.string().optional(),
+      software_statement: zod_v4.string().optional()
+    }).strip();
+    var OAuthClientInformationSchema = zod_v4.object({
+      client_id: zod_v4.string(),
+      client_secret: zod_v4.string().optional(),
+      client_id_issued_at: zod_v4.number().optional(),
+      client_secret_expires_at: zod_v4.number().optional(),
+      issuer: zod_v4.string().optional().catch(void 0)
+    }).strip();
+    var OAuthClientInformationFullSchema = OAuthClientMetadataSchema.merge(OAuthClientInformationSchema);
+    var OAuthClientRegistrationErrorSchema = zod_v4.object({
+      error: zod_v4.string(),
+      error_description: zod_v4.string().optional()
+    }).strip();
+    var OAuthTokenRevocationRequestSchema = zod_v4.object({
+      token: zod_v4.string(),
+      token_type_hint: zod_v4.string().optional()
+    }).strip();
+    Object.defineProperty(exports, "IdJagTokenExchangeResponseSchema", {
+      enumerable: true,
+      get: function() {
+        return IdJagTokenExchangeResponseSchema;
+      }
+    });
+    Object.defineProperty(exports, "OAuthClientInformationFullSchema", {
+      enumerable: true,
+      get: function() {
+        return OAuthClientInformationFullSchema;
+      }
+    });
+    Object.defineProperty(exports, "OAuthClientInformationSchema", {
+      enumerable: true,
+      get: function() {
+        return OAuthClientInformationSchema;
+      }
+    });
+    Object.defineProperty(exports, "OAuthClientMetadataSchema", {
+      enumerable: true,
+      get: function() {
+        return OAuthClientMetadataSchema;
+      }
+    });
+    Object.defineProperty(exports, "OAuthClientRegistrationErrorSchema", {
+      enumerable: true,
+      get: function() {
+        return OAuthClientRegistrationErrorSchema;
+      }
+    });
+    Object.defineProperty(exports, "OAuthErrorResponseSchema", {
+      enumerable: true,
+      get: function() {
+        return OAuthErrorResponseSchema;
+      }
+    });
+    Object.defineProperty(exports, "OAuthMetadataSchema", {
+      enumerable: true,
+      get: function() {
+        return OAuthMetadataSchema;
+      }
+    });
+    Object.defineProperty(exports, "OAuthProtectedResourceMetadataSchema", {
+      enumerable: true,
+      get: function() {
+        return OAuthProtectedResourceMetadataSchema;
+      }
+    });
+    Object.defineProperty(exports, "OAuthTokenRevocationRequestSchema", {
+      enumerable: true,
+      get: function() {
+        return OAuthTokenRevocationRequestSchema;
+      }
+    });
+    Object.defineProperty(exports, "OAuthTokensSchema", {
+      enumerable: true,
+      get: function() {
+        return OAuthTokensSchema;
+      }
+    });
+    Object.defineProperty(exports, "OpenIdProviderDiscoveryMetadataSchema", {
+      enumerable: true,
+      get: function() {
+        return OpenIdProviderDiscoveryMetadataSchema;
+      }
+    });
+    Object.defineProperty(exports, "OpenIdProviderMetadataSchema", {
+      enumerable: true,
+      get: function() {
+        return OpenIdProviderMetadataSchema;
+      }
+    });
+    Object.defineProperty(exports, "OptionalSafeUrlSchema", {
+      enumerable: true,
+      get: function() {
+        return OptionalSafeUrlSchema;
+      }
+    });
+    Object.defineProperty(exports, "SafeUrlSchema", {
+      enumerable: true,
+      get: function() {
+        return SafeUrlSchema;
+      }
+    });
   }
 });
 
 // risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/core/dist/internal.cjs
 var require_internal = __commonJS({
   "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/core/dist/internal.cjs"(exports) {
-    var require_auth = require_auth_D1CeV_Jr();
-    exports.AnnotationsSchema = require_auth.AnnotationsSchema;
-    exports.AudioContentSchema = require_auth.AudioContentSchema;
-    exports.BAGGAGE_META_KEY = require_auth.BAGGAGE_META_KEY;
-    exports.BaseMetadataSchema = require_auth.BaseMetadataSchema;
-    exports.BaseRequestParamsSchema = require_auth.BaseRequestParamsSchema;
-    exports.BlobResourceContentsSchema = require_auth.BlobResourceContentsSchema;
-    exports.BooleanSchemaSchema = require_auth.BooleanSchemaSchema;
-    exports.CLIENT_CAPABILITIES_META_KEY = require_auth.CLIENT_CAPABILITIES_META_KEY;
-    exports.CLIENT_INFO_META_KEY = require_auth.CLIENT_INFO_META_KEY;
-    exports.CallToolRequestParamsSchema = require_auth.CallToolRequestParamsSchema;
-    exports.CallToolRequestSchema = require_auth.CallToolRequestSchema;
-    exports.CallToolResultSchema = require_auth.CallToolResultSchema;
-    exports.CancelTaskRequestSchema = require_auth.CancelTaskRequestSchema;
-    exports.CancelTaskResultSchema = require_auth.CancelTaskResultSchema;
-    exports.CancelledNotificationParamsSchema = require_auth.CancelledNotificationParamsSchema;
-    exports.CancelledNotificationSchema = require_auth.CancelledNotificationSchema;
-    exports.ClientCapabilitiesSchema = require_auth.ClientCapabilitiesSchema;
-    exports.ClientNotificationSchema = require_auth.ClientNotificationSchema;
-    exports.ClientRequestSchema = require_auth.ClientRequestSchema;
-    exports.ClientResultSchema = require_auth.ClientResultSchema;
-    exports.ClientTasksCapabilitySchema = require_auth.ClientTasksCapabilitySchema;
-    exports.CompatibilityCallToolResultSchema = require_auth.CompatibilityCallToolResultSchema;
-    exports.CompleteRequestParamsSchema = require_auth.CompleteRequestParamsSchema;
-    exports.CompleteRequestSchema = require_auth.CompleteRequestSchema;
-    exports.CompleteResultSchema = require_auth.CompleteResultSchema;
-    exports.ContentBlockSchema = require_auth.ContentBlockSchema;
-    exports.CreateMessageRequestParamsSchema = require_auth.CreateMessageRequestParamsSchema;
-    exports.CreateMessageRequestSchema = require_auth.CreateMessageRequestSchema;
-    exports.CreateMessageResultSchema = require_auth.CreateMessageResultSchema;
-    exports.CreateMessageResultWithToolsSchema = require_auth.CreateMessageResultWithToolsSchema;
-    exports.CreateTaskResultSchema = require_auth.CreateTaskResultSchema;
-    exports.CursorSchema = require_auth.CursorSchema;
-    exports.DEFAULT_NEGOTIATED_PROTOCOL_VERSION = require_auth.DEFAULT_NEGOTIATED_PROTOCOL_VERSION;
-    exports.DiscoverRequestSchema = require_auth.DiscoverRequestSchema;
-    exports.DiscoverResultSchema = require_auth.DiscoverResultSchema;
-    exports.ElicitRequestFormParamsSchema = require_auth.ElicitRequestFormParamsSchema;
-    exports.ElicitRequestParamsSchema = require_auth.ElicitRequestParamsSchema;
-    exports.ElicitRequestSchema = require_auth.ElicitRequestSchema;
-    exports.ElicitRequestURLParamsSchema = require_auth.ElicitRequestURLParamsSchema;
-    exports.ElicitResultSchema = require_auth.ElicitResultSchema;
-    exports.ElicitationCompleteNotificationParamsSchema = require_auth.ElicitationCompleteNotificationParamsSchema;
-    exports.ElicitationCompleteNotificationSchema = require_auth.ElicitationCompleteNotificationSchema;
-    exports.EmbeddedResourceSchema = require_auth.EmbeddedResourceSchema;
-    exports.EmptyResultSchema = require_auth.EmptyResultSchema;
-    exports.EnumSchemaSchema = require_auth.EnumSchemaSchema;
-    exports.GetPromptRequestParamsSchema = require_auth.GetPromptRequestParamsSchema;
-    exports.GetPromptRequestSchema = require_auth.GetPromptRequestSchema;
-    exports.GetPromptResultSchema = require_auth.GetPromptResultSchema;
-    exports.GetTaskPayloadRequestSchema = require_auth.GetTaskPayloadRequestSchema;
-    exports.GetTaskPayloadResultSchema = require_auth.GetTaskPayloadResultSchema;
-    exports.GetTaskRequestSchema = require_auth.GetTaskRequestSchema;
-    exports.GetTaskResultSchema = require_auth.GetTaskResultSchema;
-    exports.INTERNAL_ERROR = require_auth.INTERNAL_ERROR;
-    exports.INVALID_PARAMS = require_auth.INVALID_PARAMS;
-    exports.INVALID_REQUEST = require_auth.INVALID_REQUEST;
-    exports.IconSchema = require_auth.IconSchema;
-    exports.IconsSchema = require_auth.IconsSchema;
+    var require_schemas3 = require_schemas_lGLjBX8n();
+    var require_auth = require_auth_CV4m0LEJ();
+    exports.AnnotationsSchema = require_schemas3.AnnotationsSchema;
+    exports.AudioContentSchema = require_schemas3.AudioContentSchema;
+    exports.BAGGAGE_META_KEY = require_schemas3.BAGGAGE_META_KEY;
+    exports.BaseMetadataSchema = require_schemas3.BaseMetadataSchema;
+    exports.BaseRequestParamsSchema = require_schemas3.BaseRequestParamsSchema;
+    exports.BlobResourceContentsSchema = require_schemas3.BlobResourceContentsSchema;
+    exports.BooleanSchemaSchema = require_schemas3.BooleanSchemaSchema;
+    exports.CLIENT_CAPABILITIES_META_KEY = require_schemas3.CLIENT_CAPABILITIES_META_KEY;
+    exports.CLIENT_INFO_META_KEY = require_schemas3.CLIENT_INFO_META_KEY;
+    exports.CallToolRequestParamsSchema = require_schemas3.CallToolRequestParamsSchema;
+    exports.CallToolRequestSchema = require_schemas3.CallToolRequestSchema;
+    exports.CallToolResultSchema = require_schemas3.CallToolResultSchema;
+    exports.CancelTaskRequestSchema = require_schemas3.CancelTaskRequestSchema;
+    exports.CancelTaskResultSchema = require_schemas3.CancelTaskResultSchema;
+    exports.CancelledNotificationParamsSchema = require_schemas3.CancelledNotificationParamsSchema;
+    exports.CancelledNotificationSchema = require_schemas3.CancelledNotificationSchema;
+    exports.ClientCapabilitiesSchema = require_schemas3.ClientCapabilitiesSchema;
+    exports.ClientNotificationSchema = require_schemas3.ClientNotificationSchema;
+    exports.ClientRequestSchema = require_schemas3.ClientRequestSchema;
+    exports.ClientResultSchema = require_schemas3.ClientResultSchema;
+    exports.ClientTasksCapabilitySchema = require_schemas3.ClientTasksCapabilitySchema;
+    exports.CompatibilityCallToolResultSchema = require_schemas3.CompatibilityCallToolResultSchema;
+    exports.CompleteRequestParamsSchema = require_schemas3.CompleteRequestParamsSchema;
+    exports.CompleteRequestSchema = require_schemas3.CompleteRequestSchema;
+    exports.CompleteResultSchema = require_schemas3.CompleteResultSchema;
+    exports.ContentBlockSchema = require_schemas3.ContentBlockSchema;
+    exports.CreateMessageRequestParamsSchema = require_schemas3.CreateMessageRequestParamsSchema;
+    exports.CreateMessageRequestSchema = require_schemas3.CreateMessageRequestSchema;
+    exports.CreateMessageResultSchema = require_schemas3.CreateMessageResultSchema;
+    exports.CreateMessageResultWithToolsSchema = require_schemas3.CreateMessageResultWithToolsSchema;
+    exports.CreateTaskResultSchema = require_schemas3.CreateTaskResultSchema;
+    exports.CursorSchema = require_schemas3.CursorSchema;
+    exports.DEFAULT_NEGOTIATED_PROTOCOL_VERSION = require_schemas3.DEFAULT_NEGOTIATED_PROTOCOL_VERSION;
+    exports.DiscoverRequestSchema = require_schemas3.DiscoverRequestSchema;
+    exports.DiscoverResultSchema = require_schemas3.DiscoverResultSchema;
+    exports.ElicitRequestFormParamsSchema = require_schemas3.ElicitRequestFormParamsSchema;
+    exports.ElicitRequestParamsSchema = require_schemas3.ElicitRequestParamsSchema;
+    exports.ElicitRequestSchema = require_schemas3.ElicitRequestSchema;
+    exports.ElicitRequestURLParamsSchema = require_schemas3.ElicitRequestURLParamsSchema;
+    exports.ElicitResultSchema = require_schemas3.ElicitResultSchema;
+    exports.ElicitationCompleteNotificationParamsSchema = require_schemas3.ElicitationCompleteNotificationParamsSchema;
+    exports.ElicitationCompleteNotificationSchema = require_schemas3.ElicitationCompleteNotificationSchema;
+    exports.EmbeddedResourceSchema = require_schemas3.EmbeddedResourceSchema;
+    exports.EmptyResultSchema = require_schemas3.EmptyResultSchema;
+    exports.EnumSchemaSchema = require_schemas3.EnumSchemaSchema;
+    exports.GetPromptRequestParamsSchema = require_schemas3.GetPromptRequestParamsSchema;
+    exports.GetPromptRequestSchema = require_schemas3.GetPromptRequestSchema;
+    exports.GetPromptResultSchema = require_schemas3.GetPromptResultSchema;
+    exports.GetTaskPayloadRequestSchema = require_schemas3.GetTaskPayloadRequestSchema;
+    exports.GetTaskPayloadResultSchema = require_schemas3.GetTaskPayloadResultSchema;
+    exports.GetTaskRequestSchema = require_schemas3.GetTaskRequestSchema;
+    exports.GetTaskResultSchema = require_schemas3.GetTaskResultSchema;
+    exports.INTERNAL_ERROR = require_schemas3.INTERNAL_ERROR;
+    exports.INVALID_PARAMS = require_schemas3.INVALID_PARAMS;
+    exports.INVALID_REQUEST = require_schemas3.INVALID_REQUEST;
+    exports.IconSchema = require_schemas3.IconSchema;
+    exports.IconsSchema = require_schemas3.IconsSchema;
     exports.IdJagTokenExchangeResponseSchema = require_auth.IdJagTokenExchangeResponseSchema;
-    exports.ImageContentSchema = require_auth.ImageContentSchema;
-    exports.ImplementationSchema = require_auth.ImplementationSchema;
-    exports.InitializeRequestParamsSchema = require_auth.InitializeRequestParamsSchema;
-    exports.InitializeRequestSchema = require_auth.InitializeRequestSchema;
-    exports.InitializeResultSchema = require_auth.InitializeResultSchema;
-    exports.InitializedNotificationSchema = require_auth.InitializedNotificationSchema;
-    exports.JSONArraySchema = require_auth.JSONArraySchema;
-    exports.JSONObjectSchema = require_auth.JSONObjectSchema;
-    exports.JSONRPCErrorResponseSchema = require_auth.JSONRPCErrorResponseSchema;
-    exports.JSONRPCMessageSchema = require_auth.JSONRPCMessageSchema;
-    exports.JSONRPCNotificationSchema = require_auth.JSONRPCNotificationSchema;
-    exports.JSONRPCRequestSchema = require_auth.JSONRPCRequestSchema;
-    exports.JSONRPCResponseSchema = require_auth.JSONRPCResponseSchema;
-    exports.JSONRPCResultResponseSchema = require_auth.JSONRPCResultResponseSchema;
-    exports.JSONRPC_VERSION = require_auth.JSONRPC_VERSION;
-    exports.JSONValueSchema = require_auth.JSONValueSchema;
-    exports.LATEST_PROTOCOL_VERSION = require_auth.LATEST_PROTOCOL_VERSION;
-    exports.LOG_LEVEL_META_KEY = require_auth.LOG_LEVEL_META_KEY;
-    exports.LegacyTitledEnumSchemaSchema = require_auth.LegacyTitledEnumSchemaSchema;
-    exports.ListChangedOptionsBaseSchema = require_auth.ListChangedOptionsBaseSchema;
-    exports.ListPromptsRequestSchema = require_auth.ListPromptsRequestSchema;
-    exports.ListPromptsResultSchema = require_auth.ListPromptsResultSchema;
-    exports.ListResourceTemplatesRequestSchema = require_auth.ListResourceTemplatesRequestSchema;
-    exports.ListResourceTemplatesResultSchema = require_auth.ListResourceTemplatesResultSchema;
-    exports.ListResourcesRequestSchema = require_auth.ListResourcesRequestSchema;
-    exports.ListResourcesResultSchema = require_auth.ListResourcesResultSchema;
-    exports.ListRootsRequestSchema = require_auth.ListRootsRequestSchema;
-    exports.ListRootsResultSchema = require_auth.ListRootsResultSchema;
-    exports.ListTasksRequestSchema = require_auth.ListTasksRequestSchema;
-    exports.ListTasksResultSchema = require_auth.ListTasksResultSchema;
-    exports.ListToolsRequestSchema = require_auth.ListToolsRequestSchema;
-    exports.ListToolsResultSchema = require_auth.ListToolsResultSchema;
-    exports.LoggingLevelSchema = require_auth.LoggingLevelSchema;
-    exports.LoggingMessageNotificationParamsSchema = require_auth.LoggingMessageNotificationParamsSchema;
-    exports.LoggingMessageNotificationSchema = require_auth.LoggingMessageNotificationSchema;
-    exports.METHOD_NOT_FOUND = require_auth.METHOD_NOT_FOUND;
-    exports.ModelHintSchema = require_auth.ModelHintSchema;
-    exports.ModelPreferencesSchema = require_auth.ModelPreferencesSchema;
-    exports.MultiSelectEnumSchemaSchema = require_auth.MultiSelectEnumSchemaSchema;
-    exports.NotificationSchema = require_auth.NotificationSchema;
-    exports.NotificationsParamsSchema = require_auth.NotificationsParamsSchema;
-    exports.NumberSchemaSchema = require_auth.NumberSchemaSchema;
+    exports.ImageContentSchema = require_schemas3.ImageContentSchema;
+    exports.ImplementationSchema = require_schemas3.ImplementationSchema;
+    exports.InitializeRequestParamsSchema = require_schemas3.InitializeRequestParamsSchema;
+    exports.InitializeRequestSchema = require_schemas3.InitializeRequestSchema;
+    exports.InitializeResultSchema = require_schemas3.InitializeResultSchema;
+    exports.InitializedNotificationSchema = require_schemas3.InitializedNotificationSchema;
+    exports.JSONArraySchema = require_schemas3.JSONArraySchema;
+    exports.JSONObjectSchema = require_schemas3.JSONObjectSchema;
+    exports.JSONRPCErrorResponseSchema = require_schemas3.JSONRPCErrorResponseSchema;
+    exports.JSONRPCMessageSchema = require_schemas3.JSONRPCMessageSchema;
+    exports.JSONRPCNotificationSchema = require_schemas3.JSONRPCNotificationSchema;
+    exports.JSONRPCRequestSchema = require_schemas3.JSONRPCRequestSchema;
+    exports.JSONRPCResponseSchema = require_schemas3.JSONRPCResponseSchema;
+    exports.JSONRPCResultResponseSchema = require_schemas3.JSONRPCResultResponseSchema;
+    exports.JSONRPC_VERSION = require_schemas3.JSONRPC_VERSION;
+    exports.JSONValueSchema = require_schemas3.JSONValueSchema;
+    exports.LATEST_PROTOCOL_VERSION = require_schemas3.LATEST_PROTOCOL_VERSION;
+    exports.LOG_LEVEL_META_KEY = require_schemas3.LOG_LEVEL_META_KEY;
+    exports.LegacyTitledEnumSchemaSchema = require_schemas3.LegacyTitledEnumSchemaSchema;
+    exports.ListChangedOptionsBaseSchema = require_schemas3.ListChangedOptionsBaseSchema;
+    exports.ListPromptsRequestSchema = require_schemas3.ListPromptsRequestSchema;
+    exports.ListPromptsResultSchema = require_schemas3.ListPromptsResultSchema;
+    exports.ListResourceTemplatesRequestSchema = require_schemas3.ListResourceTemplatesRequestSchema;
+    exports.ListResourceTemplatesResultSchema = require_schemas3.ListResourceTemplatesResultSchema;
+    exports.ListResourcesRequestSchema = require_schemas3.ListResourcesRequestSchema;
+    exports.ListResourcesResultSchema = require_schemas3.ListResourcesResultSchema;
+    exports.ListRootsRequestSchema = require_schemas3.ListRootsRequestSchema;
+    exports.ListRootsResultSchema = require_schemas3.ListRootsResultSchema;
+    exports.ListTasksRequestSchema = require_schemas3.ListTasksRequestSchema;
+    exports.ListTasksResultSchema = require_schemas3.ListTasksResultSchema;
+    exports.ListToolsRequestSchema = require_schemas3.ListToolsRequestSchema;
+    exports.ListToolsResultSchema = require_schemas3.ListToolsResultSchema;
+    exports.LoggingLevelSchema = require_schemas3.LoggingLevelSchema;
+    exports.LoggingMessageNotificationParamsSchema = require_schemas3.LoggingMessageNotificationParamsSchema;
+    exports.LoggingMessageNotificationSchema = require_schemas3.LoggingMessageNotificationSchema;
+    exports.METHOD_NOT_FOUND = require_schemas3.METHOD_NOT_FOUND;
+    exports.ModelHintSchema = require_schemas3.ModelHintSchema;
+    exports.ModelPreferencesSchema = require_schemas3.ModelPreferencesSchema;
+    exports.MultiSelectEnumSchemaSchema = require_schemas3.MultiSelectEnumSchemaSchema;
+    exports.NotificationSchema = require_schemas3.NotificationSchema;
+    exports.NotificationsParamsSchema = require_schemas3.NotificationsParamsSchema;
+    exports.NumberSchemaSchema = require_schemas3.NumberSchemaSchema;
     exports.OAuthClientInformationFullSchema = require_auth.OAuthClientInformationFullSchema;
     exports.OAuthClientInformationSchema = require_auth.OAuthClientInformationSchema;
     exports.OAuthClientMetadataSchema = require_auth.OAuthClientMetadataSchema;
@@ -25841,99 +25857,99 @@ var require_internal = __commonJS({
     exports.OpenIdProviderDiscoveryMetadataSchema = require_auth.OpenIdProviderDiscoveryMetadataSchema;
     exports.OpenIdProviderMetadataSchema = require_auth.OpenIdProviderMetadataSchema;
     exports.OptionalSafeUrlSchema = require_auth.OptionalSafeUrlSchema;
-    exports.PARSE_ERROR = require_auth.PARSE_ERROR;
-    exports.PROTOCOL_VERSION_META_KEY = require_auth.PROTOCOL_VERSION_META_KEY;
-    exports.PaginatedRequestParamsSchema = require_auth.PaginatedRequestParamsSchema;
-    exports.PaginatedRequestSchema = require_auth.PaginatedRequestSchema;
-    exports.PaginatedResultSchema = require_auth.PaginatedResultSchema;
-    exports.PingRequestSchema = require_auth.PingRequestSchema;
-    exports.PrimitiveSchemaDefinitionSchema = require_auth.PrimitiveSchemaDefinitionSchema;
-    exports.ProgressNotificationParamsSchema = require_auth.ProgressNotificationParamsSchema;
-    exports.ProgressNotificationSchema = require_auth.ProgressNotificationSchema;
-    exports.ProgressSchema = require_auth.ProgressSchema;
-    exports.ProgressTokenSchema = require_auth.ProgressTokenSchema;
-    exports.PromptArgumentSchema = require_auth.PromptArgumentSchema;
-    exports.PromptListChangedNotificationSchema = require_auth.PromptListChangedNotificationSchema;
-    exports.PromptMessageSchema = require_auth.PromptMessageSchema;
-    exports.PromptReferenceSchema = require_auth.PromptReferenceSchema;
-    exports.PromptSchema = require_auth.PromptSchema;
-    exports.RELATED_TASK_META_KEY = require_auth.RELATED_TASK_META_KEY;
-    exports.ReadResourceRequestParamsSchema = require_auth.ReadResourceRequestParamsSchema;
-    exports.ReadResourceRequestSchema = require_auth.ReadResourceRequestSchema;
-    exports.ReadResourceResultSchema = require_auth.ReadResourceResultSchema;
-    exports.RelatedTaskMetadataSchema = require_auth.RelatedTaskMetadataSchema;
-    exports.RequestIdSchema = require_auth.RequestIdSchema;
-    exports.RequestMetaSchema = require_auth.RequestMetaSchema;
-    exports.RequestSchema = require_auth.RequestSchema;
-    exports.ResourceContentsSchema = require_auth.ResourceContentsSchema;
-    exports.ResourceLinkSchema = require_auth.ResourceLinkSchema;
-    exports.ResourceListChangedNotificationSchema = require_auth.ResourceListChangedNotificationSchema;
-    exports.ResourceRequestParamsSchema = require_auth.ResourceRequestParamsSchema;
-    exports.ResourceSchema = require_auth.ResourceSchema;
-    exports.ResourceTemplateReferenceSchema = require_auth.ResourceTemplateReferenceSchema;
-    exports.ResourceTemplateSchema = require_auth.ResourceTemplateSchema;
-    exports.ResourceUpdatedNotificationParamsSchema = require_auth.ResourceUpdatedNotificationParamsSchema;
-    exports.ResourceUpdatedNotificationSchema = require_auth.ResourceUpdatedNotificationSchema;
-    exports.ResultMetaObjectSchema = require_auth.ResultMetaObjectSchema;
-    exports.ResultSchema = require_auth.ResultSchema;
-    exports.RoleSchema = require_auth.RoleSchema;
-    exports.RootSchema = require_auth.RootSchema;
-    exports.RootsListChangedNotificationSchema = require_auth.RootsListChangedNotificationSchema;
-    exports.SERVER_INFO_META_KEY = require_auth.SERVER_INFO_META_KEY;
-    exports.SUBSCRIPTION_ID_META_KEY = require_auth.SUBSCRIPTION_ID_META_KEY;
-    exports.SUPPORTED_PROTOCOL_VERSIONS = require_auth.SUPPORTED_PROTOCOL_VERSIONS;
+    exports.PARSE_ERROR = require_schemas3.PARSE_ERROR;
+    exports.PROTOCOL_VERSION_META_KEY = require_schemas3.PROTOCOL_VERSION_META_KEY;
+    exports.PaginatedRequestParamsSchema = require_schemas3.PaginatedRequestParamsSchema;
+    exports.PaginatedRequestSchema = require_schemas3.PaginatedRequestSchema;
+    exports.PaginatedResultSchema = require_schemas3.PaginatedResultSchema;
+    exports.PingRequestSchema = require_schemas3.PingRequestSchema;
+    exports.PrimitiveSchemaDefinitionSchema = require_schemas3.PrimitiveSchemaDefinitionSchema;
+    exports.ProgressNotificationParamsSchema = require_schemas3.ProgressNotificationParamsSchema;
+    exports.ProgressNotificationSchema = require_schemas3.ProgressNotificationSchema;
+    exports.ProgressSchema = require_schemas3.ProgressSchema;
+    exports.ProgressTokenSchema = require_schemas3.ProgressTokenSchema;
+    exports.PromptArgumentSchema = require_schemas3.PromptArgumentSchema;
+    exports.PromptListChangedNotificationSchema = require_schemas3.PromptListChangedNotificationSchema;
+    exports.PromptMessageSchema = require_schemas3.PromptMessageSchema;
+    exports.PromptReferenceSchema = require_schemas3.PromptReferenceSchema;
+    exports.PromptSchema = require_schemas3.PromptSchema;
+    exports.RELATED_TASK_META_KEY = require_schemas3.RELATED_TASK_META_KEY;
+    exports.ReadResourceRequestParamsSchema = require_schemas3.ReadResourceRequestParamsSchema;
+    exports.ReadResourceRequestSchema = require_schemas3.ReadResourceRequestSchema;
+    exports.ReadResourceResultSchema = require_schemas3.ReadResourceResultSchema;
+    exports.RelatedTaskMetadataSchema = require_schemas3.RelatedTaskMetadataSchema;
+    exports.RequestIdSchema = require_schemas3.RequestIdSchema;
+    exports.RequestMetaSchema = require_schemas3.RequestMetaSchema;
+    exports.RequestSchema = require_schemas3.RequestSchema;
+    exports.ResourceContentsSchema = require_schemas3.ResourceContentsSchema;
+    exports.ResourceLinkSchema = require_schemas3.ResourceLinkSchema;
+    exports.ResourceListChangedNotificationSchema = require_schemas3.ResourceListChangedNotificationSchema;
+    exports.ResourceRequestParamsSchema = require_schemas3.ResourceRequestParamsSchema;
+    exports.ResourceSchema = require_schemas3.ResourceSchema;
+    exports.ResourceTemplateReferenceSchema = require_schemas3.ResourceTemplateReferenceSchema;
+    exports.ResourceTemplateSchema = require_schemas3.ResourceTemplateSchema;
+    exports.ResourceUpdatedNotificationParamsSchema = require_schemas3.ResourceUpdatedNotificationParamsSchema;
+    exports.ResourceUpdatedNotificationSchema = require_schemas3.ResourceUpdatedNotificationSchema;
+    exports.ResultMetaObjectSchema = require_schemas3.ResultMetaObjectSchema;
+    exports.ResultSchema = require_schemas3.ResultSchema;
+    exports.RoleSchema = require_schemas3.RoleSchema;
+    exports.RootSchema = require_schemas3.RootSchema;
+    exports.RootsListChangedNotificationSchema = require_schemas3.RootsListChangedNotificationSchema;
+    exports.SERVER_INFO_META_KEY = require_schemas3.SERVER_INFO_META_KEY;
+    exports.SUBSCRIPTION_ID_META_KEY = require_schemas3.SUBSCRIPTION_ID_META_KEY;
+    exports.SUPPORTED_PROTOCOL_VERSIONS = require_schemas3.SUPPORTED_PROTOCOL_VERSIONS;
     exports.SafeUrlSchema = require_auth.SafeUrlSchema;
-    exports.SamplingContentSchema = require_auth.SamplingContentSchema;
-    exports.SamplingMessageContentBlockSchema = require_auth.SamplingMessageContentBlockSchema;
-    exports.SamplingMessageSchema = require_auth.SamplingMessageSchema;
-    exports.ServerCapabilitiesSchema = require_auth.ServerCapabilitiesSchema;
-    exports.ServerNotificationSchema = require_auth.ServerNotificationSchema;
-    exports.ServerRequestSchema = require_auth.ServerRequestSchema;
-    exports.ServerResultSchema = require_auth.ServerResultSchema;
-    exports.ServerTasksCapabilitySchema = require_auth.ServerTasksCapabilitySchema;
-    exports.SetLevelRequestParamsSchema = require_auth.SetLevelRequestParamsSchema;
-    exports.SetLevelRequestSchema = require_auth.SetLevelRequestSchema;
-    exports.SingleSelectEnumSchemaSchema = require_auth.SingleSelectEnumSchemaSchema;
-    exports.StringSchemaSchema = require_auth.StringSchemaSchema;
-    exports.SubscribeRequestParamsSchema = require_auth.SubscribeRequestParamsSchema;
-    exports.SubscribeRequestSchema = require_auth.SubscribeRequestSchema;
-    exports.SubscriptionFilterSchema = require_auth.SubscriptionFilterSchema;
-    exports.SubscriptionsAcknowledgedNotificationParamsSchema = require_auth.SubscriptionsAcknowledgedNotificationParamsSchema;
-    exports.SubscriptionsAcknowledgedNotificationSchema = require_auth.SubscriptionsAcknowledgedNotificationSchema;
-    exports.SubscriptionsListenRequestParamsSchema = require_auth.SubscriptionsListenRequestParamsSchema;
-    exports.SubscriptionsListenRequestSchema = require_auth.SubscriptionsListenRequestSchema;
-    exports.SubscriptionsListenResultMetaSchema = require_auth.SubscriptionsListenResultMetaSchema;
-    exports.SubscriptionsListenResultSchema = require_auth.SubscriptionsListenResultSchema;
-    exports.TRACEPARENT_META_KEY = require_auth.TRACEPARENT_META_KEY;
-    exports.TRACESTATE_META_KEY = require_auth.TRACESTATE_META_KEY;
-    exports.TaskAugmentedRequestParamsSchema = require_auth.TaskAugmentedRequestParamsSchema;
-    exports.TaskCreationParamsSchema = require_auth.TaskCreationParamsSchema;
-    exports.TaskMetadataSchema = require_auth.TaskMetadataSchema;
-    exports.TaskSchema = require_auth.TaskSchema;
-    exports.TaskStatusNotificationParamsSchema = require_auth.TaskStatusNotificationParamsSchema;
-    exports.TaskStatusNotificationSchema = require_auth.TaskStatusNotificationSchema;
-    exports.TaskStatusSchema = require_auth.TaskStatusSchema;
-    exports.TextContentSchema = require_auth.TextContentSchema;
-    exports.TextResourceContentsSchema = require_auth.TextResourceContentsSchema;
-    exports.TitledMultiSelectEnumSchemaSchema = require_auth.TitledMultiSelectEnumSchemaSchema;
-    exports.TitledSingleSelectEnumSchemaSchema = require_auth.TitledSingleSelectEnumSchemaSchema;
-    exports.ToolAnnotationsSchema = require_auth.ToolAnnotationsSchema;
-    exports.ToolChoiceSchema = require_auth.ToolChoiceSchema;
-    exports.ToolExecutionSchema = require_auth.ToolExecutionSchema;
-    exports.ToolListChangedNotificationSchema = require_auth.ToolListChangedNotificationSchema;
-    exports.ToolResultContentSchema = require_auth.ToolResultContentSchema;
-    exports.ToolSchema = require_auth.ToolSchema;
-    exports.ToolUseContentSchema = require_auth.ToolUseContentSchema;
-    exports.UnsubscribeRequestParamsSchema = require_auth.UnsubscribeRequestParamsSchema;
-    exports.UnsubscribeRequestSchema = require_auth.UnsubscribeRequestSchema;
-    exports.UntitledMultiSelectEnumSchemaSchema = require_auth.UntitledMultiSelectEnumSchemaSchema;
-    exports.UntitledSingleSelectEnumSchemaSchema = require_auth.UntitledSingleSelectEnumSchemaSchema;
+    exports.SamplingContentSchema = require_schemas3.SamplingContentSchema;
+    exports.SamplingMessageContentBlockSchema = require_schemas3.SamplingMessageContentBlockSchema;
+    exports.SamplingMessageSchema = require_schemas3.SamplingMessageSchema;
+    exports.ServerCapabilitiesSchema = require_schemas3.ServerCapabilitiesSchema;
+    exports.ServerNotificationSchema = require_schemas3.ServerNotificationSchema;
+    exports.ServerRequestSchema = require_schemas3.ServerRequestSchema;
+    exports.ServerResultSchema = require_schemas3.ServerResultSchema;
+    exports.ServerTasksCapabilitySchema = require_schemas3.ServerTasksCapabilitySchema;
+    exports.SetLevelRequestParamsSchema = require_schemas3.SetLevelRequestParamsSchema;
+    exports.SetLevelRequestSchema = require_schemas3.SetLevelRequestSchema;
+    exports.SingleSelectEnumSchemaSchema = require_schemas3.SingleSelectEnumSchemaSchema;
+    exports.StringSchemaSchema = require_schemas3.StringSchemaSchema;
+    exports.SubscribeRequestParamsSchema = require_schemas3.SubscribeRequestParamsSchema;
+    exports.SubscribeRequestSchema = require_schemas3.SubscribeRequestSchema;
+    exports.SubscriptionFilterSchema = require_schemas3.SubscriptionFilterSchema;
+    exports.SubscriptionsAcknowledgedNotificationParamsSchema = require_schemas3.SubscriptionsAcknowledgedNotificationParamsSchema;
+    exports.SubscriptionsAcknowledgedNotificationSchema = require_schemas3.SubscriptionsAcknowledgedNotificationSchema;
+    exports.SubscriptionsListenRequestParamsSchema = require_schemas3.SubscriptionsListenRequestParamsSchema;
+    exports.SubscriptionsListenRequestSchema = require_schemas3.SubscriptionsListenRequestSchema;
+    exports.SubscriptionsListenResultMetaSchema = require_schemas3.SubscriptionsListenResultMetaSchema;
+    exports.SubscriptionsListenResultSchema = require_schemas3.SubscriptionsListenResultSchema;
+    exports.TRACEPARENT_META_KEY = require_schemas3.TRACEPARENT_META_KEY;
+    exports.TRACESTATE_META_KEY = require_schemas3.TRACESTATE_META_KEY;
+    exports.TaskAugmentedRequestParamsSchema = require_schemas3.TaskAugmentedRequestParamsSchema;
+    exports.TaskCreationParamsSchema = require_schemas3.TaskCreationParamsSchema;
+    exports.TaskMetadataSchema = require_schemas3.TaskMetadataSchema;
+    exports.TaskSchema = require_schemas3.TaskSchema;
+    exports.TaskStatusNotificationParamsSchema = require_schemas3.TaskStatusNotificationParamsSchema;
+    exports.TaskStatusNotificationSchema = require_schemas3.TaskStatusNotificationSchema;
+    exports.TaskStatusSchema = require_schemas3.TaskStatusSchema;
+    exports.TextContentSchema = require_schemas3.TextContentSchema;
+    exports.TextResourceContentsSchema = require_schemas3.TextResourceContentsSchema;
+    exports.TitledMultiSelectEnumSchemaSchema = require_schemas3.TitledMultiSelectEnumSchemaSchema;
+    exports.TitledSingleSelectEnumSchemaSchema = require_schemas3.TitledSingleSelectEnumSchemaSchema;
+    exports.ToolAnnotationsSchema = require_schemas3.ToolAnnotationsSchema;
+    exports.ToolChoiceSchema = require_schemas3.ToolChoiceSchema;
+    exports.ToolExecutionSchema = require_schemas3.ToolExecutionSchema;
+    exports.ToolListChangedNotificationSchema = require_schemas3.ToolListChangedNotificationSchema;
+    exports.ToolResultContentSchema = require_schemas3.ToolResultContentSchema;
+    exports.ToolSchema = require_schemas3.ToolSchema;
+    exports.ToolUseContentSchema = require_schemas3.ToolUseContentSchema;
+    exports.UnsubscribeRequestParamsSchema = require_schemas3.UnsubscribeRequestParamsSchema;
+    exports.UnsubscribeRequestSchema = require_schemas3.UnsubscribeRequestSchema;
+    exports.UntitledMultiSelectEnumSchemaSchema = require_schemas3.UntitledMultiSelectEnumSchemaSchema;
+    exports.UntitledSingleSelectEnumSchemaSchema = require_schemas3.UntitledSingleSelectEnumSchemaSchema;
   }
 });
 
-// risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/src-BhnGYybN.cjs
-var require_src_BhnGYybN = __commonJS({
-  "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/src-BhnGYybN.cjs"(exports) {
+// risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/src-BvE2tDzk.cjs
+var require_src_BvE2tDzk = __commonJS({
+  "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/src-BvE2tDzk.cjs"(exports) {
     var require_chunk = require_chunk_Bnu9O96Y();
     var require_dialects = require_dialects_D8eXzoGv();
     var _modelcontextprotocol_core_internal = require_internal();
@@ -28959,12 +28975,12 @@ var require_src_BhnGYybN = __commonJS({
     var PERMITTED_X_MCP_HEADER_TYPES = /* @__PURE__ */ new Set([
       "string",
       "integer",
-      "boolean",
-      "number"
+      "boolean"
     ]);
     function scanXMcpHeaderDeclarations(inputSchema) {
       const declarations = [];
       const seenLower = /* @__PURE__ */ new Map();
+      let numberFault;
       const visit = (node, path9, reachable) => {
         if (node === null || typeof node !== "object") return void 0;
         const schema = node;
@@ -28974,7 +28990,11 @@ var require_src_BhnGYybN = __commonJS({
           if (typeof raw !== "string" || raw.length === 0) return `${pathName(path9)}: x-mcp-header MUST be a non-empty string`;
           if (!RFC9110_TOKEN.test(raw)) return `${pathName(path9)}: x-mcp-header '${raw}' is not a valid RFC 9110 token (no spaces, control characters or HTTP delimiters)`;
           const type = typeof schema.type === "string" ? schema.type : void 0;
-          if (type === void 0 || !PERMITTED_X_MCP_HEADER_TYPES.has(type)) return `${pathName(path9)}: x-mcp-header is only permitted on primitive-typed properties (string, integer, boolean); got ${type ?? "<none>"}`;
+          if (type === void 0 || !PERMITTED_X_MCP_HEADER_TYPES.has(type)) {
+            const fault$1 = `${pathName(path9)}: x-mcp-header is only permitted on primitive-typed properties (string, integer, boolean); got ${type ?? "<none>"}`;
+            if (type !== "number") return fault$1;
+            numberFault ??= fault$1;
+          }
           const lower = raw.toLowerCase();
           const prior = seenLower.get(lower);
           if (prior !== void 0) return `x-mcp-header '${raw}' is not case-insensitively unique (also declared as '${prior}')`;
@@ -29001,12 +29021,17 @@ var require_src_BhnGYybN = __commonJS({
         }
       };
       const fault = visit(inputSchema, [], true);
-      return fault === void 0 ? {
+      if (fault !== void 0) return {
+        valid: false,
+        reason: numberFault ?? fault
+      };
+      return numberFault === void 0 ? {
         valid: true,
         declarations
       } : {
         valid: false,
-        reason: fault
+        reason: numberFault,
+        declarations
       };
     }
     var NON_REACHABLE_SUBSCHEMA_KEYWORDS = [
@@ -29460,15 +29485,18 @@ var require_src_BhnGYybN = __commonJS({
         ...result
       };
     }
-    function isProvablyObjectShapedRoot(schema) {
+    var LOCAL_DEFINITION_REF = /^#\/(\$defs|definitions)\/([^/~%]+)$/;
+    function isProvablyObjectShapedRoot(schema, root = schema) {
       if ("properties" in schema || "patternProperties" in schema || "additionalProperties" in schema || "required" in schema) return true;
+      const ref = typeof schema.$ref === "string" && LOCAL_DEFINITION_REF.exec(schema.$ref);
+      if (ref && root[ref[1]]?.[ref[2]]?.type === "object") return true;
       for (const key of [
         "oneOf",
         "anyOf",
         "allOf"
       ]) {
         const members = schema[key];
-        if (Array.isArray(members) && members.length > 0) return members.every((m) => m !== null && typeof m === "object" && (m.type === "object" || isProvablyObjectShapedRoot(m)));
+        if (Array.isArray(members) && members.length > 0) return members.every((m) => m !== null && typeof m === "object" && (m.type === "object" || isProvablyObjectShapedRoot(m, "$id" in m ? {} : root)));
       }
       return false;
     }
@@ -31408,6 +31436,12 @@ var require_src_BhnGYybN = __commonJS({
         return attachCacheHintFallback;
       }
     });
+    Object.defineProperty(exports, "brandedHasInstance", {
+      enumerable: true,
+      get: function() {
+        return brandedHasInstance;
+      }
+    });
     Object.defineProperty(exports, "carriesValidModernEnvelopeClaim", {
       enumerable: true,
       get: function() {
@@ -31708,6 +31742,12 @@ var require_src_BhnGYybN = __commonJS({
         return specTypeSchemas;
       }
     });
+    Object.defineProperty(exports, "stampErrorBrands", {
+      enumerable: true,
+      get: function() {
+        return stampErrorBrands;
+      }
+    });
     Object.defineProperty(exports, "standardSchemaToJsonSchema", {
       enumerable: true,
       get: function() {
@@ -31753,9 +31793,9 @@ var require_src_BhnGYybN = __commonJS({
   }
 });
 
-// risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/ajvProvider-ZaoO9afR.cjs
-var require_ajvProvider_ZaoO9afR = __commonJS({
-  "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/ajvProvider-ZaoO9afR.cjs"(exports) {
+// risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/ajvProvider-DPYcD0gV.cjs
+var require_ajvProvider_DPYcD0gV = __commonJS({
+  "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/ajvProvider-DPYcD0gV.cjs"(exports) {
     var require_chunk = require_chunk_Bnu9O96Y();
     var require_dialects = require_dialects_D8eXzoGv();
     var require_code$1 = /* @__PURE__ */ require_chunk.__commonJSMin(((exports2) => {
@@ -34439,6 +34479,22 @@ var require_ajvProvider_ZaoO9afR = __commonJS({
     var require_utils4 = /* @__PURE__ */ require_chunk.__commonJSMin(((exports2, module2) => {
       const isUUID = RegExp.prototype.test.bind(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/iu);
       const isIPv4 = RegExp.prototype.test.bind(/^(?:(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)$/u);
+      const isPort = RegExp.prototype.test.bind(/^\d*$/u);
+      const isHexPair = RegExp.prototype.test.bind(/^[\da-f]{2}$/iu);
+      const isUnreserved = RegExp.prototype.test.bind(/^[\da-z\-._~]$/iu);
+      const isPathCharacter = RegExp.prototype.test.bind(/^[A-Za-z0-9\-._~!$&'()*+,;=:@/]$/u);
+      const isQueryFragmentCharacter = RegExp.prototype.test.bind(/^[A-Za-z0-9\-._~!$&'()*+,;=:@/?]$/u);
+      const isUserinfoCharacter = RegExp.prototype.test.bind(/^[A-Za-z0-9\-._~!$&'()*+,;=:]$/u);
+      const BYTE_HEX = new Array(256);
+      {
+        const HEX_DIGITS = "0123456789ABCDEF";
+        for (let i = 0; i < 256; i++) BYTE_HEX[i] = "%" + HEX_DIGITS[i >> 4] + HEX_DIGITS[i & 15];
+      }
+      function percentEncodeNonAscii(cp) {
+        if (cp < 2048) return BYTE_HEX[192 | cp >> 6] + BYTE_HEX[128 | cp & 63];
+        if (cp < 65536) return BYTE_HEX[224 | cp >> 12] + BYTE_HEX[128 | cp >> 6 & 63] + BYTE_HEX[128 | cp & 63];
+        return BYTE_HEX[240 | cp >> 18] + BYTE_HEX[128 | cp >> 12 & 63] + BYTE_HEX[128 | cp >> 6 & 63] + BYTE_HEX[128 | cp & 63];
+      }
       function stringArrayToHexStripped(input) {
         let acc = "";
         let code = 0;
@@ -34457,83 +34513,120 @@ var require_ajvProvider_ZaoO9afR = __commonJS({
         }
         return acc;
       }
+      const isHextet = RegExp.prototype.test.bind(/^[\dA-Fa-f]{1,4}$/);
+      const isIPvFuture = RegExp.prototype.test.bind(/^[vV][\dA-Fa-f]+\.[A-Za-z\d\-._~!$&'()*+,;=:]+$/);
+      const isZoneCharacter = RegExp.prototype.test.bind(/^[A-Za-z\d\-._~]$/);
       const nonSimpleDomain = RegExp.prototype.test.bind(/[^!"$&'()*+,\-.;=_`a-z{}~]/u);
-      function consumeIsZone(buffer) {
-        buffer.length = 0;
-        return true;
-      }
-      function consumeHextets(buffer, address, output) {
-        if (buffer.length) {
-          const hex = stringArrayToHexStripped(buffer);
-          if (hex !== "") address.push(hex);
-          else {
-            output.error = true;
-            return false;
+      function isZoneIdentifier(zone) {
+        if (zone.length === 0) return false;
+        for (let i = 0; i < zone.length; i++) {
+          if (isZoneCharacter(zone[i])) continue;
+          if (zone[i] === "%" && i + 2 < zone.length && isHexPair(zone.slice(i + 1, i + 3))) {
+            i += 2;
+            continue;
           }
-          buffer.length = 0;
+          return false;
         }
         return true;
       }
-      function getIPV6(input) {
-        let tokenCount = 0;
-        const output = {
-          error: false,
-          address: "",
-          zone: ""
-        };
-        const address = [];
-        const buffer = [];
-        let endipv6Encountered = false;
-        let endIpv6 = false;
-        let consume = consumeHextets;
-        for (let i = 0; i < input.length; i++) {
-          const cursor = input[i];
-          if (cursor === "[" || cursor === "]") continue;
-          if (cursor === ":") {
-            if (endipv6Encountered === true) endIpv6 = true;
-            if (!consume(buffer, address, output)) break;
-            if (++tokenCount > 7) {
-              output.error = true;
-              break;
-            }
-            if (i > 0 && input[i - 1] === ":") endipv6Encountered = true;
-            address.push(":");
-            continue;
-          } else if (cursor === "%") {
-            if (!consume(buffer, address, output)) break;
-            consume = consumeIsZone;
-          } else {
-            buffer.push(cursor);
+      function compressIPv6ZeroRun(hextets) {
+        let bestStart = -1;
+        let bestLength = 0;
+        let runStart = -1;
+        let runLength = 0;
+        for (let i = 0; i < hextets.length; i++) if (hextets[i] === "0") {
+          if (runStart === -1) runStart = i;
+          runLength++;
+          if (runLength > bestLength) {
+            bestLength = runLength;
+            bestStart = runStart;
+          }
+        } else {
+          runStart = -1;
+          runLength = 0;
+        }
+        if (bestLength < 2) return hextets.join(":");
+        const head = hextets.slice(0, bestStart).join(":");
+        const tail = hextets.slice(bestStart + bestLength).join(":");
+        return head + "::" + tail;
+      }
+      function normalizeIPv6Address(input) {
+        const compression = input.indexOf("::");
+        if (compression !== -1 && input.indexOf("::", compression + 1) !== -1) return void 0;
+        const left = compression === -1 ? input.split(":") : input.slice(0, compression).split(":");
+        const right = compression === -1 ? [] : input.slice(compression + 2).split(":");
+        if (compression !== -1) {
+          if (left.length === 1 && left[0] === "") left.length = 0;
+          if (right.length === 1 && right[0] === "") right.length = 0;
+        }
+        const parts = left.concat(right);
+        let hextetCount = 0;
+        for (let i = 0; i < parts.length; i++) {
+          const part = parts[i];
+          if (part === "") return void 0;
+          if (part.indexOf(".") !== -1) {
+            if (i !== parts.length - 1 || compression !== -1 && right.length === 0 || !isIPv4(part)) return void 0;
+            hextetCount += 2;
             continue;
           }
+          if (!isHextet(part)) return void 0;
+          parts[i] = parseInt(part, 16).toString(16);
+          hextetCount++;
         }
-        if (buffer.length) if (consume === consumeIsZone) output.zone = buffer.join("");
-        else if (endIpv6) address.push(buffer.join(""));
-        else address.push(stringArrayToHexStripped(buffer));
-        output.address = address.join("");
-        return output;
+        if (compression === -1) {
+          if (hextetCount !== 8) return void 0;
+          return compressIPv6ZeroRun(parts);
+        }
+        if (hextetCount >= 8) return void 0;
+        const expanded = parts.slice(0, left.length);
+        for (let i = hextetCount; i < 8; i++) expanded.push("0");
+        for (let i = left.length; i < parts.length; i++) expanded.push(parts[i]);
+        return compressIPv6ZeroRun(expanded);
       }
       function normalizeIPv6(host) {
-        if (findToken(host, ":") < 2) return {
+        const bracketed = host[0] === "[" && host[host.length - 1] === "]";
+        if ((host[0] === "[" || host[host.length - 1] === "]") && !bracketed) return {
           host,
-          isIPV6: false
+          isIPV6: false,
+          error: true
         };
-        const ipv6 = getIPV6(host);
-        if (!ipv6.error) {
-          let newHost = ipv6.address;
-          let escapedHost = ipv6.address;
-          if (ipv6.zone) {
-            newHost += "%" + ipv6.zone;
-            escapedHost += "%25" + ipv6.zone;
-          }
+        let input = bracketed ? host.slice(1, -1) : host;
+        if (bracketed && isIPvFuture(input)) {
+          input = input.toLowerCase();
           return {
-            host: newHost,
-            isIPV6: true,
-            escapedHost
+            host: `[${input}]`,
+            escapedHost: input,
+            isIPV6: false,
+            isIPVFuture: true
           };
-        } else return {
+        }
+        if (findToken(input, ":") < 2) return {
           host,
-          isIPV6: false
+          isIPV6: false,
+          error: bracketed
+        };
+        let zoneIdentifier = "";
+        const zoneSeparator = input.indexOf("%");
+        if (zoneSeparator !== -1) {
+          const separatorLength = input.slice(zoneSeparator, zoneSeparator + 3).toLowerCase() === "%25" ? 3 : 1;
+          zoneIdentifier = input.slice(zoneSeparator + separatorLength);
+          if (!isZoneIdentifier(zoneIdentifier)) return {
+            host,
+            isIPV6: false,
+            error: true
+          };
+          input = input.slice(0, zoneSeparator);
+        }
+        const address = normalizeIPv6Address(input);
+        if (address === void 0) return {
+          host,
+          isIPV6: false,
+          error: true
+        };
+        return {
+          host: address + (zoneIdentifier ? "%" + zoneIdentifier : ""),
+          escapedHost: address + (zoneIdentifier ? "%25" + zoneIdentifier : ""),
+          isIPV6: true
         };
       }
       function findToken(str, token) {
@@ -34609,41 +34702,225 @@ var require_ajvProvider_ZaoO9afR = __commonJS({
         }
         return output.join("");
       }
-      function normalizeComponentEncoding(component, esc) {
-        const func = esc !== true ? escape : unescape;
-        if (component.scheme !== void 0) component.scheme = func(component.scheme);
-        if (component.userinfo !== void 0) component.userinfo = func(component.userinfo);
-        if (component.host !== void 0) component.host = func(component.host);
-        if (component.path !== void 0) component.path = func(component.path);
-        if (component.query !== void 0) component.query = func(component.query);
-        if (component.fragment !== void 0) component.fragment = func(component.fragment);
-        return component;
+      const HOST_DELIMS = {
+        "@": "%40",
+        "/": "%2F",
+        "?": "%3F",
+        "#": "%23",
+        ":": "%3A"
+      };
+      const HOST_DELIM_RE = /[@/?#:]/g;
+      const HOST_DELIM_NO_COLON_RE = /[@/?#]/g;
+      function reescapeHostDelimiters(host, isIP2) {
+        const re = isIP2 ? HOST_DELIM_NO_COLON_RE : HOST_DELIM_RE;
+        re.lastIndex = 0;
+        return host.replace(re, (ch) => HOST_DELIMS[ch]);
+      }
+      function normalizePercentEncoding(input, decodeUnreserved = false) {
+        if (input.indexOf("%") === -1) return input;
+        let output = "";
+        for (let i = 0; i < input.length; i++) {
+          if (input[i] === "%" && i + 2 < input.length) {
+            const hex = input.slice(i + 1, i + 3);
+            if (isHexPair(hex)) {
+              const normalizedHex = hex.toUpperCase();
+              const decoded = String.fromCharCode(parseInt(normalizedHex, 16));
+              if (decodeUnreserved && isUnreserved(decoded)) output += decoded;
+              else output += "%" + normalizedHex;
+              i += 2;
+              continue;
+            }
+          }
+          output += input[i];
+        }
+        return output;
+      }
+      function normalizePathEncoding(input) {
+        let output = "";
+        for (let i = 0; i < input.length; i++) {
+          const ch = input[i];
+          if (ch === "%" && i + 2 < input.length) {
+            const hex = input.slice(i + 1, i + 3);
+            if (isHexPair(hex)) {
+              const normalizedHex = hex.toUpperCase();
+              const decoded = String.fromCharCode(parseInt(normalizedHex, 16));
+              if (decoded !== "." && isUnreserved(decoded)) output += decoded;
+              else output += "%" + normalizedHex;
+              i += 2;
+              continue;
+            }
+          }
+          if (isPathCharacter(ch)) output += ch;
+          else {
+            const code = input.charCodeAt(i);
+            if (code < 128) output += isEscapeSafe(code) ? ch : BYTE_HEX[code];
+            else if (code < 55296 || code > 57343) output += percentEncodeNonAscii(code);
+            else if (code <= 56319 && i + 1 < input.length) {
+              const low = input.charCodeAt(i + 1);
+              if (low >= 56320 && low <= 57343) {
+                output += percentEncodeNonAscii(65536 + (code - 55296 << 10) + (low - 56320));
+                i++;
+              } else output += percentEncodeNonAscii(65533);
+            } else output += percentEncodeNonAscii(65533);
+          }
+        }
+        return output;
+      }
+      function serializePathEncoding(input, pathNoScheme = false) {
+        let output = "";
+        let firstSegment = pathNoScheme && input[0] !== "/";
+        for (let i = 0; i < input.length; i++) {
+          const ch = input[i];
+          if (ch === "%" && i + 2 < input.length) {
+            const hex = input.slice(i + 1, i + 3);
+            if (isHexPair(hex)) {
+              output += "%" + hex.toUpperCase();
+              i += 2;
+              continue;
+            }
+          }
+          if (ch === "/") firstSegment = false;
+          if (isPathCharacter(ch) && (ch !== ":" || !firstSegment)) output += ch;
+          else {
+            const code = input.charCodeAt(i);
+            if (code < 128) output += BYTE_HEX[code];
+            else if (code < 55296 || code > 57343) output += percentEncodeNonAscii(code);
+            else if (code <= 56319 && i + 1 < input.length) {
+              const low = input.charCodeAt(i + 1);
+              if (low >= 56320 && low <= 57343) {
+                output += percentEncodeNonAscii(65536 + (code - 55296 << 10) + (low - 56320));
+                i++;
+              } else output += percentEncodeNonAscii(65533);
+            } else output += percentEncodeNonAscii(65533);
+          }
+        }
+        return output;
+      }
+      function encodeComponent(input, isAllowed) {
+        let output = "";
+        for (let i = 0; i < input.length; i++) {
+          const ch = input[i];
+          if (ch === "%" && i + 2 < input.length) {
+            const hex = input.slice(i + 1, i + 3);
+            if (isHexPair(hex)) {
+              output += "%" + hex.toUpperCase();
+              i += 2;
+              continue;
+            }
+          }
+          if (isAllowed(ch)) output += ch;
+          else {
+            const code = input.charCodeAt(i);
+            if (code < 128) output += BYTE_HEX[code];
+            else if (code < 55296 || code > 57343) output += percentEncodeNonAscii(code);
+            else if (code <= 56319 && i + 1 < input.length) {
+              const low = input.charCodeAt(i + 1);
+              if (low >= 56320 && low <= 57343) {
+                output += percentEncodeNonAscii(65536 + (code - 55296 << 10) + (low - 56320));
+                i++;
+              } else output += percentEncodeNonAscii(65533);
+            } else output += percentEncodeNonAscii(65533);
+          }
+        }
+        return output;
+      }
+      function encodeUserinfo(input) {
+        return encodeComponent(input, isUserinfoCharacter);
+      }
+      function encodeQuery(input) {
+        return encodeComponent(input, isQueryFragmentCharacter);
+      }
+      function encodeFragment(input) {
+        return encodeComponent(input, isQueryFragmentCharacter);
+      }
+      function isEscapeSafe(cp) {
+        return cp >= 48 && cp <= 57 || cp >= 65 && cp <= 90 || cp >= 97 && cp <= 122 || cp === 42 || cp === 43 || cp === 45 || cp === 46 || cp === 47 || cp === 64 || cp === 95;
+      }
+      function normalizeQueryFragmentEncoding(input) {
+        let output = "";
+        for (let i = 0; i < input.length; i++) {
+          const ch = input[i];
+          if (ch === "%" && i + 2 < input.length) {
+            const hex = input.slice(i + 1, i + 3);
+            if (isHexPair(hex)) {
+              const normalizedHex = hex.toUpperCase();
+              const decoded = String.fromCharCode(parseInt(normalizedHex, 16));
+              if (isUnreserved(decoded)) output += decoded;
+              else output += "%" + normalizedHex;
+              i += 2;
+              continue;
+            }
+          }
+          if (isQueryFragmentCharacter(ch)) output += ch;
+          else {
+            const code = input.charCodeAt(i);
+            if (code < 128) output += isEscapeSafe(code) ? ch : BYTE_HEX[code];
+            else if (code < 55296 || code > 57343) output += percentEncodeNonAscii(code);
+            else if (code <= 56319 && i + 1 < input.length) {
+              const low = input.charCodeAt(i + 1);
+              if (low >= 56320 && low <= 57343) {
+                output += percentEncodeNonAscii(65536 + (code - 55296 << 10) + (low - 56320));
+                i++;
+              } else output += percentEncodeNonAscii(65533);
+            } else output += percentEncodeNonAscii(65533);
+          }
+        }
+        return output;
+      }
+      function escapePreservingEscapes(input) {
+        let output = "";
+        for (let i = 0; i < input.length; i++) {
+          if (input[i] === "%" && i + 2 < input.length) {
+            const hex = input.slice(i + 1, i + 3);
+            if (isHexPair(hex)) {
+              output += "%" + hex.toUpperCase();
+              i += 2;
+              continue;
+            }
+          }
+          output += escape(input[i]);
+        }
+        return output;
       }
       function recomposeAuthority(component) {
         const uriTokens = [];
         if (component.userinfo !== void 0) {
-          uriTokens.push(component.userinfo);
+          uriTokens.push(encodeUserinfo(component.userinfo));
           uriTokens.push("@");
         }
         if (component.host !== void 0) {
-          let host = unescape(component.host);
+          let host = component.host;
           if (!isIPv4(host)) {
-            const ipV6res = normalizeIPv6(host);
-            if (ipV6res.isIPV6 === true) host = `[${ipV6res.escapedHost}]`;
-            else host = component.host;
+            let ipV6res = normalizeIPv6(host);
+            if (ipV6res.isIPV6 !== true && ipV6res.isIPVFuture !== true) {
+              host = normalizePercentEncoding(host, true);
+              ipV6res = normalizeIPv6(host);
+            }
+            if (ipV6res.isIPV6 === true || ipV6res.isIPVFuture === true) host = `[${ipV6res.escapedHost}]`;
+            else host = reescapeHostDelimiters(host, false);
           }
           uriTokens.push(host);
         }
         if (typeof component.port === "number" || typeof component.port === "string") {
+          const port = String(component.port);
+          if (!isPort(port)) throw new TypeError("URI port is malformed.");
           uriTokens.push(":");
-          uriTokens.push(String(component.port));
+          uriTokens.push(port);
         }
         return uriTokens.length ? uriTokens.join("") : void 0;
       }
       module2.exports = {
         nonSimpleDomain,
         recomposeAuthority,
-        normalizeComponentEncoding,
+        reescapeHostDelimiters,
+        normalizePercentEncoding,
+        normalizePathEncoding,
+        serializePathEncoding,
+        normalizeQueryFragmentEncoding,
+        encodeUserinfo,
+        encodeQuery,
+        encodeFragment,
+        escapePreservingEscapes,
         removeDotSegments,
         isIPv4,
         isUUID,
@@ -34653,7 +34930,7 @@ var require_ajvProvider_ZaoO9afR = __commonJS({
     }));
     var require_schemes2 = /* @__PURE__ */ require_chunk.__commonJSMin(((exports2, module2) => {
       const { isUUID } = require_utils4();
-      const URN_REG = /([\da-z][\d\-a-z]{0,31}):((?:[\w!$'()*+,\-.:;=@]|%[\da-f]{2})+)/iu;
+      const URN_REG = /^([\da-z][\d\-a-z]{0,31}):((?:[\w!$'()*+,\-./:;=@]|%[\da-f]{2})+)$/iu;
       const supportedSchemeNames = [
         "http",
         "https",
@@ -34695,9 +34972,10 @@ var require_ajvProvider_ZaoO9afR = __commonJS({
           wsComponent.secure = void 0;
         }
         if (wsComponent.resourceName) {
-          const [path9, query] = wsComponent.resourceName.split("?");
+          const queryIndex = wsComponent.resourceName.indexOf("?");
+          const path9 = queryIndex === -1 ? wsComponent.resourceName : wsComponent.resourceName.slice(0, queryIndex);
           wsComponent.path = path9 && path9 !== "/" ? path9 : void 0;
-          wsComponent.query = query;
+          wsComponent.query = queryIndex === -1 ? void 0 : wsComponent.resourceName.slice(queryIndex + 1);
           wsComponent.resourceName = void 0;
         }
         wsComponent.fragment = void 0;
@@ -34709,7 +34987,7 @@ var require_ajvProvider_ZaoO9afR = __commonJS({
           return urnComponent;
         }
         const matches = urnComponent.path.match(URN_REG);
-        if (matches) {
+        if (matches && matches[0] === urnComponent.path) {
           const scheme = options.scheme || urnComponent.scheme || "urn";
           urnComponent.nid = matches[1].toLowerCase();
           urnComponent.nss = matches[2];
@@ -34799,16 +35077,32 @@ var require_ajvProvider_ZaoO9afR = __commonJS({
       };
     }));
     var require_fast_uri2 = /* @__PURE__ */ require_chunk.__commonJSMin(((exports2, module2) => {
-      const { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizeComponentEncoding, isIPv4, nonSimpleDomain } = require_utils4();
+      const { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, serializePathEncoding, normalizeQueryFragmentEncoding, encodeQuery, encodeFragment, reescapeHostDelimiters, isIPv4, nonSimpleDomain } = require_utils4();
       const { SCHEMES, getSchemeHandler } = require_schemes2();
+      const VALID_SCHEME = /^[A-Za-z][A-Za-z0-9+.-]*$/u;
+      const MALFORMED_SCHEME_ERROR = "URI scheme is malformed.";
+      function decodeValidScheme(scheme) {
+        const decodedScheme = unescape(String(scheme));
+        if (!VALID_SCHEME.test(decodedScheme)) throw new TypeError(MALFORMED_SCHEME_ERROR);
+        return decodedScheme;
+      }
       function normalize(uri, options) {
-        if (typeof uri === "string") uri = serialize(parse(uri, options), options);
+        if (typeof uri === "string") uri = normalizeString(uri, options);
         else if (typeof uri === "object") uri = parse(serialize(uri, options), options);
         return uri;
       }
       function resolve(baseURI, relativeURI, options) {
         const schemelessOptions = options ? Object.assign({ scheme: "null" }, options) : { scheme: "null" };
-        const resolved = resolveComponent(parse(baseURI, schemelessOptions), parse(relativeURI, schemelessOptions), schemelessOptions, true);
+        const { parsed: baseParsed, malformedAuthorityOrPort: baseMalformed, malformedPercentEncoding: baseMalformedPercentEncoding, malformedSchemeSpecific: baseMalformedSchemeSpecific, malformedHost: baseMalformedHost, malformedScheme: baseMalformedScheme } = parseWithStatus(baseURI, schemelessOptions);
+        const { parsed: relativeParsed, malformedAuthorityOrPort: relativeMalformed, malformedPercentEncoding: relativeMalformedPercentEncoding, malformedSchemeSpecific: relativeMalformedSchemeSpecific, malformedHost: relativeMalformedHost, malformedScheme: relativeMalformedScheme } = parseWithStatus(relativeURI, schemelessOptions);
+        if (baseMalformed || relativeMalformed || baseMalformedPercentEncoding || relativeMalformedPercentEncoding || baseMalformedSchemeSpecific || relativeMalformedSchemeSpecific || baseMalformedHost || relativeMalformedHost || baseMalformedScheme || relativeMalformedScheme) throw new Error(baseParsed.error || relativeParsed.error || "URI is malformed.");
+        const resolved = resolveComponent(baseParsed, relativeParsed, schemelessOptions, true);
+        const resolvedSchemeHandler = getSchemeHandler(options && options.scheme || resolved.scheme);
+        const resolvedHost = resolved.host;
+        const resolvedHostIsIP = resolvedHost !== void 0 && resolvedHost !== "" && (isIPv4(resolvedHost) || normalizeIPv6(resolvedHost).isIPV6);
+        canonicalizeHost(resolved, options || {}, resolvedSchemeHandler, resolvedHostIsIP);
+        const encodedASCIIHost = resolvedHost && resolvedHost.indexOf("%") !== -1 && !new RegExp("\\P{ASCII}", "u").test(resolvedHost);
+        if (resolved.error && !encodedASCIIHost) throw new Error(resolved.error);
         schemelessOptions.skipEscape = true;
         return serialize(resolved, schemelessOptions);
       }
@@ -34858,27 +35152,9 @@ var require_ajvProvider_ZaoO9afR = __commonJS({
         return target;
       }
       function equal(uriA, uriB, options) {
-        if (typeof uriA === "string") {
-          uriA = unescape(uriA);
-          uriA = serialize(normalizeComponentEncoding(parse(uriA, options), true), {
-            ...options,
-            skipEscape: true
-          });
-        } else if (typeof uriA === "object") uriA = serialize(normalizeComponentEncoding(uriA, true), {
-          ...options,
-          skipEscape: true
-        });
-        if (typeof uriB === "string") {
-          uriB = unescape(uriB);
-          uriB = serialize(normalizeComponentEncoding(parse(uriB, options), true), {
-            ...options,
-            skipEscape: true
-          });
-        } else if (typeof uriB === "object") uriB = serialize(normalizeComponentEncoding(uriB, true), {
-          ...options,
-          skipEscape: true
-        });
-        return uriA.toLowerCase() === uriB.toLowerCase();
+        const normalizedA = normalizeComparableURI(uriA, options);
+        const normalizedB = normalizeComparableURI(uriB, options);
+        return normalizedA !== void 0 && normalizedB !== void 0 && normalizedA === normalizedB;
       }
       function serialize(cmpts, opts) {
         const component = {
@@ -34899,13 +35175,17 @@ var require_ajvProvider_ZaoO9afR = __commonJS({
         };
         const options = Object.assign({}, opts);
         const uriTokens = [];
+        if (component.scheme) component.scheme = decodeValidScheme(component.scheme);
         const schemeHandler = getSchemeHandler(options.scheme || component.scheme);
         if (schemeHandler && schemeHandler.serialize) schemeHandler.serialize(component, options);
-        if (component.path !== void 0) if (!options.skipEscape) {
-          component.path = escape(component.path);
-          if (component.scheme !== void 0) component.path = component.path.split("%3A").join(":");
-        } else component.path = unescape(component.path);
-        if (options.reference !== "suffix" && component.scheme) uriTokens.push(component.scheme, ":");
+        const hasAuthority = component.userinfo !== void 0 || component.host !== void 0 || component.port !== void 0;
+        const pathNoScheme = !options.skipEscape && component.scheme === void 0 && !hasAuthority;
+        if (component.path !== void 0) if (!options.skipEscape) component.path = serializePathEncoding(component.path, pathNoScheme);
+        else component.path = normalizePercentEncoding(component.path);
+        if (options.reference !== "suffix" && component.scheme) {
+          component.scheme = decodeValidScheme(component.scheme);
+          uriTokens.push(component.scheme, ":");
+        }
         const authority = recomposeAuthority(component);
         if (authority !== void 0) {
           if (options.reference !== "suffix") uriTokens.push("//");
@@ -34915,15 +35195,47 @@ var require_ajvProvider_ZaoO9afR = __commonJS({
         if (component.path !== void 0) {
           let s = component.path;
           if (!options.absolutePath && (!schemeHandler || !schemeHandler.absolutePath)) s = removeDotSegments(s);
+          if (pathNoScheme) s = serializePathEncoding(s, true);
           if (authority === void 0 && s[0] === "/" && s[1] === "/") s = "/%2F" + s.slice(2);
           uriTokens.push(s);
         }
-        if (component.query !== void 0) uriTokens.push("?", component.query);
-        if (component.fragment !== void 0) uriTokens.push("#", component.fragment);
+        if (component.query !== void 0) uriTokens.push("?", encodeQuery(component.query));
+        if (component.fragment !== void 0) uriTokens.push("#", encodeFragment(component.fragment));
         return uriTokens.join("");
       }
       const URI_PARSE = /^(?:([^#/:?]+):)?(?:\/\/((?:([^#/?@]*)@)?(\[[^#/?\]]+\]|[^#/:?]*)(?::(\d*))?))?([^#?]*)(?:\?([^#]*))?(?:#((?:.|[\n\r])*))?/u;
-      function parse(uri, opts) {
+      const AUTHORITY_PREFIX = /^(?:[^#/:?]+:)?\/\/([^/?#]*)/;
+      const AUTHORITY_INTRODUCER_REGION = /^(?:[^#/:?]+:)?([/\\\t\n\r]*)/;
+      function getParseError(parsed, matches) {
+        if (matches[2] !== void 0 && parsed.path && parsed.path[0] !== "/") return 'URI path must start with "/" when authority is present.';
+        if (typeof parsed.port === "number" && (parsed.port < 0 || parsed.port > 65535)) return "URI port is malformed.";
+      }
+      function hasMalformedPercentEncoding(component) {
+        if (component === void 0) return false;
+        let percent = component.indexOf("%");
+        while (percent !== -1) {
+          if (percent + 2 >= component.length || !/^[\da-f]{2}$/iu.test(component.slice(percent + 1, percent + 3))) return true;
+          percent = component.indexOf("%", percent + 3);
+        }
+        return false;
+      }
+      function isIPLiteral(host) {
+        return host[0] === "[" && host[host.length - 1] === "]";
+      }
+      function hasMalformedComponentPercentEncoding(matches) {
+        const host = matches[4];
+        return hasMalformedPercentEncoding(matches[3]) || host !== void 0 && !isIPLiteral(host) && hasMalformedPercentEncoding(host) || hasMalformedPercentEncoding(matches[6]) || hasMalformedPercentEncoding(matches[7]) || hasMalformedPercentEncoding(matches[8]);
+      }
+      function canonicalizeHost(parsed, options, schemeHandler, isIP2) {
+        if (!options.unicodeSupport && (!schemeHandler || !schemeHandler.unicodeSupport) && parsed.host && !isIPLiteral(parsed.host) && (options.domainHost || schemeHandler && schemeHandler.domainHost) && isIP2 === false && nonSimpleDomain(parsed.host)) try {
+          parsed.host = new URL("http://" + parsed.host).hostname;
+        } catch (e) {
+          parsed.error = parsed.error || "Host's domain name can not be converted to ASCII: " + e;
+          return true;
+        }
+        return false;
+      }
+      function parseWithStatus(uri, opts) {
         const options = Object.assign({}, opts);
         const parsed = {
           scheme: void 0,
@@ -34934,9 +35246,34 @@ var require_ajvProvider_ZaoO9afR = __commonJS({
           query: void 0,
           fragment: void 0
         };
+        let malformedAuthorityOrPort = false;
+        let malformedPercentEncoding = false;
+        let malformedSchemeSpecific = false;
+        let malformedHost = false;
+        let malformedIPLiteral = false;
+        let malformedScheme = false;
         let isIP2 = false;
         if (options.reference === "suffix") if (options.scheme) uri = options.scheme + ":" + uri;
         else uri = "//" + uri;
+        const authorityMatch = uri.match(AUTHORITY_PREFIX);
+        if (authorityMatch !== null && authorityMatch[1].indexOf("\\") !== -1) {
+          parsed.error = "URI authority must not contain a literal backslash.";
+          malformedAuthorityOrPort = true;
+        }
+        const introducerMatch = uri.match(AUTHORITY_INTRODUCER_REGION);
+        if (introducerMatch !== null) {
+          const region = introducerMatch[1];
+          const normalizedRegion = region.replace(/[\t\n\r]/g, "");
+          if (normalizedRegion.length >= 2) {
+            if (normalizedRegion.slice(0, 2) !== "//") {
+              parsed.error = parsed.error || "URI authority must not contain a literal backslash.";
+              malformedAuthorityOrPort = true;
+            } else if (region.length !== normalizedRegion.length) {
+              parsed.error = parsed.error || "URI authority introducer must not contain whitespace.";
+              malformedAuthorityOrPort = true;
+            }
+          }
+        }
         const matches = uri.match(URI_PARSE);
         if (matches) {
           parsed.scheme = matches[1];
@@ -34946,11 +35283,33 @@ var require_ajvProvider_ZaoO9afR = __commonJS({
           parsed.path = matches[6] || "";
           parsed.query = matches[7];
           parsed.fragment = matches[8];
+          if (parsed.scheme !== void 0) {
+            const decodedScheme = unescape(parsed.scheme);
+            if (VALID_SCHEME.test(decodedScheme)) parsed.scheme = decodedScheme.toLowerCase();
+            else {
+              parsed.error = parsed.error || MALFORMED_SCHEME_ERROR;
+              malformedScheme = true;
+            }
+          }
+          malformedPercentEncoding = hasMalformedComponentPercentEncoding(matches);
+          if (malformedPercentEncoding) parsed.error = parsed.error || "URI contains malformed percent-encoding.";
           if (isNaN(parsed.port)) parsed.port = matches[5];
+          const parseError = getParseError(parsed, matches);
+          if (parseError !== void 0) {
+            parsed.error = parsed.error || parseError;
+            malformedAuthorityOrPort = true;
+          }
           if (parsed.host) if (isIPv4(parsed.host) === false) {
+            const bracketedIPLiteral = isIPLiteral(parsed.host);
+            const hasIPLiteralBracket = parsed.host.indexOf("[") !== -1 || parsed.host.indexOf("]") !== -1;
             const ipv6result = normalizeIPv6(parsed.host);
-            parsed.host = ipv6result.host.toLowerCase();
-            isIP2 = ipv6result.isIPV6;
+            isIP2 = ipv6result.isIPV6 || ipv6result.isIPVFuture === true;
+            malformedIPLiteral = hasIPLiteralBracket && (!bracketedIPLiteral || ipv6result.error === true);
+            parsed.host = isIP2 ? ipv6result.host : ipv6result.host.toLowerCase();
+            if (malformedIPLiteral) {
+              parsed.error = parsed.error || "URI host is malformed.";
+              malformedAuthorityOrPort = true;
+            }
           } else isIP2 = true;
           if (parsed.scheme === void 0 && parsed.userinfo === void 0 && parsed.host === void 0 && parsed.port === void 0 && parsed.query === void 0 && !parsed.path) parsed.reference = "same-document";
           else if (parsed.scheme === void 0) parsed.reference = "relative";
@@ -34958,24 +35317,58 @@ var require_ajvProvider_ZaoO9afR = __commonJS({
           else parsed.reference = "uri";
           if (options.reference && options.reference !== "suffix" && options.reference !== parsed.reference) parsed.error = parsed.error || "URI is not a " + options.reference + " reference.";
           const schemeHandler = getSchemeHandler(options.scheme || parsed.scheme);
-          if (!options.unicodeSupport && (!schemeHandler || !schemeHandler.unicodeSupport)) {
-            if (parsed.host && (options.domainHost || schemeHandler && schemeHandler.domainHost) && isIP2 === false && nonSimpleDomain(parsed.host)) try {
-              parsed.host = URL.domainToASCII(parsed.host.toLowerCase());
-            } catch (e) {
-              parsed.error = parsed.error || "Host's domain name can not be converted to ASCII: " + e;
-            }
+          if (!malformedIPLiteral) malformedHost = canonicalizeHost(parsed, options, schemeHandler, isIP2);
+          if (uri.indexOf("%") !== -1 && parsed.host !== void 0 && !malformedIPLiteral) {
+            let host = isIP2 ? parsed.host : normalizePercentEncoding(parsed.host, true);
+            if (!isIP2) host = normalizePercentEncoding(host.toLowerCase());
+            parsed.host = reescapeHostDelimiters(host, isIP2);
           }
           if (!schemeHandler || schemeHandler && !schemeHandler.skipNormalize) {
-            if (uri.indexOf("%") !== -1) {
-              if (parsed.scheme !== void 0) parsed.scheme = unescape(parsed.scheme);
-              if (parsed.host !== void 0) parsed.host = unescape(parsed.host);
-            }
-            if (parsed.path) parsed.path = escape(unescape(parsed.path));
-            if (parsed.fragment) parsed.fragment = encodeURI(decodeURIComponent(parsed.fragment));
+            if (parsed.path) parsed.path = normalizePathEncoding(parsed.path);
+            if (parsed.query) parsed.query = normalizeQueryFragmentEncoding(parsed.query);
+            if (parsed.fragment) parsed.fragment = normalizeQueryFragmentEncoding(parsed.fragment);
           }
-          if (schemeHandler && schemeHandler.parse) schemeHandler.parse(parsed, options);
+          if (schemeHandler && schemeHandler.parse) {
+            schemeHandler.parse(parsed, options);
+            if (schemeHandler === SCHEMES.urn && parsed.nid === void 0) malformedSchemeSpecific = true;
+          }
         } else parsed.error = parsed.error || "URI can not be parsed.";
-        return parsed;
+        return {
+          parsed,
+          malformedAuthorityOrPort,
+          malformedPercentEncoding,
+          malformedSchemeSpecific,
+          malformedHost,
+          malformedScheme
+        };
+      }
+      function parse(uri, opts) {
+        return parseWithStatus(uri, opts).parsed;
+      }
+      function normalizeString(uri, opts) {
+        return normalizeStringWithStatus(uri, opts).normalized;
+      }
+      function normalizeStringWithStatus(uri, opts) {
+        const { parsed, malformedAuthorityOrPort, malformedPercentEncoding, malformedSchemeSpecific, malformedHost, malformedScheme } = parseWithStatus(uri, opts);
+        return {
+          normalized: malformedAuthorityOrPort || malformedPercentEncoding || malformedSchemeSpecific || malformedHost || malformedScheme ? uri : serialize(parsed, opts),
+          malformedAuthorityOrPort,
+          malformedPercentEncoding,
+          malformedSchemeSpecific,
+          malformedHost,
+          malformedScheme
+        };
+      }
+      function normalizeComparableURI(uri, opts) {
+        if (typeof uri !== "string" && typeof uri !== "object") return;
+        let value;
+        try {
+          value = typeof uri === "string" ? uri : serialize(uri, opts);
+        } catch {
+          return;
+        }
+        const { normalized, malformedAuthorityOrPort, malformedPercentEncoding, malformedSchemeSpecific, malformedHost, malformedScheme } = normalizeStringWithStatus(value, opts);
+        return malformedAuthorityOrPort || malformedPercentEncoding || malformedSchemeSpecific || malformedHost || malformedScheme ? void 0 : normalized;
       }
       const fastUri = {
         SCHEMES,
@@ -38791,7 +39184,7 @@ var require_ajvProvider_ZaoO9afR = __commonJS({
 var require_shimsNode = __commonJS({
   "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/shimsNode.cjs"(exports) {
     var require_chunk = require_chunk_Bnu9O96Y();
-    var require_ajvProvider = require_ajvProvider_ZaoO9afR();
+    var require_ajvProvider = require_ajvProvider_DPYcD0gV();
     var node_process = __require("node:process");
     node_process = require_chunk.__toESM(node_process);
     exports.DefaultJsonSchemaValidator = require_ajvProvider.AjvJsonSchemaValidator;
@@ -38804,11 +39197,11 @@ var require_shimsNode = __commonJS({
   }
 });
 
-// risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/mcp-BumlNux0.cjs
-var require_mcp_BumlNux0 = __commonJS({
-  "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/mcp-BumlNux0.cjs"(exports) {
+// risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/mcp-uPg2RfP3.cjs
+var require_mcp_uPg2RfP3 = __commonJS({
+  "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/mcp-uPg2RfP3.cjs"(exports) {
     var require_chunk = require_chunk_Bnu9O96Y();
-    var require_src = require_src_BhnGYybN();
+    var require_src = require_src_BvE2tDzk();
     var _modelcontextprotocol_server__shims = require_shimsNode();
     var _modelcontextprotocol_core_internal = require_internal();
     var COMPLETABLE_SYMBOL = /* @__PURE__ */ Symbol.for("mcp.completable");
@@ -38835,209 +39228,190 @@ var require_mcp_BumlNux0 = __commonJS({
       timer.unref?.();
       return timer;
     }
-    var InMemoryServerEventBus = class {
-      _listeners = /* @__PURE__ */ new Set();
+    var readClassification;
+    var PerRequestHTTPServerTransport = class {
+      static {
+        readClassification = (transport) => transport._classification;
+      }
+      onclose;
+      onerror;
+      onmessage;
+      _classification;
+      _responseMode;
+      _started = false;
+      _used = false;
+      _closed = false;
+      _terminalDelivered = false;
       /**
-      * @param onerror - Optional callback for errors thrown by listeners
-      *   during dispatch.
+      * `true` only while the inbound message is being delivered synchronously
+      * to the connected protocol layer. The pre-handler gates (the era
+      * registry gate, the edge→instance handoff check, the missing-handler
+      * rejection) answer inside this window; request handlers always run
+      * after it (the protocol layer defers them to a microtask). An error
+      * sent inside the window is therefore ladder-originated, and an error
+      * sent after it is handler-produced.
       */
-      constructor(onerror) {
-        this.onerror = onerror;
+      _dispatchWindowOpen = false;
+      _requestId;
+      _deferredResponse;
+      _sse;
+      _abortCleanup;
+      _keepAliveMs;
+      constructor(options) {
+        this._classification = options.classification;
+        this._responseMode = options.responseMode ?? "auto";
+        this._keepAliveMs = options.keepAliveMs ?? DEFAULT_SSE_KEEP_ALIVE_MS;
       }
-      publish(event) {
-        for (const listener of this._listeners) try {
-          listener(event);
-        } catch (error) {
-          this.onerror?.(error instanceof Error ? error : new Error(String(error)));
+      async start() {
+        if (this._started) throw new Error("PerRequestHTTPServerTransport is already started");
+        this._started = true;
+      }
+      /**
+      * Serves the single exchange: delivers the classified message to the
+      * connected server instance and resolves with the HTTP response.
+      *
+      * Throws when called a second time (the transport is strictly
+      * single-use), or before a server has been connected to the transport.
+      * The returned promise rejects with a connection-closed error when the
+      * transport is closed before a response was produced (for example because
+      * the client disconnected).
+      */
+      async handleMessage(message, extra) {
+        if (this._used) throw new Error("PerRequestHTTPServerTransport serves exactly one exchange; construct a new transport per request");
+        if (!this._started || this.onmessage === void 0) throw new Error("PerRequestHTTPServerTransport is not connected: connect a server to this transport before handling a message");
+        if (this._closed) throw new Error("PerRequestHTTPServerTransport is closed");
+        this._used = true;
+        const signal = extra?.request?.signal;
+        if (signal?.aborted) {
+          await this.close();
+          throw new require_src.SdkError(require_src.SdkErrorCode.ConnectionClosed, "The request was aborted before it could be handled");
         }
-      }
-      subscribe(listener) {
-        this._listeners.add(listener);
-        let live = true;
-        return () => {
-          if (!live) return;
-          live = false;
-          this._listeners.delete(listener);
+        const messageExtra = {
+          classification: this._classification,
+          ...extra?.request !== void 0 && { request: extra.request },
+          ...extra?.authInfo !== void 0 && { authInfo: extra.authInfo }
         };
-      }
-      /** The number of currently registered listeners (test/introspection only — the routers track capacity via their own open-subscription set). */
-      get listenerCount() {
-        return this._listeners.size;
-      }
-    };
-    function createServerNotifier(bus) {
-      return {
-        toolsChanged: () => bus.publish({ kind: "tools_list_changed" }),
-        promptsChanged: () => bus.publish({ kind: "prompts_list_changed" }),
-        resourcesChanged: () => bus.publish({ kind: "resources_list_changed" }),
-        resourceUpdated: (uri) => bus.publish({
-          kind: "resource_updated",
-          uri
-        })
-      };
-    }
-    function listenFilterAccepts(filter, event) {
-      switch (event.kind) {
-        case "tools_list_changed":
-          return filter.toolsListChanged === true;
-        case "prompts_list_changed":
-          return filter.promptsListChanged === true;
-        case "resources_list_changed":
-          return filter.resourcesListChanged === true;
-        case "resource_updated":
-          return filter.resourceSubscriptions !== void 0 && filter.resourceSubscriptions.includes(event.uri);
-      }
-    }
-    function honoredSubset(requested, capabilities) {
-      const honored = {};
-      const allow = (bit) => capabilities === void 0 || bit === true;
-      if (requested.toolsListChanged === true && allow(capabilities?.tools?.listChanged)) honored.toolsListChanged = true;
-      if (requested.promptsListChanged === true && allow(capabilities?.prompts?.listChanged)) honored.promptsListChanged = true;
-      if (requested.resourcesListChanged === true && allow(capabilities?.resources?.listChanged)) honored.resourcesListChanged = true;
-      if (requested.resourceSubscriptions !== void 0 && requested.resourceSubscriptions.length > 0 && allow(capabilities?.resources?.subscribe)) honored.resourceSubscriptions = [...requested.resourceSubscriptions];
-      return honored;
-    }
-    function serverEventToNotification(event) {
-      switch (event.kind) {
-        case "tools_list_changed":
-          return { method: "notifications/tools/list_changed" };
-        case "prompts_list_changed":
-          return { method: "notifications/prompts/list_changed" };
-        case "resources_list_changed":
-          return { method: "notifications/resources/list_changed" };
-        case "resource_updated":
-          return {
-            method: "notifications/resources/updated",
-            params: { uri: event.uri }
+        if (require_src.isJSONRPCRequest(message)) {
+          this._requestId = message.id;
+          let resolve;
+          let reject;
+          const promise = new Promise((promiseResolve, promiseReject) => {
+            resolve = promiseResolve;
+            reject = promiseReject;
+          });
+          this._deferredResponse = {
+            promise,
+            resolve,
+            reject,
+            settled: false
           };
+          if (signal !== void 0) {
+            const onAbort = () => void this.close();
+            signal.addEventListener("abort", onAbort, { once: true });
+            this._abortCleanup = () => signal.removeEventListener("abort", onAbort);
+          }
+          this._dispatchWindowOpen = true;
+          try {
+            this.onmessage(message, messageExtra);
+          } finally {
+            this._dispatchWindowOpen = false;
+          }
+          if (this._responseMode === "sse" && !this._closed && !this._deferredResponse.settled) this.upgradeToSse();
+          return promise;
+        }
+        this.onmessage(message, messageExtra);
+        return new Response(null, { status: 202 });
       }
-    }
-    var DEFAULT_MAX_SUBSCRIPTIONS = 1024;
-    function jsonRpcError(id, code, message) {
-      return Response.json({
-        jsonrpc: "2.0",
-        error: {
-          code,
-          message
-        },
-        id
-      }, { status: 200 });
-    }
-    function stampSubscriptionId(notification, subscriptionId) {
-      return {
-        method: notification.method,
-        params: {
-          ...notification.params,
-          _meta: {
-            ...notification.params?._meta,
-            [_modelcontextprotocol_core_internal.SUBSCRIPTION_ID_META_KEY]: subscriptionId
-          }
+      async send(message, options) {
+        if (this._closed) return;
+        const isResponse = require_src.isJSONRPCResultResponse(message) || require_src.isJSONRPCErrorResponse(message);
+        const relatedId = isResponse ? message.id : options?.relatedRequestId;
+        if (this._requestId === void 0 || relatedId === void 0 || relatedId !== this._requestId) {
+          if (isResponse) this.onerror?.(/* @__PURE__ */ new Error(`Received a response for an unknown request id: ${String(message.id)}`));
+          return;
         }
-      };
-    }
-    function parseListenFilter(message) {
-      const outcome = require_src.codecForVersion(require_src.MODERN_WIRE_REVISION).validateRequest("subscriptions/listen", message);
-      return outcome.ok ? outcome.value.params?.notifications : void 0;
-    }
-    function createListenRouter(options) {
-      const { bus, onerror } = options;
-      const maxSubscriptions = options.maxSubscriptions ?? DEFAULT_MAX_SUBSCRIPTIONS;
-      const keepAliveMs = options.keepAliveMs ?? DEFAULT_SSE_KEEP_ALIVE_MS;
-      const open6 = /* @__PURE__ */ new Set();
-      function serve(message, signal, capabilities, serverInfo) {
-        if (open6.size >= maxSubscriptions) {
-          onerror?.(/* @__PURE__ */ new Error(`subscriptions/listen refused: subscription limit reached (${maxSubscriptions})`));
-          return jsonRpcError(message.id, -32603, "Subscription limit reached");
-        }
-        const filter = parseListenFilter(message);
-        if (filter === void 0) return jsonRpcError(message.id, -32602, "Invalid params: 'notifications' is required and must be a valid SubscriptionFilter");
-        const honored = honoredSubset(filter, capabilities);
-        const subscriptionId = message.id;
-        const encoder = new TextEncoder();
-        let controller;
-        let closed = false;
-        let unsubscribe;
-        let keepAliveTimer;
-        let abortCleanup;
-        const writeFrame = (frame) => {
-          if (closed) return;
-          try {
-            controller.enqueue(encoder.encode(frame));
-          } catch (error) {
-            onerror?.(error instanceof Error ? error : new Error(String(error)));
+        if (isResponse) {
+          if (this._terminalDelivered) return;
+          this._terminalDelivered = true;
+          const errorCode2 = require_src.isJSONRPCErrorResponse(message) ? message.error.code : void 0;
+          const ladderStatus = errorCode2 !== void 0 && (this._dispatchWindowOpen || errorCode2 === require_src.ProtocolErrorCode.MissingRequiredClientCapability) ? require_src.LADDER_ERROR_HTTP_STATUS[errorCode2] : void 0;
+          if (ladderStatus !== void 0 && this._sse === void 0) {
+            this.settleResponse(Response.json(message, {
+              status: ladderStatus,
+              headers: { "Content-Type": "application/json" }
+            }));
+            queueMicrotask(() => void this.close());
+            return;
           }
-        };
-        const writeNotification = (method, params) => {
-          writeFrame(`event: message
-data: ${JSON.stringify({
-            jsonrpc: "2.0",
-            method,
-            params
-          })}
+          if (this._sse !== void 0 || this._responseMode === "sse") {
+            if (this._sse === void 0) this.upgradeToSse();
+            this.writeMessageFrame(message);
+            this.finalizeStream();
+            return;
+          }
+          this.settleResponse(Response.json(message, {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+          }));
+          queueMicrotask(() => void this.close());
+          return;
+        }
+        if (this._responseMode === "json") return;
+        if (this._sse === void 0) this.upgradeToSse();
+        this.writeMessageFrame(message);
+      }
+      /**
+      * Writes an SSE comment frame (a keep-alive heartbeat). Dropped when the
+      * exchange is not currently streaming.
+      */
+      writeCommentFrame(comment) {
+        if (this._closed || this._sse === void 0 || this._sse.closed) return;
+        const frame = comment.split("\n").map((line) => `: ${line}`).join("\n");
+        this.writeFrame(`${frame}
 
 `);
-        };
-        const teardown = (graceful) => {
-          if (closed) return;
-          if (graceful) writeFrame(`event: message
-data: ${JSON.stringify({
-            jsonrpc: "2.0",
-            id: subscriptionId,
-            result: {
-              resultType: "complete",
-              _meta: {
-                [_modelcontextprotocol_core_internal.SUBSCRIPTION_ID_META_KEY]: subscriptionId,
-                [_modelcontextprotocol_core_internal.SERVER_INFO_META_KEY]: serverInfo
-              }
-            }
-          })}
-
-`);
-          closed = true;
+      }
+      async close() {
+        if (this._closed) return;
+        this._closed = true;
+        this._abortCleanup?.();
+        this._abortCleanup = void 0;
+        if (this._sse?.keepAliveTimer !== void 0) clearInterval(this._sse.keepAliveTimer);
+        if (this._sse !== void 0 && !this._sse.closed) {
+          this._sse.closed = true;
           try {
-            unsubscribe?.();
-          } catch (error) {
-            onerror?.(error instanceof Error ? error : new Error(String(error)));
-          }
-          if (keepAliveTimer !== void 0) clearInterval(keepAliveTimer);
-          abortCleanup?.();
-          open6.delete(teardown);
-          try {
-            controller.close();
+            this._sse.controller.close();
           } catch {
           }
-        };
+        }
+        if (this._deferredResponse !== void 0 && !this._deferredResponse.settled) {
+          this._deferredResponse.settled = true;
+          this._deferredResponse.reject(new require_src.SdkError(require_src.SdkErrorCode.ConnectionClosed, "Connection closed before a response was produced"));
+        }
+        this.onclose?.();
+      }
+      settleResponse(response) {
+        if (this._deferredResponse === void 0 || this._deferredResponse.settled) return;
+        this._deferredResponse.settled = true;
+        this._deferredResponse.resolve(response);
+      }
+      upgradeToSse() {
+        let controller;
         const readable = new ReadableStream({
-          start(streamController) {
+          start: (streamController) => {
             controller = streamController;
-            const ack = stampSubscriptionId({
-              method: "notifications/subscriptions/acknowledged",
-              params: { notifications: honored }
-            }, subscriptionId);
-            writeNotification(ack.method, ack.params);
-            if (Object.keys(honored).length === 0) {
-              teardown(true);
-              return;
-            }
-            unsubscribe = bus.subscribe((event) => {
-              if (closed || !listenFilterAccepts(honored, event)) return;
-              const note = stampSubscriptionId(serverEventToNotification(event), subscriptionId);
-              writeNotification(note.method, note.params);
-            });
-            keepAliveTimer = armSseKeepAlive(keepAliveMs, () => writeFrame(": keepalive\n\n"));
-            open6.add(teardown);
           },
-          cancel() {
-            teardown(false);
+          cancel: () => {
+            this.close();
           }
         });
-        if (signal !== void 0) if (signal.aborted) teardown(false);
-        else {
-          const onAbort = () => teardown(false);
-          signal.addEventListener("abort", onAbort, { once: true });
-          abortCleanup = () => signal.removeEventListener("abort", onAbort);
-        }
-        return new Response(readable, {
+        this._sse = {
+          controller,
+          encoder: new TextEncoder(),
+          closed: false
+        };
+        this._sse.keepAliveTimer = armSseKeepAlive(this._keepAliveMs, () => this.writeCommentFrame("keepalive"));
+        this.settleResponse(new Response(readable, {
           status: 200,
           headers: {
             "Content-Type": "text/event-stream",
@@ -39045,163 +39419,36 @@ data: ${JSON.stringify({
             Connection: "keep-alive",
             "X-Accel-Buffering": "no"
           }
-        });
+        }));
       }
-      return {
-        serve,
-        closeAll() {
-          for (const teardown of open6) teardown(true);
-        },
-        get openCount() {
-          return open6.size;
+      finalizeStream() {
+        if (this._sse?.keepAliveTimer !== void 0) clearInterval(this._sse.keepAliveTimer);
+        if (this._sse !== void 0 && !this._sse.closed) {
+          this._sse.closed = true;
+          try {
+            this._sse.controller.close();
+          } catch {
+          }
         }
-      };
-    }
-    var CHANGE_NOTIFICATION_METHODS = /* @__PURE__ */ new Set([
-      "notifications/tools/list_changed",
-      "notifications/prompts/list_changed",
-      "notifications/resources/list_changed",
-      "notifications/resources/updated"
-    ]);
-    var StdioListenRouter = class {
-      /** Active subscriptions, keyed by the listen request's JSON-RPC id verbatim. */
-      _subs = /* @__PURE__ */ new Map();
-      /**
-      * The serving instance's declared capabilities. Filled in by the entry
-      * once the modern instance is constructed (the router is created before
-      * the instance exists), so the acknowledged filter is narrowed against
-      * what the server can actually deliver.
-      */
-      _serverCapabilities;
-      /**
-      * The serving instance's identity, stamped onto the graceful-close
-      * results' `_meta` (the spec's `SubscriptionsListenResultMetaObject` extends
-      * `ResultMetaObject`). Handed over together with the capabilities.
-      */
-      _serverInfo;
-      constructor(_maxSubscriptions = DEFAULT_MAX_SUBSCRIPTIONS, serverCapabilities, serverInfo) {
-        this._maxSubscriptions = _maxSubscriptions;
-        this._serverCapabilities = serverCapabilities;
-        this._serverInfo = serverInfo;
+        queueMicrotask(() => void this.close());
       }
-      /**
-      * Record the serving instance's declared capabilities and identity once
-      * it has been constructed. Called by `serveStdio`'s connect path;
-      * subsequent `serve()` calls narrow the honored filter against the
-      * capabilities, and `teardownAll()` stamps the identity.
-      */
-      setServerCapabilities(capabilities, serverInfo) {
-        this._serverCapabilities = capabilities;
-        if (serverInfo !== void 0) this._serverInfo = serverInfo;
+      writeMessageFrame(message) {
+        this.writeFrame(`event: message
+data: ${JSON.stringify(message)}
+
+`);
       }
-      /** Whether `id` is an active listen subscription on this connection. */
-      has(id) {
-        return this._subs.has(id);
-      }
-      /**
-      * Serve one inbound `subscriptions/listen` request: registers the
-      * subscription and returns the stamped acknowledged notification (or, on
-      * capacity / params rejection, the in-band JSON-RPC error response).
-      *
-      * @throws when called before {@linkcode setServerCapabilities} (or the
-      * constructor) has supplied the serving instance's capabilities. Honoring a
-      * filter without knowing the server's advertised capabilities would fail
-      * open (deliver unadvertised types); the entry guarantees capabilities are
-      * set before any listen request is routed here.
-      */
-      serve(message) {
-        if (this._serverCapabilities === void 0) throw new Error("StdioListenRouter.serve() called before setServerCapabilities(); refusing to honor a filter without capabilities");
-        if (this._subs.size >= this._maxSubscriptions) return {
-          jsonrpc: "2.0",
-          id: message.id,
-          error: {
-            code: -32603,
-            message: "Subscription limit reached"
-          }
-        };
-        const filter = parseListenFilter(message);
-        if (filter === void 0) return {
-          jsonrpc: "2.0",
-          id: message.id,
-          error: {
-            code: -32602,
-            message: "Invalid params: 'notifications' is required and must be a valid SubscriptionFilter"
-          }
-        };
-        const honored = honoredSubset(filter, this._serverCapabilities);
-        this._subs.set(message.id, honored);
-        return stampSubscriptionId({
-          method: "notifications/subscriptions/acknowledged",
-          params: { notifications: honored }
-        }, message.id);
-      }
-      /**
-      * Tear down one subscription (inbound `notifications/cancelled`). Returns
-      * `true` when a subscription was removed. After this call NOTHING further
-      * is delivered for that subscription id (the post-cancel hardening).
-      */
-      cancel(id) {
-        return this._subs.delete(id);
-      }
-      /**
-      * Route an outbound notification through the active subscriptions.
-      *
-      * - For a subscription-gated change notification, returns one stamped copy
-      *   per subscription that opted in to it (an empty array means it is
-      *   dropped — the modern era never delivers an un-requested change type).
-      * - For any other outbound message, returns `'passthrough'` (the entry
-      *   forwards it as-is).
-      */
-      routeOutbound(message) {
-        if (!CHANGE_NOTIFICATION_METHODS.has(message.method)) return "passthrough";
-        const uriParam = message.params?.["uri"];
-        const uri = typeof uriParam === "string" ? uriParam : void 0;
-        const event = notificationToServerEvent(message.method, uri);
-        const out = [];
-        for (const [subscriptionId, filter] of this._subs) if (listenFilterAccepts(filter, event)) out.push(stampSubscriptionId({
-          method: message.method,
-          params: message.params ?? {}
-        }, subscriptionId));
-        return out;
-      }
-      /**
-      * Server-side graceful teardown of every active subscription: returns the
-      * empty `subscriptions/listen` JSON-RPC result for each subscription id —
-      * the spec's graceful-close signal, `_meta` carrying the subscription id
-      * and the serving instance's identity — for the entry to emit before
-      * closing the wire. Clears the set so nothing further is delivered.
-      */
-      teardownAll() {
-        const out = [];
-        for (const id of this._subs.keys()) out.push({
-          jsonrpc: "2.0",
-          id,
-          result: {
-            resultType: "complete",
-            _meta: {
-              [_modelcontextprotocol_core_internal.SUBSCRIPTION_ID_META_KEY]: id,
-              ...this._serverInfo !== void 0 && { [_modelcontextprotocol_core_internal.SERVER_INFO_META_KEY]: this._serverInfo }
-            }
-          }
-        });
-        this._subs.clear();
-        return out;
+      writeFrame(frame) {
+        if (this._sse === void 0 || this._sse.closed) return;
+        try {
+          this._sse.controller.enqueue(this._sse.encoder.encode(frame));
+        } catch (error) {
+          this.onerror?.(/* @__PURE__ */ new Error(`Failed to write to the response stream: ${error}`));
+        }
       }
     };
-    function notificationToServerEvent(method, uri) {
-      switch (method) {
-        case "notifications/tools/list_changed":
-          return { kind: "tools_list_changed" };
-        case "notifications/prompts/list_changed":
-          return { kind: "prompts_list_changed" };
-        case "notifications/resources/list_changed":
-          return { kind: "resources_list_changed" };
-        default:
-          return {
-            kind: "resource_updated",
-            uri: uri ?? ""
-          };
-      }
+    function perRequestClassificationOf(transport) {
+      return transport instanceof PerRequestHTTPServerTransport ? readClassification(transport) : void 0;
     }
     function comparableResource(value) {
       const text = String(value);
@@ -39562,6 +39809,7 @@ data: ${JSON.stringify({
       _requestStateVerify;
       _inputRequiredServing;
       _legacyShim;
+      _boundFromTransport = false;
       /** Lazily-built legacy shim; the loop lives in legacyInputRequiredShim.ts behind a narrow host contract. */
       _legacyInputRequiredShim() {
         return this._legacyShim ??= new LegacyInputRequiredShim({
@@ -39601,6 +39849,15 @@ data: ${JSON.stringify({
       /** Attaches to the given transport; rejects while this instance is connected to another one. */
       async connect(transport) {
         if (this.transport !== void 0) throw new require_src.SdkError(require_src.SdkErrorCode.AlreadyConnected, "Use a separate Server instance per connection: this instance is already connected to a transport. To connect it to a new transport, call close() first.");
+        if (this._boundFromTransport) {
+          this._boundFromTransport = false;
+          this._negotiatedProtocolVersion = void 0;
+        }
+        const revision = perRequestClassificationOf(transport)?.revision;
+        if (revision !== void 0 && !this._servedModernEra() && require_src.SUPPORTED_MODERN_PROTOCOL_VERSIONS.includes(revision) && require_src.modernProtocolVersions(this._supportedProtocolVersions).includes(revision)) {
+          this._negotiatedProtocolVersion = revision;
+          this._boundFromTransport = true;
+        }
         await super.connect(transport);
       }
       /**
@@ -39926,8 +40183,8 @@ data: ${JSON.stringify({
       * @deprecated Read client identity from the per-request handler context instead: on
       * 2026-07-28 (per-request envelope) requests `ctx.mcpReq.envelope` carries the client's
       * declared capabilities, while on 2025-era connections this accessor keeps returning the
-      * `initialize`-scoped value. The accessor remains functional — instances serving the
-      * 2026-07-28 era are backfilled per request from the validated envelope.
+      * `initialize`-scoped value. The accessor remains functional where `createMcpHandler`
+      * serves the 2026-07-28 era: it backfills it per request from the validated envelope.
       */
       getClientCapabilities() {
         return this._clientCapabilities;
@@ -39938,8 +40195,8 @@ data: ${JSON.stringify({
       * @deprecated Read client identity from the per-request handler context instead: on
       * 2026-07-28 (per-request envelope) requests `ctx.mcpReq.envelope` carries the client's
       * name and version, while on 2025-era connections this accessor keeps returning the
-      * `initialize`-scoped value. The accessor remains functional — instances serving the
-      * 2026-07-28 era are backfilled per request from the validated envelope.
+      * `initialize`-scoped value. The accessor remains functional where `createMcpHandler`
+      * serves the 2026-07-28 era: it backfills it per request from the validated envelope.
       */
       getClientVersion() {
         return this._clientVersion;
@@ -40514,8 +40771,14 @@ data: ${JSON.stringify({
               if (updates.uri) this._registeredResources[updates.uri] = registeredResource;
             }
             if (updates.name !== void 0) registeredResource.name = updates.name;
-            if (updates.title !== void 0) registeredResource.title = updates.title;
             if (updates.metadata !== void 0) registeredResource.metadata = updates.metadata;
+            if (updates.title !== void 0) {
+              registeredResource.title = updates.title;
+              registeredResource.metadata = {
+                ...registeredResource.metadata,
+                title: updates.title
+              };
+            }
             if (updates.callback !== void 0) registeredResource.readCallback = updates.callback;
             if (updates.scopeChallenge !== void 0) registeredResource.scopeChallenge = updates.scopeChallenge === null ? void 0 : updates.scopeChallenge;
             if (updates.enabled !== void 0) registeredResource.enabled = updates.enabled;
@@ -40541,9 +40804,15 @@ data: ${JSON.stringify({
               delete this._registeredResourceTemplates[name];
               if (updates.name) this._registeredResourceTemplates[updates.name] = registeredResourceTemplate;
             }
-            if (updates.title !== void 0) registeredResourceTemplate.title = updates.title;
             if (updates.template !== void 0) registeredResourceTemplate.resourceTemplate = updates.template;
             if (updates.metadata !== void 0) registeredResourceTemplate.metadata = updates.metadata;
+            if (updates.title !== void 0) {
+              registeredResourceTemplate.title = updates.title;
+              registeredResourceTemplate.metadata = {
+                ...registeredResourceTemplate.metadata,
+                title: updates.title
+              };
+            }
             if (updates.callback !== void 0) registeredResourceTemplate.readCallback = updates.callback;
             if (updates.scopeChallenge !== void 0) registeredResourceTemplate.scopeChallenge = updates.scopeChallenge === null ? void 0 : updates.scopeChallenge;
             if (updates.enabled !== void 0) registeredResourceTemplate.enabled = updates.enabled;
@@ -40823,28 +41092,22 @@ data: ${JSON.stringify({
       if (!isOptionalSchema(schema)) return schema;
       return schema.def?.innerType ?? schema;
     }
-    Object.defineProperty(exports, "DEFAULT_MAX_SUBSCRIPTIONS", {
-      enumerable: true,
-      get: function() {
-        return DEFAULT_MAX_SUBSCRIPTIONS;
-      }
-    });
     Object.defineProperty(exports, "DEFAULT_SSE_KEEP_ALIVE_MS", {
       enumerable: true,
       get: function() {
         return DEFAULT_SSE_KEEP_ALIVE_MS;
       }
     });
-    Object.defineProperty(exports, "InMemoryServerEventBus", {
-      enumerable: true,
-      get: function() {
-        return InMemoryServerEventBus;
-      }
-    });
     Object.defineProperty(exports, "McpServer", {
       enumerable: true,
       get: function() {
         return McpServer;
+      }
+    });
+    Object.defineProperty(exports, "PerRequestHTTPServerTransport", {
+      enumerable: true,
+      get: function() {
+        return PerRequestHTTPServerTransport;
       }
     });
     Object.defineProperty(exports, "ResourceTemplate", {
@@ -40857,12 +41120,6 @@ data: ${JSON.stringify({
       enumerable: true,
       get: function() {
         return Server;
-      }
-    });
-    Object.defineProperty(exports, "StdioListenRouter", {
-      enumerable: true,
-      get: function() {
-        return StdioListenRouter;
       }
     });
     Object.defineProperty(exports, "armSseKeepAlive", {
@@ -40889,22 +41146,10 @@ data: ${JSON.stringify({
         return completable;
       }
     });
-    Object.defineProperty(exports, "createListenRouter", {
-      enumerable: true,
-      get: function() {
-        return createListenRouter;
-      }
-    });
     Object.defineProperty(exports, "createScopeChallengeResponse", {
       enumerable: true,
       get: function() {
         return createScopeChallengeResponse;
-      }
-    });
-    Object.defineProperty(exports, "createServerNotifier", {
-      enumerable: true,
-      get: function() {
-        return createServerNotifier;
       }
     });
     Object.defineProperty(exports, "findScopeChallenge", {
@@ -40976,194 +41221,228 @@ data: ${JSON.stringify({
   }
 });
 
-// risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/index.cjs
-var require_dist = __commonJS({
-  "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/index.cjs"(exports) {
+// risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/listenRouter-Dcw_aIh6.cjs
+var require_listenRouter_Dcw_aIh6 = __commonJS({
+  "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/listenRouter-Dcw_aIh6.cjs"(exports) {
     var require_chunk = require_chunk_Bnu9O96Y();
-    var require_mcp = require_mcp_BumlNux0();
-    var require_src = require_src_BhnGYybN();
-    var _modelcontextprotocol_server__shims = require_shimsNode();
+    var require_mcp = require_mcp_uPg2RfP3();
+    var require_src = require_src_BvE2tDzk();
     var _modelcontextprotocol_core_internal = require_internal();
-    var PerRequestHTTPServerTransport = class {
-      onclose;
-      onerror;
-      onmessage;
-      _classification;
-      _responseMode;
-      _started = false;
-      _used = false;
-      _closed = false;
-      _terminalDelivered = false;
+    var InMemoryServerEventBus = class {
+      _listeners = /* @__PURE__ */ new Set();
       /**
-      * `true` only while the inbound message is being delivered synchronously
-      * to the connected protocol layer. The pre-handler gates (the era
-      * registry gate, the edge→instance handoff check, the missing-handler
-      * rejection) answer inside this window; request handlers always run
-      * after it (the protocol layer defers them to a microtask). An error
-      * sent inside the window is therefore ladder-originated, and an error
-      * sent after it is handler-produced.
+      * @param onerror - Optional callback for errors thrown by listeners
+      *   during dispatch.
       */
-      _dispatchWindowOpen = false;
-      _requestId;
-      _deferredResponse;
-      _sse;
-      _abortCleanup;
-      _keepAliveMs;
-      constructor(options) {
-        this._classification = options.classification;
-        this._responseMode = options.responseMode ?? "auto";
-        this._keepAliveMs = options.keepAliveMs ?? require_mcp.DEFAULT_SSE_KEEP_ALIVE_MS;
+      constructor(onerror) {
+        this.onerror = onerror;
       }
-      async start() {
-        if (this._started) throw new Error("PerRequestHTTPServerTransport is already started");
-        this._started = true;
-      }
-      /**
-      * Serves the single exchange: delivers the classified message to the
-      * connected server instance and resolves with the HTTP response.
-      *
-      * Throws when called a second time (the transport is strictly
-      * single-use), or before a server has been connected to the transport.
-      * The returned promise rejects with a connection-closed error when the
-      * transport is closed before a response was produced (for example because
-      * the client disconnected).
-      */
-      async handleMessage(message, extra) {
-        if (this._used) throw new Error("PerRequestHTTPServerTransport serves exactly one exchange; construct a new transport per request");
-        if (!this._started || this.onmessage === void 0) throw new Error("PerRequestHTTPServerTransport is not connected: connect a server to this transport before handling a message");
-        if (this._closed) throw new Error("PerRequestHTTPServerTransport is closed");
-        this._used = true;
-        const signal = extra?.request?.signal;
-        if (signal?.aborted) {
-          await this.close();
-          throw new require_src.SdkError(require_src.SdkErrorCode.ConnectionClosed, "The request was aborted before it could be handled");
+      publish(event) {
+        for (const listener of this._listeners) try {
+          listener(event);
+        } catch (error) {
+          this.onerror?.(error instanceof Error ? error : new Error(String(error)));
         }
-        const messageExtra = {
-          classification: this._classification,
-          ...extra?.request !== void 0 && { request: extra.request },
-          ...extra?.authInfo !== void 0 && { authInfo: extra.authInfo }
+      }
+      subscribe(listener) {
+        this._listeners.add(listener);
+        let live = true;
+        return () => {
+          if (!live) return;
+          live = false;
+          this._listeners.delete(listener);
         };
-        if (require_src.isJSONRPCRequest(message)) {
-          this._requestId = message.id;
-          let resolve;
-          let reject;
-          const promise = new Promise((promiseResolve, promiseReject) => {
-            resolve = promiseResolve;
-            reject = promiseReject;
-          });
-          this._deferredResponse = {
-            promise,
-            resolve,
-            reject,
-            settled: false
+      }
+      /** The number of currently registered listeners (test/introspection only — the routers track capacity via their own open-subscription set). */
+      get listenerCount() {
+        return this._listeners.size;
+      }
+    };
+    function createServerNotifier(bus) {
+      return {
+        toolsChanged: () => bus.publish({ kind: "tools_list_changed" }),
+        promptsChanged: () => bus.publish({ kind: "prompts_list_changed" }),
+        resourcesChanged: () => bus.publish({ kind: "resources_list_changed" }),
+        resourceUpdated: (uri) => bus.publish({
+          kind: "resource_updated",
+          uri
+        })
+      };
+    }
+    function listenFilterAccepts(filter, event) {
+      switch (event.kind) {
+        case "tools_list_changed":
+          return filter.toolsListChanged === true;
+        case "prompts_list_changed":
+          return filter.promptsListChanged === true;
+        case "resources_list_changed":
+          return filter.resourcesListChanged === true;
+        case "resource_updated":
+          return filter.resourceSubscriptions !== void 0 && filter.resourceSubscriptions.includes(event.uri);
+      }
+    }
+    function honoredSubset(requested, capabilities) {
+      const honored = {};
+      const allow = (bit) => capabilities === void 0 || bit === true;
+      if (requested.toolsListChanged === true && allow(capabilities?.tools?.listChanged)) honored.toolsListChanged = true;
+      if (requested.promptsListChanged === true && allow(capabilities?.prompts?.listChanged)) honored.promptsListChanged = true;
+      if (requested.resourcesListChanged === true && allow(capabilities?.resources?.listChanged)) honored.resourcesListChanged = true;
+      if (requested.resourceSubscriptions !== void 0 && requested.resourceSubscriptions.length > 0 && allow(capabilities?.resources?.subscribe)) honored.resourceSubscriptions = [...requested.resourceSubscriptions];
+      return honored;
+    }
+    function serverEventToNotification(event) {
+      switch (event.kind) {
+        case "tools_list_changed":
+          return {
+            method: "notifications/tools/list_changed",
+            ...event.params !== void 0 && { params: event.params }
           };
-          if (signal !== void 0) {
-            const onAbort = () => void this.close();
-            signal.addEventListener("abort", onAbort, { once: true });
-            this._abortCleanup = () => signal.removeEventListener("abort", onAbort);
+        case "prompts_list_changed":
+          return {
+            method: "notifications/prompts/list_changed",
+            ...event.params !== void 0 && { params: event.params }
+          };
+        case "resources_list_changed":
+          return {
+            method: "notifications/resources/list_changed",
+            ...event.params !== void 0 && { params: event.params }
+          };
+        case "resource_updated":
+          return {
+            method: "notifications/resources/updated",
+            params: {
+              ...event.params,
+              uri: event.uri
+            }
+          };
+      }
+    }
+    var DEFAULT_MAX_SUBSCRIPTIONS = 1024;
+    function jsonRpcError(id, code, message) {
+      return Response.json({
+        jsonrpc: "2.0",
+        error: {
+          code,
+          message
+        },
+        id
+      }, { status: 200 });
+    }
+    function stampSubscriptionId(notification, subscriptionId) {
+      return {
+        method: notification.method,
+        params: {
+          ...notification.params,
+          _meta: {
+            ...notification.params?._meta,
+            [_modelcontextprotocol_core_internal.SUBSCRIPTION_ID_META_KEY]: subscriptionId
           }
-          this._dispatchWindowOpen = true;
+        }
+      };
+    }
+    function parseListenFilter(message) {
+      const outcome = require_src.codecForVersion(require_src.MODERN_WIRE_REVISION).validateRequest("subscriptions/listen", message);
+      return outcome.ok ? outcome.value.params?.notifications : void 0;
+    }
+    function createListenRouter(options) {
+      const { bus, onerror } = options;
+      const maxSubscriptions = options.maxSubscriptions ?? DEFAULT_MAX_SUBSCRIPTIONS;
+      const keepAliveMs = options.keepAliveMs ?? require_mcp.DEFAULT_SSE_KEEP_ALIVE_MS;
+      const open6 = /* @__PURE__ */ new Set();
+      function serve(message, signal, capabilities, serverInfo) {
+        if (open6.size >= maxSubscriptions) {
+          onerror?.(/* @__PURE__ */ new Error(`subscriptions/listen refused: subscription limit reached (${maxSubscriptions})`));
+          return jsonRpcError(message.id, -32603, "Subscription limit reached");
+        }
+        const filter = parseListenFilter(message);
+        if (filter === void 0) return jsonRpcError(message.id, -32602, "Invalid params: 'notifications' is required and must be a valid SubscriptionFilter");
+        const honored = honoredSubset(filter, capabilities);
+        const subscriptionId = message.id;
+        const encoder = new TextEncoder();
+        let controller;
+        let closed = false;
+        let unsubscribe;
+        let keepAliveTimer;
+        let abortCleanup;
+        const writeFrame = (frame) => {
+          if (closed) return;
           try {
-            this.onmessage(message, messageExtra);
-          } finally {
-            this._dispatchWindowOpen = false;
+            controller.enqueue(encoder.encode(frame));
+          } catch (error) {
+            onerror?.(error instanceof Error ? error : new Error(String(error)));
           }
-          if (this._responseMode === "sse" && !this._closed && !this._deferredResponse.settled) this.upgradeToSse();
-          return promise;
-        }
-        this.onmessage(message, messageExtra);
-        return new Response(null, { status: 202 });
-      }
-      async send(message, options) {
-        if (this._closed) return;
-        const isResponse = require_src.isJSONRPCResultResponse(message) || require_src.isJSONRPCErrorResponse(message);
-        const relatedId = isResponse ? message.id : options?.relatedRequestId;
-        if (this._requestId === void 0 || relatedId === void 0 || relatedId !== this._requestId) {
-          if (isResponse) this.onerror?.(/* @__PURE__ */ new Error(`Received a response for an unknown request id: ${String(message.id)}`));
-          return;
-        }
-        if (isResponse) {
-          if (this._terminalDelivered) return;
-          this._terminalDelivered = true;
-          const errorCode2 = require_src.isJSONRPCErrorResponse(message) ? message.error.code : void 0;
-          const ladderStatus = errorCode2 !== void 0 && (this._dispatchWindowOpen || errorCode2 === require_src.ProtocolErrorCode.MissingRequiredClientCapability) ? require_src.LADDER_ERROR_HTTP_STATUS[errorCode2] : void 0;
-          if (ladderStatus !== void 0 && this._sse === void 0) {
-            this.settleResponse(Response.json(message, {
-              status: ladderStatus,
-              headers: { "Content-Type": "application/json" }
-            }));
-            queueMicrotask(() => void this.close());
-            return;
-          }
-          if (this._sse !== void 0 || this._responseMode === "sse") {
-            if (this._sse === void 0) this.upgradeToSse();
-            this.writeMessageFrame(message);
-            this.finalizeStream();
-            return;
-          }
-          this.settleResponse(Response.json(message, {
-            status: 200,
-            headers: { "Content-Type": "application/json" }
-          }));
-          queueMicrotask(() => void this.close());
-          return;
-        }
-        if (this._responseMode === "json") return;
-        if (this._sse === void 0) this.upgradeToSse();
-        this.writeMessageFrame(message);
-      }
-      /**
-      * Writes an SSE comment frame (a keep-alive heartbeat). Dropped when the
-      * exchange is not currently streaming.
-      */
-      writeCommentFrame(comment) {
-        if (this._closed || this._sse === void 0 || this._sse.closed) return;
-        const frame = comment.split("\n").map((line) => `: ${line}`).join("\n");
-        this.writeFrame(`${frame}
+        };
+        const writeNotification = (method, params) => {
+          writeFrame(`event: message
+data: ${JSON.stringify({
+            jsonrpc: "2.0",
+            method,
+            params
+          })}
 
 `);
-      }
-      async close() {
-        if (this._closed) return;
-        this._closed = true;
-        this._abortCleanup?.();
-        this._abortCleanup = void 0;
-        if (this._sse?.keepAliveTimer !== void 0) clearInterval(this._sse.keepAliveTimer);
-        if (this._sse !== void 0 && !this._sse.closed) {
-          this._sse.closed = true;
+        };
+        const teardown = (graceful) => {
+          if (closed) return;
+          if (graceful) writeFrame(`event: message
+data: ${JSON.stringify({
+            jsonrpc: "2.0",
+            id: subscriptionId,
+            result: {
+              resultType: "complete",
+              _meta: {
+                [_modelcontextprotocol_core_internal.SUBSCRIPTION_ID_META_KEY]: subscriptionId,
+                [_modelcontextprotocol_core_internal.SERVER_INFO_META_KEY]: serverInfo
+              }
+            }
+          })}
+
+`);
+          closed = true;
           try {
-            this._sse.controller.close();
+            unsubscribe?.();
+          } catch (error) {
+            onerror?.(error instanceof Error ? error : new Error(String(error)));
+          }
+          if (keepAliveTimer !== void 0) clearInterval(keepAliveTimer);
+          abortCleanup?.();
+          open6.delete(teardown);
+          try {
+            controller.close();
           } catch {
           }
-        }
-        if (this._deferredResponse !== void 0 && !this._deferredResponse.settled) {
-          this._deferredResponse.settled = true;
-          this._deferredResponse.reject(new require_src.SdkError(require_src.SdkErrorCode.ConnectionClosed, "Connection closed before a response was produced"));
-        }
-        this.onclose?.();
-      }
-      settleResponse(response) {
-        if (this._deferredResponse === void 0 || this._deferredResponse.settled) return;
-        this._deferredResponse.settled = true;
-        this._deferredResponse.resolve(response);
-      }
-      upgradeToSse() {
-        let controller;
+        };
         const readable = new ReadableStream({
-          start: (streamController) => {
+          start(streamController) {
             controller = streamController;
+            const ack = stampSubscriptionId({
+              method: "notifications/subscriptions/acknowledged",
+              params: { notifications: honored }
+            }, subscriptionId);
+            writeNotification(ack.method, ack.params);
+            if (Object.keys(honored).length === 0) {
+              teardown(true);
+              return;
+            }
+            unsubscribe = bus.subscribe((event) => {
+              if (closed || !listenFilterAccepts(honored, event)) return;
+              const note = stampSubscriptionId(serverEventToNotification(event), subscriptionId);
+              writeNotification(note.method, note.params);
+            });
+            keepAliveTimer = require_mcp.armSseKeepAlive(keepAliveMs, () => writeFrame(": keepalive\n\n"));
+            open6.add(teardown);
           },
-          cancel: () => {
-            this.close();
+          cancel() {
+            teardown(false);
           }
         });
-        this._sse = {
-          controller,
-          encoder: new TextEncoder(),
-          closed: false
-        };
-        this._sse.keepAliveTimer = require_mcp.armSseKeepAlive(this._keepAliveMs, () => this.writeCommentFrame("keepalive"));
-        this.settleResponse(new Response(readable, {
+        if (signal !== void 0) if (signal.aborted) teardown(false);
+        else {
+          const onAbort = () => teardown(false);
+          signal.addEventListener("abort", onAbort, { once: true });
+          abortCleanup = () => signal.removeEventListener("abort", onAbort);
+        }
+        return new Response(readable, {
           status: 200,
           headers: {
             "Content-Type": "text/event-stream",
@@ -41171,36 +41450,208 @@ var require_dist = __commonJS({
             Connection: "keep-alive",
             "X-Accel-Buffering": "no"
           }
-        }));
+        });
       }
-      finalizeStream() {
-        if (this._sse?.keepAliveTimer !== void 0) clearInterval(this._sse.keepAliveTimer);
-        if (this._sse !== void 0 && !this._sse.closed) {
-          this._sse.closed = true;
-          try {
-            this._sse.controller.close();
-          } catch {
+      return {
+        serve,
+        closeAll() {
+          for (const teardown of open6) teardown(true);
+        },
+        get openCount() {
+          return open6.size;
+        }
+      };
+    }
+    var CHANGE_NOTIFICATION_METHODS = /* @__PURE__ */ new Set([
+      "notifications/tools/list_changed",
+      "notifications/prompts/list_changed",
+      "notifications/resources/list_changed",
+      "notifications/resources/updated"
+    ]);
+    var StdioListenRouter = class {
+      /** Active subscriptions, keyed by the listen request's JSON-RPC id verbatim. */
+      _subs = /* @__PURE__ */ new Map();
+      /**
+      * The serving instance's declared capabilities. Filled in by the entry
+      * once the modern instance is constructed (the router is created before
+      * the instance exists), so the acknowledged filter is narrowed against
+      * what the server can actually deliver.
+      */
+      _serverCapabilities;
+      /**
+      * The serving instance's identity, stamped onto the graceful-close
+      * results' `_meta` (the spec's `SubscriptionsListenResultMetaObject` extends
+      * `ResultMetaObject`). Handed over together with the capabilities.
+      */
+      _serverInfo;
+      constructor(_maxSubscriptions = DEFAULT_MAX_SUBSCRIPTIONS, serverCapabilities, serverInfo) {
+        this._maxSubscriptions = _maxSubscriptions;
+        this._serverCapabilities = serverCapabilities;
+        this._serverInfo = serverInfo;
+      }
+      /**
+      * Record the serving instance's declared capabilities and identity once
+      * it has been constructed. Called by `serveStdio`'s connect path;
+      * subsequent `serve()` calls narrow the honored filter against the
+      * capabilities, and `teardownAll()` stamps the identity.
+      */
+      setServerCapabilities(capabilities, serverInfo) {
+        this._serverCapabilities = capabilities;
+        if (serverInfo !== void 0) this._serverInfo = serverInfo;
+      }
+      /** Whether `id` is an active listen subscription on this connection. */
+      has(id) {
+        return this._subs.has(id);
+      }
+      /**
+      * Serve one inbound `subscriptions/listen` request: registers the
+      * subscription and returns the stamped acknowledged notification (or, on
+      * capacity / params rejection, the in-band JSON-RPC error response).
+      *
+      * @throws when called before {@linkcode setServerCapabilities} (or the
+      * constructor) has supplied the serving instance's capabilities. Honoring a
+      * filter without knowing the server's advertised capabilities would fail
+      * open (deliver unadvertised types); the entry guarantees capabilities are
+      * set before any listen request is routed here.
+      */
+      serve(message) {
+        if (this._serverCapabilities === void 0) throw new Error("StdioListenRouter.serve() called before setServerCapabilities(); refusing to honor a filter without capabilities");
+        if (this._subs.size >= this._maxSubscriptions) return {
+          jsonrpc: "2.0",
+          id: message.id,
+          error: {
+            code: -32603,
+            message: "Subscription limit reached"
           }
-        }
-        queueMicrotask(() => void this.close());
+        };
+        const filter = parseListenFilter(message);
+        if (filter === void 0) return {
+          jsonrpc: "2.0",
+          id: message.id,
+          error: {
+            code: -32602,
+            message: "Invalid params: 'notifications' is required and must be a valid SubscriptionFilter"
+          }
+        };
+        const honored = honoredSubset(filter, this._serverCapabilities);
+        this._subs.set(message.id, honored);
+        return stampSubscriptionId({
+          method: "notifications/subscriptions/acknowledged",
+          params: { notifications: honored }
+        }, message.id);
       }
-      writeMessageFrame(message) {
-        this.writeFrame(`event: message
-data: ${JSON.stringify(message)}
-
-`);
+      /**
+      * Tear down one subscription (inbound `notifications/cancelled`). Returns
+      * `true` when a subscription was removed. After this call NOTHING further
+      * is delivered for that subscription id (the post-cancel hardening).
+      */
+      cancel(id) {
+        return this._subs.delete(id);
       }
-      writeFrame(frame) {
-        if (this._sse === void 0 || this._sse.closed) return;
-        try {
-          this._sse.controller.enqueue(this._sse.encoder.encode(frame));
-        } catch (error) {
-          this.onerror?.(/* @__PURE__ */ new Error(`Failed to write to the response stream: ${error}`));
-        }
+      /**
+      * Route an outbound notification through the active subscriptions.
+      *
+      * - For a subscription-gated change notification, returns one stamped copy
+      *   per subscription that opted in to it (an empty array means it is
+      *   dropped — the modern era never delivers an un-requested change type).
+      * - For any other outbound message, returns `'passthrough'` (the entry
+      *   forwards it as-is).
+      */
+      routeOutbound(message) {
+        if (!CHANGE_NOTIFICATION_METHODS.has(message.method)) return "passthrough";
+        const uriParam = message.params?.["uri"];
+        const uri = typeof uriParam === "string" ? uriParam : void 0;
+        const event = notificationToServerEvent(message.method, uri);
+        const out = [];
+        for (const [subscriptionId, filter] of this._subs) if (listenFilterAccepts(filter, event)) out.push(stampSubscriptionId({
+          method: message.method,
+          params: message.params ?? {}
+        }, subscriptionId));
+        return out;
+      }
+      /**
+      * Server-side graceful teardown of every active subscription: returns the
+      * empty `subscriptions/listen` JSON-RPC result for each subscription id —
+      * the spec's graceful-close signal, `_meta` carrying the subscription id
+      * and the serving instance's identity — for the entry to emit before
+      * closing the wire. Clears the set so nothing further is delivered.
+      */
+      teardownAll() {
+        const out = [];
+        for (const id of this._subs.keys()) out.push({
+          jsonrpc: "2.0",
+          id,
+          result: {
+            resultType: "complete",
+            _meta: {
+              [_modelcontextprotocol_core_internal.SUBSCRIPTION_ID_META_KEY]: id,
+              ...this._serverInfo !== void 0 && { [_modelcontextprotocol_core_internal.SERVER_INFO_META_KEY]: this._serverInfo }
+            }
+          }
+        });
+        this._subs.clear();
+        return out;
       }
     };
+    function notificationToServerEvent(method, uri) {
+      switch (method) {
+        case "notifications/tools/list_changed":
+          return { kind: "tools_list_changed" };
+        case "notifications/prompts/list_changed":
+          return { kind: "prompts_list_changed" };
+        case "notifications/resources/list_changed":
+          return { kind: "resources_list_changed" };
+        default:
+          return {
+            kind: "resource_updated",
+            uri: uri ?? ""
+          };
+      }
+    }
+    Object.defineProperty(exports, "DEFAULT_MAX_SUBSCRIPTIONS", {
+      enumerable: true,
+      get: function() {
+        return DEFAULT_MAX_SUBSCRIPTIONS;
+      }
+    });
+    Object.defineProperty(exports, "InMemoryServerEventBus", {
+      enumerable: true,
+      get: function() {
+        return InMemoryServerEventBus;
+      }
+    });
+    Object.defineProperty(exports, "StdioListenRouter", {
+      enumerable: true,
+      get: function() {
+        return StdioListenRouter;
+      }
+    });
+    Object.defineProperty(exports, "createListenRouter", {
+      enumerable: true,
+      get: function() {
+        return createListenRouter;
+      }
+    });
+    Object.defineProperty(exports, "createServerNotifier", {
+      enumerable: true,
+      get: function() {
+        return createServerNotifier;
+      }
+    });
+  }
+});
+
+// risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/index.cjs
+var require_dist = __commonJS({
+  "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/index.cjs"(exports) {
+    var require_chunk = require_chunk_Bnu9O96Y();
+    var require_mcp = require_mcp_uPg2RfP3();
+    var require_src = require_src_BvE2tDzk();
+    var require_listenRouter = require_listenRouter_Dcw_aIh6();
+    var _modelcontextprotocol_server__shims = require_shimsNode();
+    var _modelcontextprotocol_core_internal = require_internal();
     async function invoke(server, message, ctx) {
-      const transport = new PerRequestHTTPServerTransport({
+      const transport = new require_mcp.PerRequestHTTPServerTransport({
         classification: ctx.classification,
         ...ctx.responseMode !== void 0 && { responseMode: ctx.responseMode },
         ...ctx.keepAliveMs !== void 0 && { keepAliveMs: ctx.keepAliveMs }
@@ -41924,7 +42375,10 @@ data:
           ...data !== void 0 && { data }
         },
         id
-      }, { status: httpStatus });
+      }, {
+        status: httpStatus,
+        ...httpStatus === 405 && { headers: { Allow: "POST" } }
+      });
     }
     function rejectionResponse(rejection, id = null) {
       return jsonRpcErrorResponse(rejection.httpStatus, rejection.code, rejection.message, rejection.data, id);
@@ -42079,11 +42533,11 @@ data:
         } catch {
         }
       };
-      const bus = options.bus ?? new require_mcp.InMemoryServerEventBus(reportError);
-      const notify = require_mcp.createServerNotifier(bus);
-      const listenRouter = require_mcp.createListenRouter({
+      const bus = options.bus ?? new require_listenRouter.InMemoryServerEventBus(reportError);
+      const notify = require_listenRouter.createServerNotifier(bus);
+      const listenRouter = require_listenRouter.createListenRouter({
         bus,
-        maxSubscriptions: options.maxSubscriptions ?? require_mcp.DEFAULT_MAX_SUBSCRIPTIONS,
+        maxSubscriptions: options.maxSubscriptions ?? require_listenRouter.DEFAULT_MAX_SUBSCRIPTIONS,
         keepAliveMs: options.keepAliveMs ?? require_mcp.DEFAULT_SSE_KEEP_ALIVE_MS,
         onerror: reportError
       });
@@ -42139,7 +42593,7 @@ data:
           const inputSchema = toolName === void 0 ? void 0 : product.toolInputSchemaJson(toolName);
           if (inputSchema !== void 0) {
             const scan = require_src.scanXMcpHeaderDeclarations(inputSchema);
-            if (scan.valid && scan.declarations.length > 0) {
+            if (scan.declarations !== void 0 && scan.declarations.length > 0) {
               const rejection = require_src.validateMcpParamHeaders(scan.declarations, callParams?.arguments, request.headers);
               if (rejection !== void 0) {
                 product.close().catch(reportError);
@@ -42489,7 +42943,7 @@ data:
         return _modelcontextprotocol_core_internal.INVALID_REQUEST;
       }
     });
-    exports.InMemoryServerEventBus = require_mcp.InMemoryServerEventBus;
+    exports.InMemoryServerEventBus = require_listenRouter.InMemoryServerEventBus;
     exports.InMemoryTransport = require_src.InMemoryTransport;
     Object.defineProperty(exports, "JSONRPC_VERSION", {
       enumerable: true,
@@ -42531,7 +42985,7 @@ data:
         return _modelcontextprotocol_core_internal.PROTOCOL_VERSION_META_KEY;
       }
     });
-    exports.PerRequestHTTPServerTransport = PerRequestHTTPServerTransport;
+    exports.PerRequestHTTPServerTransport = require_mcp.PerRequestHTTPServerTransport;
     exports.Protocol = require_src.Protocol;
     exports.ProtocolError = require_src.ProtocolError;
     exports.ProtocolErrorCode = require_src.ProtocolErrorCode;
@@ -42639,8 +43093,9 @@ data:
 var require_stdio = __commonJS({
   "risk-fork-hosted-mcp/node_modules/@modelcontextprotocol/server/dist/stdio.cjs"(exports) {
     var require_chunk = require_chunk_Bnu9O96Y();
-    var require_mcp = require_mcp_BumlNux0();
-    var require_src = require_src_BhnGYybN();
+    var require_mcp = require_mcp_uPg2RfP3();
+    var require_src = require_src_BvE2tDzk();
+    var require_listenRouter = require_listenRouter_Dcw_aIh6();
     var _modelcontextprotocol_server__shims = require_shimsNode();
     var swallowsErrorsAfterClose = /* @__PURE__ */ Symbol("swallowsErrorsAfterClose");
     var StdioServerTransport = class {
@@ -42880,7 +43335,7 @@ var require_stdio = __commonJS({
           ...data !== void 0 && { data }
         }
       }).catch((error) => reportError(toError(error)));
-      const listenRouter = new require_mcp.StdioListenRouter(options.maxSubscriptions ?? require_mcp.DEFAULT_MAX_SUBSCRIPTIONS);
+      const listenRouter = new require_listenRouter.StdioListenRouter(options.maxSubscriptions ?? require_listenRouter.DEFAULT_MAX_SUBSCRIPTIONS);
       const modernOutboundIntercept = (message) => {
         if (!require_src.isJSONRPCNotification(message)) return void 0;
         const routed = listenRouter.routeOutbound(message);
@@ -85444,7 +85899,7 @@ function createE2BAuthorityFreeSourceVerifier(options = {}) {
 }
 
 // risk-fork-hosted-mcp/src/index.mjs
-var REVIEWED_SOURCE_INTEGRITY = true ? "sha256:2909e896e35476aaa435f95f3be1f563ccb8427114943d55f15011c3f3c9869e" : null;
+var REVIEWED_SOURCE_INTEGRITY = true ? "sha256:4ceb05ddb3132ffcadd44e5226d65a97b44c198f2bd0db5cde98279f2552cb99" : null;
 var HOSTED_MCP_BUNDLE_METADATA = Object.freeze({
   package_name: "@agoragentic/risk-fork-hosted-mcp",
   package_version: "0.1.0-alpha.0",
@@ -85601,7 +86056,7 @@ export {
 };
 /*! Bundled license information:
 
-@modelcontextprotocol/server/dist/src-BhnGYybN.cjs:
+@modelcontextprotocol/server/dist/src-BvE2tDzk.cjs:
   (*!
   * content-type
   * Copyright(c) 2015 Douglas Christopher Wilson

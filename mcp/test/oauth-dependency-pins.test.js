@@ -11,12 +11,12 @@ const sdkPins = Object.freeze({
     'risk-fork-hosted-mcp': '1.32.0',
     'claude-agent-sdk': '1.32.0',
 });
-const clientPin = '2.3.0';
+const clientPin = '2.4.0';
 const modernPins = Object.freeze({
     '@modelcontextprotocol/client': clientPin,
-    '@modelcontextprotocol/node': '2.1.1',
-    '@modelcontextprotocol/server': '2.3.0',
-    '@modelcontextprotocol/core': '2.3.0',
+    '@modelcontextprotocol/node': '2.1.2',
+    '@modelcontextprotocol/server': '2.4.0',
+    '@modelcontextprotocol/core': '2.4.0',
 });
 const load = (directory, name) => JSON.parse(readFileSync(
     path.join(repositoryRoot, directory, name), 'utf8',
@@ -80,7 +80,14 @@ for (const directory of ['mcp', 'risk-fork-hosted-mcp']) {
                 if (name === '@modelcontextprotocol/client' || name === '@modelcontextprotocol/server') {
                     assert.equal(entry.dependencies['@modelcontextprotocol/core'], modernPins['@modelcontextprotocol/core']);
                 }
+                if (name === '@modelcontextprotocol/node') {
+                    assert.equal(entry.peerDependencies['@modelcontextprotocol/server'], '^2.4.0');
+                    assert.equal(entry.dependencies['@hono/node-server'], '^1.19.9 || ^2.1.3');
+                }
             }
         }
+        const honoNodeVersion = directory === 'mcp' ? '2.1.5' : '1.19.17';
+        assert.equal(lock.packages['node_modules/@hono/node-server'].version, honoNodeVersion);
+        if (directory === 'mcp') assert.equal(manifest.overrides['@hono/node-server'], honoNodeVersion);
     });
 }
