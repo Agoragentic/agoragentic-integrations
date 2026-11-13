@@ -2,6 +2,7 @@
 
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const { syncBuiltinESMExports } = require('node:module');
 const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
@@ -9,6 +10,81 @@ const test = require('node:test');
 const root = path.join(__dirname, '..');
 const source = path.join(root, 'fixtures/lint-parser');
 const verifier = () => import('../scripts/verify-lint-parser.mjs');
+
+test('parser file reads bind metadata and bytes to one descriptor and refuse replacements', async t => {
+	const { readPlainFile } = await verifier();
+	for (const phase of ['after open', 'before read', 'during read']) {
+		await t.test(phase, () => {
+			const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'n8n-parser-race-'));
+			const file = path.join(directory, 'artifact');
+			fs.writeFileSync(file, 'original artifact');
+			const open = fs.openSync;
+			const read = fs.readFileSync;
+			let descriptor;
+			let changed = false;
+			const replace = () => {
+				changed = true;
+				fs.renameSync(file, path.join(directory, 'original'));
+				fs.writeFileSync(file, 'replacement artifact');
+			};
+			try {
+				fs.openSync = (...args) => {
+					const result = open(...args);
+					if (args[0] === file && !changed) {
+						descriptor = result;
+						if (phase === 'after open') replace();
+					}
+					return result;
+				};
+				fs.readFileSync = (...args) => {
+					if (args[0] === descriptor && !changed) {
+						if (phase === 'before read') replace();
+						if (phase === 'during read') {
+							changed = true;
+							fs.writeFileSync(file, 'modified descriptor contents with a different size');
+						}
+					}
+					return read(...args);
+				};
+				syncBuiltinESMExports();
+				assert.throws(() => readPlainFile(file), /File changed while verifying/);
+				assert.ok(changed, 'the actual filesystem mutation must run');
+				assert.throws(() => fs.fstatSync(descriptor), { code: 'EBADF' });
+			} finally {
+				fs.openSync = open;
+				fs.readFileSync = read;
+				syncBuiltinESMExports();
+				fs.rmSync(directory, { recursive: true, force: true });
+			}
+		});
+	}
+});
+
+test('parser file reads reject non-files and symlinks', async t => {
+	const { readPlainFile } = await verifier();
+	const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'n8n-parser-kind-'));
+	try {
+		assert.throws(() => readPlainFile(directory));
+		const target = path.join(directory, 'target');
+		fs.writeFileSync(target, 'fixture');
+		assert.equal(readPlainFile(target).toString(), 'fixture');
+		await t.test('symlink refusal', t => {
+			const link = path.join(directory, 'link');
+			try {
+				fs.symlinkSync(target, link, 'file');
+			} catch (error) {
+				if (process.platform === 'win32' && error.code === 'EPERM') {
+					t.skip('Windows account cannot create file symlinks');
+					return;
+				}
+				throw error;
+			}
+			assert.throws(() => readPlainFile(link));
+		});
+	} finally {
+		fs.rmSync(directory, { recursive: true, force: true });
+	}
+});
 
 test('lint parser preserves upstream artifacts and all installed consumer bindings', async () => {
 	const { verifyFixture, verifyInstalled } = await verifier();

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { lstatSync, readFileSync, readdirSync, realpathSync } from 'node:fs';
+import { closeSync, constants, fstatSync, lstatSync, openSync, readFileSync, readdirSync, realpathSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(import.meta.dirname, '..');
 export const fixtureRoot = path.join(root, 'fixtures/lint-parser');
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
-const json = file => JSON.parse(readFileSync(file, 'utf8'));
+const json = file => JSON.parse(readPlainFile(file).toString('utf8'));
 const pins = Object.freeze({
   upstream_package: '@typescript-eslint/typescript-estree',
   upstream_version: '8.72.2',
@@ -26,6 +26,32 @@ function plain(file, kind = 'file') {
     `Expected plain ${kind}: ${file}`);
 }
 
+export function readPlainFile(file) {
+  // Read and inspect the same opened object. O_NOFOLLOW is unavailable on
+  // Windows, so also bind the non-symlink path entry to the descriptor identity.
+  const descriptor = openSync(file, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0) | (constants.O_NONBLOCK ?? 0));
+  try {
+    const opened = fstatSync(descriptor, { bigint: true });
+    assert.ok(opened.isFile(), `Expected plain file: ${file}`);
+    const checkEntry = () => {
+      const entry = lstatSync(file, { bigint: true });
+      assert.ok(!entry.isSymbolicLink() && entry.isFile(), `Expected plain file: ${file}`);
+      assert.equal(entry.dev, opened.dev, `File changed while verifying: ${file}`);
+      assert.equal(entry.ino, opened.ino, `File changed while verifying: ${file}`);
+    };
+    checkEntry();
+    const bytes = readFileSync(descriptor);
+    const completed = fstatSync(descriptor, { bigint: true });
+    for (const key of ['dev', 'ino', 'size', 'mtimeNs', 'ctimeNs']) {
+      assert.equal(completed[key], opened[key], `File changed while verifying: ${file}`);
+    }
+    checkEntry();
+    return bytes;
+  } finally {
+    closeSync(descriptor);
+  }
+}
+
 function inventoryFiles(directory, relative = '') {
   plain(directory, 'directory');
   return readdirSync(directory).sort().flatMap(name => {
@@ -36,9 +62,8 @@ function inventoryFiles(directory, relative = '') {
     const stat = lstatSync(file);
     assert.ok(!stat.isSymbolicLink(), `Fixture symlink refused: ${entry}`);
     if (stat.isDirectory()) return inventoryFiles(file, entry);
-    plain(file);
     if (entry === 'package.json') return [];
-    const bytes = readFileSync(file);
+    const bytes = readPlainFile(file);
     return [{ path: entry, bytes: bytes.length, sha256: sha256(bytes) }];
   }).sort((a, b) => a.path.localeCompare(b.path, 'en'));
 }
@@ -46,18 +71,15 @@ function inventoryFiles(directory, relative = '') {
 export function verifyFixture(directory = fixtureRoot) {
   if (directory === fixtureRoot) plain(path.dirname(directory), 'directory');
   plain(directory, 'directory');
-  for (const name of ['manifest.json', 'artifact-inventory.json', 'upstream-package.json']) {
-    plain(path.join(directory, name));
-  }
   const manifest = json(path.join(directory, 'manifest.json'));
   assert.equal(manifest.schema, 'agoragentic.n8n-lint-parser-fixture.v1');
   for (const [key, value] of Object.entries(pins)) assert.equal(manifest[key], value, key);
   assert.equal(manifest.published, false);
   assert.equal(manifest.runtime_code_changed, false);
   assert.equal(manifest.unchanged_artifact_files, 90);
-  const upstreamBytes = readFileSync(path.join(directory, 'upstream-package.json'));
+  const upstreamBytes = readPlainFile(path.join(directory, 'upstream-package.json'));
   assert.equal(sha256(upstreamBytes), pins.upstream_package_json_sha256);
-  const inventoryBytes = readFileSync(path.join(directory, 'artifact-inventory.json'));
+  const inventoryBytes = readPlainFile(path.join(directory, 'artifact-inventory.json'));
   assert.equal(sha256(inventoryBytes), pins.artifact_inventory_sha256);
   const expected = JSON.parse(upstreamBytes.toString('utf8'));
   assert.equal(expected.name, pins.upstream_package);
@@ -72,7 +94,6 @@ export function verifyFixture(directory = fixtureRoot) {
   delete expected.scripts;
   const packageRoot = path.join(directory, 'package');
   plain(packageRoot, 'directory');
-  plain(path.join(packageRoot, 'package.json'));
   assert.deepEqual(json(path.join(packageRoot, 'package.json')), expected);
   const recorded = JSON.parse(inventoryBytes.toString('utf8'));
   assert.equal(recorded.length, 90);
@@ -117,8 +138,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const archiveFlag = process.argv.indexOf('--archive');
   if (archiveFlag !== -1) {
     const archive = process.argv[archiveFlag + 1];
-    assert.ok(archive, '--archive needs a path'); plain(archive);
-    const integrity = `sha512-${createHash('sha512').update(readFileSync(archive)).digest('base64')}`;
+    assert.ok(archive, '--archive needs a path');
+    const integrity = `sha512-${createHash('sha512').update(readPlainFile(archive)).digest('base64')}`;
     assert.equal(integrity, pins.upstream_integrity);
   }
   console.log(JSON.stringify({ ...verifyFixture(), ...verifyInstalled() }));
