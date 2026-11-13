@@ -108,6 +108,22 @@ package profile; an ESM root claiming that identity is rejected. Provenance is
 bounded to 32 entry attempts and 32,768 cached-file records; capacity requires a
 fresh process, not cache eviction or bypass.
 
+Optional dependencies and optional peers may be recorded as absent only when
+Node's package-root resolver cannot find them, and no candidate package or
+legacy module file exists on its ancestor/global lookup paths. A fallback
+outside the inspected closure, a hidden root export, a broken main with a
+potentially loadable subpath, a dangling link, or a lookup error fails inspection
+before SDK evaluation. Installing a fallback after a pin is created also fails
+the pre-load reinspection. If any optional package is absent, loading additionally
+requires every visible CommonJS cache entry to belong to this exact inspected
+closure, checked before and after import. Unrelated cached modules require a
+fresh controlled process even if another verifier previously loaded them:
+Node's retained real paths cannot reconstruct a removed symlink alias safely.
+Truly absent optional packages remain supported in that clean process.
+These are declared-dependency and visible-cache checks, not a sandbox for
+arbitrary undeclared imports or a replacement for immutable install and loader
+custody. A post-import refusal cannot undo code that has already evaluated.
+
 This cache fence still does not establish a clean first module graph, detect
 every prior ESM dependency import, prevent a concurrent external import, or
 make mutable package inspection atomic with evaluation. Node's transitive ESM
