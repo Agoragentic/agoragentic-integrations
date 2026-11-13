@@ -79,7 +79,7 @@ corroboration. This bundle includes neither.
 
 ## E2B and PostgreSQL host surfaces
 
-The main export also includes the framework-neutral Risk Fork host-boundary/import constructors, cleanup verification request/evidence validators, reviewed E2B adapter, paths, qualification evidence/trust functions, exact SDK dependency-closure verifier, authority-free source verifier, PostgreSQL authority class and production predicate, and PostgreSQL migration/schema-verification functions. These are library contracts only: they do not provide a production host, provider authority, or live activation. `e2b` is the only unbundled package surface: it is an optional, exact `e2b@2.39.0` peer. Qualified and historical-cleanup adapter use must provide the full signed evidence/trust chain plus `sdkProcessOptions`; the adapter privately constructs the original branded host-owned SDK process verifier. The raw process factory is internal and is not exported by the core root, qualification subpath, or this bundle. The older in-process loader path is not accepted for qualified SDK effects or historical cleanup, and merely installing that peer does not qualify E2B or grant execution authority.
+The main export also includes the framework-neutral Risk Fork host-boundary/import constructors, cleanup verification request/evidence validators, reviewed E2B adapter, paths, qualification evidence/trust functions, exact SDK dependency-closure verifier, authority-free source verifier, PostgreSQL authority class and production predicate, and PostgreSQL migration/schema-verification functions. These are library contracts only: they do not provide a production host, provider authority, or live activation. `e2b` is the only unbundled package surface: it is an optional, exact `e2b@2.63.0` peer requiring Node >=22.19.0; core bundle imports remain Node 20+. Evidence profile v2 rejects historical v1 bindings, including cleanup; see [migration notes](../risk-fork/E2B_SDK_MIGRATION.md). Qualified and historical-cleanup adapter use must provide the full signed evidence/trust chain plus `sdkProcessOptions`; the adapter privately constructs the original branded host-owned SDK process verifier. The raw process factory is internal and is not exported by the core root, qualification subpath, or this bundle. The older in-process loader path is not accepted for qualified SDK effects or historical cleanup, and merely installing that peer does not qualify E2B or grant execution authority.
 
 The E2B build context preserves its reviewed repository-relative layout and is importable from:
 
@@ -94,7 +94,7 @@ The package also exposes the reviewed assets below through package subpaths:
 - `migrations/001_distributed_authority.pg.sql`
 - `ops/postgres/owner-bootstrap.sql.template`
 - `ops/postgres/roles.sql.template`
-- `schema/e2b-qualification-evidence.v1.json`
+- `schema/e2b-qualification-evidence.v2.json`
 
 These files are inputs for an owner-controlled staging procedure, not a migration authorization or managed-database readiness claim. The PostgreSQL production predicate is intentionally strict; managed TLS, role separation, backup/restore, failover, monitoring, and reconciliation drills still require independent environment evidence.
 

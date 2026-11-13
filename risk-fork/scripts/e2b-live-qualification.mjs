@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { assertE2BNodeRuntime } from '../src/e2b-node-runtime.mjs';
 import { constants } from 'node:fs';
 import {
   lstat,
@@ -391,7 +392,7 @@ async function loadLiveQualificationSdk(gate) {
   const verifier = createE2BRuntimeSdkIntegrityVerifier();
   const loaded = await loadVerifiedE2BRuntimeSdk({
     package: 'e2b',
-    version: '2.39.0',
+    version: '2.63.0',
     integrity_hash: gate.sdkIntegrityHash,
   }, verifier);
   return Object.freeze({
@@ -609,7 +610,7 @@ async function runDefaultE2BSingleSandboxCanary({
   monotonicNow = () => performance.now(),
 }) {
   if (typeof SandboxNotFoundError !== 'function') {
-    throw new TypeError('Installed e2b@2.39.0 lacks SandboxNotFoundError');
+    throw new TypeError('Installed e2b@2.63.0 lacks SandboxNotFoundError');
   }
   const controls = emptyControls();
   const cleanup = {
@@ -1065,6 +1066,7 @@ async function persistExclusive(directory, evidence) {
 }
 
 export async function runE2BLiveQualification(options = {}) {
+  assertE2BNodeRuntime();
   const gate = assertE2BLiveQualificationGate(options.env ?? process.env);
   rejectEvidenceProducingTestSeams(options);
   assertE2BEvidencePlatformSecurity();
@@ -1081,7 +1083,7 @@ export async function runE2BLiveQualification(options = {}) {
     || typeof Sandbox?.list !== 'function'
     || typeof Sandbox?.kill !== 'function'
     || typeof SandboxNotFoundError !== 'function') {
-    throw new TypeError('Installed e2b@2.39.0 lacks the required Sandbox APIs');
+    throw new TypeError('Installed e2b@2.63.0 lacks the required Sandbox APIs');
   }
   const clock = () => new Date();
   const canary = await runDefaultE2BSingleSandboxCanary({

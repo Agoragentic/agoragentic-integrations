@@ -118,7 +118,7 @@ if (mode === '--prepare') {
     const dependency = path.join(modules, 'synthetic-sdk-dependency');
     await mkdir(path.join(sdk, 'dist'), { recursive: true });
     await mkdir(dependency, { recursive: true });
-    await writeFile(path.join(sdk, 'package.json'), JSON.stringify({ name: 'e2b', version: '2.39.0', main: 'dist/index.js', dependencies: { 'synthetic-sdk-dependency': '1.0.0' } }));
+    await writeFile(path.join(sdk, 'package.json'), JSON.stringify({ name: 'e2b', version: '2.63.0', main: 'dist/index.js', dependencies: { 'synthetic-sdk-dependency': '1.0.0' } }));
     await writeFile(path.join(sdk, 'dist/index.js'), `(${syntheticSdk.toString()})();\n`);
     await writeFile(path.join(dependency, 'package.json'), JSON.stringify({ name: 'synthetic-sdk-dependency', version: '1.0.0', main: 'index.js' }));
     await writeFile(path.join(dependency, 'index.js'), 'module.exports = { revision: "fresh" };\n');

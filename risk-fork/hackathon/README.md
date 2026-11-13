@@ -10,7 +10,8 @@ sandbox, hosted service, or production MCP protection layer.
 
 The flagship `e2b-malicious-mcp-containment` fixture composes the real
 provider-neutral controller and E2B adapter with an injected in-memory SDK that
-models the pinned `e2b` `2.39.0` contract. It is labelled **FAKE E2B — LOCAL
+models the historical `e2b` `2.39.0` contract. This offline fixture and its
+August canary records are not qualification of the current optional 2.63.0 SDK. It is labelled **FAKE E2B — LOCAL
 CONTRACT SIMULATION — NOT AN ISOLATION BOUNDARY**. Fake success is not E2B
 qualification and makes no E2B call.
 

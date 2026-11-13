@@ -1,3 +1,4 @@
+import { assertE2BNodeRuntime } from './e2b-node-runtime.mjs';
 import { spawn } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import path from 'node:path';
@@ -102,7 +103,8 @@ export async function assertE2BRuntimeSdkReadonlyCustody(profile, runtimeFiles) 
 
 // Only trusted SDK objects live in this process. The protocol never accepts
 // property paths, arbitrary callbacks, eval text or an alternate SDK loader.
-async function sdkProcessMain(checkCustody) {
+async function sdkProcessMain(checkCustody, assertRuntime) {
+  assertRuntime();
   const crypto = await import('node:crypto');
   const { pathToFileURL } = await import('node:url');
   const MAX_PROVIDER_TIMEOUT_MS = 24 * 60 * 60 * 1_000;
@@ -457,6 +459,7 @@ export function isE2BRuntimeSdkProcessBoundary(value) { return BOUNDARIES.has(va
 
 /** Host-owned SDK process, NOT a sandbox for untrusted code or activation grant. */
 export function createE2BRuntimeSdkProcessBoundary(options = {}) {
+  assertE2BNodeRuntime();
   assertPlainObject(options, 'SDK process options');
   assertAllowedKeys(options, ['runtimeArtifactPath', 'runtimeArtifactHash', 'packageDirectory', 'nodeArtifactHash', 'providerApiKey', 'deadlineMs', 'lifetimeMs'], 'SDK process options');
   const absolute = (value, field) => {
@@ -527,7 +530,7 @@ export function createE2BRuntimeSdkProcessBoundary(options = {}) {
       catch { throw failure('E2B_SDK_PROCESS_PROFILE_UNVERIFIED'); }
       if (retired || retainedProcesses >= MAX_PROCESSES) throw failure();
       retainedProcesses += 1;
-      const source = `(${sdkProcessMain.toString()})(${checkReadonlyCustody.toString()}).catch(() => process.exit(1));`;
+      const source = `(${sdkProcessMain.toString()})(${checkReadonlyCustody.toString()}, ${assertE2BNodeRuntime.toString()}).catch(() => process.exit(1));`;
       try {
         child = spawn(config.nodePath, ['--max-old-space-size=256', '--input-type=module', '--eval', source], {
           cwd: path.dirname(config.runtimeArtifactPath), env, shell: false, detached: true, windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'],
@@ -595,7 +598,7 @@ export function createE2BRuntimeSdkProcessBoundary(options = {}) {
         || observed.custody.uid !== process.getuid() || observed.custody.gid !== process.getgid()) throw failure();
       assertPlainObject(observed.binding, 'SDK binding');
       assertAllowedKeys(observed.binding, ['package', 'version', 'integrity_hash'], 'SDK binding');
-      if (observed.binding.package !== 'e2b' || observed.binding.version !== '2.39.0') throw failure();
+      if (observed.binding.package !== 'e2b' || observed.binding.version !== '2.63.0') throw failure();
       requireSha256Ref(observed.binding.integrity_hash, 'SDK integrity hash');
       pin = Object.freeze({ ...observed.binding });
       return pin;

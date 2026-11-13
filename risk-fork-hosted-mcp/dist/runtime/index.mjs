@@ -76875,6 +76875,20 @@ function isRiskForkMcpHostAdapter(value) {
   return adapterRecords.has(value);
 }
 
+// risk-fork-hosted-mcp/.build/upstream/risk-fork/src/e2b-node-runtime.mjs
+function assertE2BNodeRuntime() {
+  const version = process.versions.node;
+  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(version);
+  const major = match ? Number(match[1]) : -1;
+  const minor = match ? Number(match[2]) : -1;
+  if (major > 22 || major === 22 && minor >= 19) return;
+  const error = new Error("E2B SDK 2.63.0 requires Node >=22.19.0; core Node 20 support does not authorize SDK use");
+  error.code = "E2B_NODE_RUNTIME_UNSUPPORTED";
+  error.production_qualified = false;
+  error.retryable = false;
+  throw error;
+}
+
 // risk-fork-hosted-mcp/.build/upstream/risk-fork/src/e2b-qualification.mjs
 import {
   KeyObject,
@@ -76979,7 +76993,8 @@ async function checkReadonlyCustody(config, runtimeFiles = []) {
 async function assertE2BRuntimeSdkReadonlyCustody(profile, runtimeFiles) {
   return checkReadonlyCustody(profile, runtimeFiles);
 }
-async function sdkProcessMain(checkCustody) {
+async function sdkProcessMain(checkCustody, assertRuntime) {
+  assertRuntime();
   const crypto2 = await import("node:crypto");
   const { pathToFileURL: pathToFileURL2 } = await import("node:url");
   const MAX_PROVIDER_TIMEOUT_MS2 = 24 * 60 * 60 * 1e3;
@@ -77391,6 +77406,7 @@ function isE2BRuntimeSdkProcessBoundary(value) {
   return BOUNDARIES.has(value);
 }
 function createE2BRuntimeSdkProcessBoundary(options = {}) {
+  assertE2BNodeRuntime();
   assertPlainObject(options, "SDK process options");
   assertAllowedKeys(options, ["runtimeArtifactPath", "runtimeArtifactHash", "packageDirectory", "nodeArtifactHash", "providerApiKey", "deadlineMs", "lifetimeMs"], "SDK process options");
   const absolute = (value, field) => {
@@ -77480,7 +77496,7 @@ function createE2BRuntimeSdkProcessBoundary(options = {}) {
       }
       if (retired || retainedProcesses >= MAX_PROCESSES) throw failure();
       retainedProcesses += 1;
-      const source = `(${sdkProcessMain.toString()})(${checkReadonlyCustody.toString()}).catch(() => process.exit(1));`;
+      const source = `(${sdkProcessMain.toString()})(${checkReadonlyCustody.toString()}, ${assertE2BNodeRuntime.toString()}).catch(() => process.exit(1));`;
       try {
         child = spawn(config.nodePath, ["--max-old-space-size=256", "--input-type=module", "--eval", source], {
           cwd: path3.dirname(config.runtimeArtifactPath),
@@ -77583,7 +77599,7 @@ function createE2BRuntimeSdkProcessBoundary(options = {}) {
       if (observed.pid !== child.pid || observed.nonce !== nonce || observed.custody?.readonly !== true || observed.custody.uid !== process.getuid() || observed.custody.gid !== process.getgid()) throw failure();
       assertPlainObject(observed.binding, "SDK binding");
       assertAllowedKeys(observed.binding, ["package", "version", "integrity_hash"], "SDK binding");
-      if (observed.binding.package !== "e2b" || observed.binding.version !== "2.39.0") throw failure();
+      if (observed.binding.package !== "e2b" || observed.binding.version !== "2.63.0") throw failure();
       requireSha256Ref(observed.binding.integrity_hash, "SDK integrity hash");
       pin = Object.freeze({ ...observed.binding });
       return pin;
@@ -77835,7 +77851,7 @@ function createE2BRuntimeSdkProcessBoundary(options = {}) {
 }
 
 // risk-fork-hosted-mcp/.build/upstream/risk-fork/src/e2b-qualification.mjs
-var E2B_QUALIFICATION_SCHEMA = "agoragentic.risk-fork.e2b-qualification-evidence.v1";
+var E2B_QUALIFICATION_SCHEMA = "agoragentic.risk-fork.e2b-qualification-evidence.v2";
 var E2B_QUALIFICATION_TRUST_SCHEMA = "agoragentic.risk-fork.e2b-qualification-trust.v1";
 var E2B_EXTERNAL_QUALIFICATION_OBSERVATION_SCHEMA = "agoragentic.risk-fork.e2b-external-qualification-observation.v1";
 var E2B_RUNTIME_SDK_INTEGRITY_SCHEMA = "agoragentic.risk-fork.e2b-runtime-sdk-dependency-closure.v2";
@@ -78066,12 +78082,12 @@ function normalizeEvidence3(value, { includeComputedFields }) {
   const sdk = value.sdk;
   assertPlainObject(sdk, "E2B qualification evidence.sdk");
   assertAllowedKeys(sdk, ["package", "version", "integrity_hash"], "E2B qualification evidence.sdk");
-  if (sdk.package !== "e2b" || sdk.version !== "2.39.0") {
-    throw new TypeError("E2B qualification requires the exact e2b@2.39.0 SDK");
+  if (sdk.package !== "e2b" || sdk.version !== "2.63.0") {
+    throw new TypeError("E2B qualification requires the exact e2b@2.63.0 SDK");
   }
   const normalizedSdk = {
     package: "e2b",
-    version: "2.39.0",
+    version: "2.63.0",
     integrity_hash: requireSha256Ref(
       sdk.integrity_hash,
       "E2B qualification sdk.integrity_hash"
@@ -78915,12 +78931,12 @@ function requireEd25519Signature(value, field = "E2B qualification trust signatu
 function normalizeRuntimeSdkBinding(value, field = "E2B runtime SDK binding") {
   assertPlainObject(value, field);
   assertAllowedKeys(value, ["package", "version", "integrity_hash"], field);
-  if (value.package !== "e2b" || value.version !== "2.39.0") {
-    throw new TypeError(`${field} requires exact e2b@2.39.0`);
+  if (value.package !== "e2b" || value.version !== "2.63.0") {
+    throw new TypeError(`${field} requires exact e2b@2.63.0`);
   }
   return deepFreeze({
     package: "e2b",
-    version: "2.39.0",
+    version: "2.63.0",
     integrity_hash: requireSha256Ref(value.integrity_hash, `${field}.integrity_hash`)
   });
 }
@@ -79328,8 +79344,8 @@ async function inspectRuntimeSdkPackage(packageDirectory) {
     return inspected;
   }
   const sdk = await visit(root, "e2b");
-  if (sdk.record.version !== "2.39.0") {
-    throw new Error("E2B runtime SDK dependency closure requires exact e2b@2.39.0");
+  if (sdk.record.version !== "2.63.0") {
+    throw new Error("E2B runtime SDK dependency closure requires exact e2b@2.63.0");
   }
   if (sdk.manifest.main !== "dist/index.js" || !sdk.filePaths.has(sdk.manifest.main)) {
     throw new Error("E2B runtime SDK package entrypoint is not the reviewed dist/index.js");
@@ -79352,7 +79368,7 @@ async function inspectRuntimeSdkPackage(packageDirectory) {
   };
   const binding = deepFreeze({
     package: "e2b",
-    version: "2.39.0",
+    version: "2.63.0",
     integrity_hash: sha256Ref(closure)
   });
   return {
@@ -79444,6 +79460,7 @@ function createE2BRuntimeSdkIntegrityVerifier(options = {}) {
         return normalizeRuntimeSdkBinding(await boundary.inspect());
       },
       async load(value) {
+        assertE2BNodeRuntime();
         return boundary.load(normalizeRuntimeSdkBinding(value));
       }
     });
@@ -79484,6 +79501,7 @@ function createE2BRuntimeSdkIntegrityVerifier(options = {}) {
       return inspected.binding;
     },
     async load(value) {
+      assertE2BNodeRuntime();
       const expected = normalizeRuntimeSdkBinding(value);
       const pending = runtimeSdkLoadTail.then(() => loadRuntimeSdkWithCacheFence(
         expected,
@@ -79503,6 +79521,7 @@ function isE2BRuntimeSdkProcessIntegrityVerifier(value) {
   return Boolean(value && RUNTIME_SDK_PROCESS_VERIFIERS.has(value));
 }
 async function loadVerifiedE2BRuntimeSdk(value, verifier) {
+  assertE2BNodeRuntime();
   if (!isE2BRuntimeSdkIntegrityVerifier(verifier)) {
     throw new TypeError(
       "E2B runtime SDK integrity requires a trusted verifier created by createE2BRuntimeSdkIntegrityVerifier"
@@ -82328,9 +82347,11 @@ var SECRET_VALUE_PATTERNS = Object.freeze([
 ]);
 var DANGEROUS_JSON_KEYS = /* @__PURE__ */ new Set(["__proto__", "constructor", "prototype"]);
 async function defaultSdkLoader() {
+  assertE2BNodeRuntime();
   return import("e2b");
 }
 async function defaultSdkVersionLoader() {
+  assertE2BNodeRuntime();
   const entry = fileURLToPath2(import.meta.resolve("e2b"));
   let directory = path7.dirname(entry);
   for (let depth = 0; depth < 8; depth += 1) {
@@ -83544,6 +83565,7 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
     return isE2BRuntimeSdkProcessSandboxClass(Sandbox) && isE2BRuntimeSdkProcessPreEntryFailure(error, Sandbox);
   }
   async #sandboxClass(operation = "providerIo") {
+    if (!this.#offlineConformance) assertE2BNodeRuntime();
     this.#requireForkRuntimeEnabled(operation);
     if (this.#qualificationState.evidence && !this.#sdkIntegrityVerified) {
       if (!isE2BRuntimeSdkProcessIntegrityVerifier(this.#sdkIntegrityVerifier)) {
@@ -83560,8 +83582,8 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
     }
     if (!this.#sdkVersionVerified && (!this.#SandboxClass || this.qualificationEligible)) {
       const version = this.#sdkVersion ?? await this.#sdkVersionLoader();
-      if (version !== "2.39.0") {
-        throw new Error(`E2B clean-template profile requires exact e2b@2.39.0; observed ${String(version)}`);
+      if (version !== "2.63.0") {
+        throw new Error(`E2B clean-template profile requires exact e2b@2.63.0; observed ${String(version)}`);
       }
       this.#sdkVersionVerified = true;
     }
@@ -85899,14 +85921,14 @@ function createE2BAuthorityFreeSourceVerifier(options = {}) {
 }
 
 // risk-fork-hosted-mcp/src/index.mjs
-var REVIEWED_SOURCE_INTEGRITY = true ? "sha256:7ba4152681d57bb6add26fd8b8070008746d64a4c42ccc72d80434068e60f2c2" : null;
+var REVIEWED_SOURCE_INTEGRITY = true ? "sha256:a025595ea071d830e371ef5e724510b30446f5ca0af499d28e17c34d0baea4e2" : null;
 var HOSTED_MCP_BUNDLE_METADATA = Object.freeze({
   package_name: "@agoragentic/risk-fork-hosted-mcp",
   package_version: "0.1.0-alpha.0",
   mcp_source_version: "2.0.0",
   risk_fork_source_version: "0.1.0-alpha.1",
   reviewed_source_integrity: REVIEWED_SOURCE_INTEGRITY,
-  optional_e2b_peer_version: "2.39.0",
+  optional_e2b_peer_version: "2.63.0",
   publication_status: "private_unpublished",
   outbound_mcp_transport_qualified: false,
   managed_postgres_qualified: false,

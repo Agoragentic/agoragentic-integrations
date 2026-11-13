@@ -6,16 +6,16 @@ import {
   createE2BRuntimeSdkIntegrityVerifier,
   isE2BRuntimeSdkIntegrityVerifier,
   isE2BRuntimeSdkProcessIntegrityVerifier,
-} from '../src/e2b-qualification.mjs';
+} from '../../src/e2b-qualification.mjs';
 import {
   createE2BRuntimeSdkProcessBoundary,
   isE2BRuntimeSdkProcessBoundary,
   isE2BRuntimeSdkProcessPreEntryFailure,
   isE2BRuntimeSdkProcessSandboxClass,
-} from '../src/e2b-sdk-process.mjs';
-import * as publicRoot from '../src/index.mjs';
-import * as publicQualification from '../src/e2b-qualification.mjs';
-import { E2BRiskForkAdapter } from '../src/adapters/e2b.mjs';
+} from '../../src/e2b-sdk-process.mjs';
+import * as publicRoot from '../../src/index.mjs';
+import * as publicQualification from '../../src/e2b-qualification.mjs';
+import { E2BRiskForkAdapter } from '../../src/adapters/e2b.mjs';
 
 const hash = `sha256:${'a'.repeat(64)}`;
 test('public entrypoints do not export a raw provider process capability', () => {
@@ -72,7 +72,7 @@ test('SDK process lifetime accepts the adapter hard lease and keeps late read re
   assert.equal(isE2BRuntimeSdkProcessBoundary(boundary), true);
   await boundary.close();
   const source = await (await import('node:fs/promises')).readFile(
-    new URL('../src/e2b-sdk-process.mjs', import.meta.url), 'utf8',
+    new URL('../../src/e2b-sdk-process.mjs', import.meta.url), 'utf8',
   );
   assert.match(source, /const MAX_PROVIDER_TIMEOUT_MS = 24 \* 60 \* 60 \* 1_000/);
   assert.match(source, /if \(retiring\.has\(value\)\)[\s\S]*?await stream\.cancel\(\)\.catch/);
