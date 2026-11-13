@@ -9,7 +9,7 @@ const test = require('node:test');
 // fixes, including GHSA-rmxm-3fg6-px4f and GHSA-4m76-xfj5-7975.
 // Check every lock entry, not only the top-level copy. These are development
 // dependencies; this does not qualify a hosted server or enable the relay.
-for (const directory of ['mcp', 'claude-agent-sdk']) {
+for (const directory of ['mcp', 'claude-agent-sdk', 'risk-fork-hosted-mcp']) {
     test(`${directory} pins the patched Hono Node server and core`, () => {
         const load = name => JSON.parse(readFileSync(
             path.resolve(__dirname, '..', '..', directory, name), 'utf8',

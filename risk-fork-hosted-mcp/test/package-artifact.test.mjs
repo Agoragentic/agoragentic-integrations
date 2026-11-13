@@ -453,12 +453,12 @@ test('build is deterministic and records exact source and artifact integrity', a
     (source) => source.declared_license === 'MIT',
   );
   assert.ok(mitNoticeSources.length > 0);
-  assert.match(noticesText, /@modelcontextprotocol\/core@2\.3\.0\nDeclared license: Apache-2\.0/);
-  assert.match(noticesText, /@modelcontextprotocol\/server@2\.3\.0\nDeclared license: Apache-2\.0/);
+  assert.match(noticesText, /@modelcontextprotocol\/core@2\.4\.0\nDeclared license: Apache-2\.0/);
+  assert.match(noticesText, /@modelcontextprotocol\/server@2\.4\.0\nDeclared license: Apache-2\.0/);
   for (const packageName of ['@modelcontextprotocol/core', '@modelcontextprotocol/server']) {
     const source = manifest.third_party_notices.sources.find((entry) => entry.package === packageName);
     assert.ok(source, `missing exact ${packageName} notice source`);
-    assert.equal(source.version, '2.3.0');
+    assert.equal(source.version, '2.4.0');
     assert.equal(source.declared_license, 'Apache-2.0');
     assert.equal(source.method, 'standalone_license_file');
     const licenseBytes = await readFile(path.join(repositoryRoot, ...source.path.split('/')));
