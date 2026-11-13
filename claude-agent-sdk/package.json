@@ -17,6 +17,7 @@
     "typescript": "5.9.2"
   },
   "overrides": {
+    "@hono/node-server": "2.1.8",
     "@modelcontextprotocol/sdk": "1.32.0",
     "body-parser": "2.4.0",
     "fast-uri": "3.1.9",
