@@ -8,7 +8,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test ../../../test/runtime-dynamic-live/*.test.mjs"
   },
   "dependencies": {
     "@dynamic-labs-wallet/node-evm": "0.0.225",

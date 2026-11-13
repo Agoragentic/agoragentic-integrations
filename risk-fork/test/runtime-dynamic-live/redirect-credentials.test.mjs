@@ -6,7 +6,7 @@ import {once} from 'node:events';
 import {createRequire} from 'node:module';
 import vm from 'node:vm';
 
-const local = createRequire(new URL('../package.json', import.meta.url));
+const local = createRequire(new URL('../../examples/runtime-dynamic/live/package.json', import.meta.url));
 const lock = local('./package-lock.json');
 
 test('Dynamic SDK Axios resolution and every locked redirect copy use the patched package', () => {
