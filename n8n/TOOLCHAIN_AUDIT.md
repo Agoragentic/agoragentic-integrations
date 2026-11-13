@@ -7,7 +7,31 @@ peer ranges, clean install, tests, lint, build, dependency audits, and package
 contents. Historical CLI compatibility and Creator Portal acceptance were not
 revalidated.
 
-## Toolchain patch candidate - 2026-10-28
+## Current lint patch candidate - 2026-11-13
+
+The direct TypeScript ESLint stack is now 8.72.2 and import-x is 4.18.1.
+The exact ESLint 9.29.0 community-plugin peer, TypeScript 5.9.2 compiler,
+fixture sources and strict audit policy are unchanged. Normal npm resolution
+selects minimatch 10.2.6 for TypeScript ESLint's `^10.2.2` dependency; no
+override, forced peer, prerelease substitution or audit exception is used.
+
+On Windows with Node 24.22.1 and npm 11.19.1, the frozen install with lifecycle
+scripts disabled passed. Tests passed 63 cases with one existing symlink
+permission skip; lint, build, the installed peer tree and package dry run
+passed. Fixture source/artifact assertions passed in the suite; the separate
+full fixture regeneration was not repeated because its inputs are unchanged.
+
+The complete development audit still fails: seven moderate entries propagate
+from [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249).
+The patched minimatch version is 11.0.1. Latest stable TypeScript ESLint 8.72.2
+does not admit it, while the community plugin's stable ranges do not admit
+the patched TypeScript ESLint canary. The audit-suggested 8.36.0 downgrade
+still uses affected minimatch 9 and excludes TypeScript 5.9.2. It is not a
+compatible remediation. Keep publication and merge blocked until a supported
+complete graph passes the existing audit and independent review. Historical
+clean audit results below do not qualify this candidate.
+
+## Historical toolchain patch candidate - 2026-10-28
 
 The direct TypeScript ESLint stack moves from 8.70.0 to 8.72.0 and Prettier
 from 3.9.6 to 3.9.10. The exact ESLint 9.29.0 community-plugin peer and the
