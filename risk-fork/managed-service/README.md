@@ -276,6 +276,12 @@ npm test
 npm run check
 ```
 
+The test command runs files serially because their disposable schemas share the
+same database-wide migration advisory locks. Parallel file setup can exhaust
+the migrator's bounded lock/statement deadline before a test begins. Tests still
+exercise concurrent clients and races within each file; production migration
+locks, timeouts, and fail-closed behavior are unchanged.
+
 The default test run is provider-free and makes no live database or external network calls. It uses the in-memory store, no-I/O provider fixtures, injected PostgreSQL contract doubles, and temporary loopback listeners. It does not contact E2B, GitHub, Agoragentic, or any other remote service, and it does not spend money. The syntax check rejects network/process runtime imports, provider SDK imports, browser-style outbound APIs, and listeners from `src/`; the separate `host/` entrypoints receive syntax checks and must be explicitly enabled.
 
 Opt-in PostgreSQL integration tests also exist. They run only when `RISK_FORK_MANAGED_TEST_POSTGRES_URL` points to the loopback database named exactly `risk_fork_managed_test` **and** `RISK_FORK_MANAGED_TEST_CONFIRM_DISPOSABLE=YES_DELETE_DATA` is set. Each run creates a unique validated schema and drops that exact schema in `finally`. The normal test command skips them; CI uses an ephemeral PostgreSQL service, and an operator must never point it at a shared or production database. The `managed-service` job in `.github/workflows/risk-fork.yml` is selected whenever `risk-fork/**` or that workflow changes, installs both package roots from their committed lockfiles, and runs the syntax and full disposable-PostgreSQL test suite on Node.js 20, 22, and 24. CI also sets `RISK_FORK_MANAGED_REQUIRE_POSTGRES_TESTS=1`, so missing or malformed database configuration fails instead of silently turning the integration test into a skip.
