@@ -20,6 +20,7 @@ test('0.1.4 release metadata is locked to the audited direct toolchain', () => {
 		'eslint-plugin-import-x': '4.18.1',
 		'eslint-plugin-n8n-nodes-base': '2.0.0',
 		'@n8n/expression-runtime': 'file:fixtures/zod4-compat/packages/expression-runtime',
+		'@typescript-eslint/typescript-estree': 'file:fixtures/lint-parser/package',
 		'n8n-workflow': 'file:fixtures/zod4-compat/packages/n8n-workflow',
 		prettier: '3.9.10',
 		typescript: '5.9.2',
