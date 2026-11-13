@@ -7,6 +7,9 @@
   "engines": {
     "node": ">=22"
   },
+  "scripts": {
+    "test": "node --test ../../../test/runtime-dynamic-live/*.test.mjs"
+  },
   "dependencies": {
     "@dynamic-labs-wallet/node-evm": "0.0.225",
     "@walletconnect/utils": "2.21.10",
@@ -19,7 +22,7 @@
     "decode-uri-component@^0.2.2": "0.5.0",
     "uuid@^11.0.0": "11.1.1",
     "bn.js@^4.0.0": "4.12.3",
-    "follow-redirects": "1.16.1",
+    "follow-redirects": "1.16.2",
     "zod": "4.6.6"
   }
 }

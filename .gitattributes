@@ -7,3 +7,4 @@
 /prime-agent-governance/** text eol=lf
 /matraix-cohort-assurance/proofs/** text eol=lf
 /transaction-assurance/examples/nevermined/7c3e0c1/vendor-docs-example.json text eol=lf
+/n8n/fixtures/lint-parser/** -text

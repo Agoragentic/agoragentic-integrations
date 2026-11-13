@@ -18,8 +18,9 @@
     "hyperframes": "0.7.102"
   },
   "overrides": {
+    "@hono/node-server": "2.1.8",
     "chromium-bidi": "157.0.8090-0",
-    "hono": "4.13.11",
+    "hono": "4.13.18",
     "onnxruntime-node": "1.30.0",
     "puppeteer-core": "25.16.0",
     "sharp": "0.35.5",

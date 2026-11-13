@@ -7,6 +7,74 @@ peer ranges, clean install, tests, lint, build, dependency audits, and package
 contents. Historical CLI compatibility and Creator Portal acceptance were not
 revalidated.
 
+## Current parser consumer candidate - 2026-11-13
+
+The development-only [parser consumer fixture](fixtures/lint-parser/README.md)
+carries upstream's minimatch range fix in the verified published TypeScript
+ESLint 8.72.2 artifact. Its 90 code/declaration/license files remain unchanged.
+Only consumer metadata changes: a transparent local build-metadata version,
+private status, the patched dependency range, and omission of unused upstream
+monorepo build commands/dependencies. All installed runtime dependencies and
+peer requirements remain present and audited. This is a maintained local
+package, not a newly published upstream release.
+
+Normal frozen installation and peer validation pass. The existing strict
+development audit now reports zero vulnerabilities, with minimatch 11.0.8.
+The complete existing check also passes: full Zod source/fixture reproduction
+(300 source files, 1,193 artifacts), strict installed consumers, unit tests,
+lint and build. The final test suite passed 73 cases with one Windows symlink
+EPERM skip, including all ten parser provenance, lint and project-service
+regressions. Eleven lint input comparisons and
+all three effective rule configurations match the original toolchain exactly.
+The package dry run contains no fixture or node_modules entries.
+
+The strict audit code, no-overrides rule, compiler and community-plugin peer
+pins, previous safety rules and production boundaries are unchanged. The new
+provenance gate runs before the existing checks. Local qualification still
+requires independent review and exact-head CI; no merge, package publication,
+native provider execution or production qualification is implied.
+
+## Historical compatible lint patch candidate - 2026-11-13
+
+The direct TypeScript ESLint stack is now 8.72.2 and import-x is 4.18.1.
+The exact ESLint 9.29.0 community-plugin peer, TypeScript 5.9.2 compiler,
+fixture sources and strict audit policy are unchanged. Normal npm resolution
+selects minimatch 10.2.6 for TypeScript ESLint's `^10.2.2` dependency; no
+override, forced peer, prerelease substitution or audit exception is used.
+
+On Windows with Node 24.22.1 and npm 11.19.1, the frozen install with lifecycle
+scripts disabled passed. Tests passed 63 cases with one existing symlink
+permission skip; lint, build, the installed peer tree and package dry run
+passed. Fixture source/artifact assertions passed in the suite; the separate
+full fixture regeneration was not repeated because its inputs are unchanged.
+
+The complete development audit still fails: seven moderate entries propagate
+from [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249).
+The patched minimatch version is 11.0.1. Latest stable TypeScript ESLint 8.72.2
+does not admit it, while the community plugin's stable ranges do not admit
+the patched TypeScript ESLint canary. The audit-suggested 8.36.0 downgrade
+still uses affected minimatch 9 and excludes TypeScript 5.9.2. It is not a
+compatible remediation. Keep publication and merge blocked until a supported
+complete graph passes the existing audit and independent review. Historical
+clean audit results below do not qualify this candidate.
+
+## Historical toolchain patch candidate - 2026-10-28
+
+The direct TypeScript ESLint stack moves from 8.70.0 to 8.72.0 and Prettier
+from 3.9.6 to 3.9.10. The exact ESLint 9.29.0 community-plugin peer and the
+TypeScript 5.9.2 compiler remain unchanged. The lock also resolves the
+TypeScript ESLint `ignore` dependency to 7.0.14.
+
+On Windows with Node 24, the clean npm install completed, but npm reported
+three lifecycle scripts not covered by its existing allowScripts policy.
+Fixture reproduction verified 300 source files and 1,193 artifacts and passed
+the strict installed-consumer proof. The test suite passed 63 tests and skipped
+one symlink-creation test because of EPERM; lint and build passed. Production
+and complete development audits were clean, and the post-build pack dry run
+contained the expected compiled assets. Hosted CI and approval remain pending.
+These checks do not qualify native isolated-vm execution, an installed n8n
+host, Creator Portal acceptance, n8n Cloud eligibility, or production behavior.
+
 ## Current candidate — 2026-10-26
 
 The maintained Zod 4 consumer fixture has passed local `--write` regeneration

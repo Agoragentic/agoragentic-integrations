@@ -126,6 +126,13 @@ claims provider cleanup or production qualification.
 
 ## Reproducible artifact checks
 
+The build graph pins `@modelcontextprotocol/node@2.1.2`, which declares support
+for the patched `@hono/node-server@2.1.8`, alongside `hono@4.13.18`. The MCP
+client and server are aligned at 2.4.0 to satisfy the Node adapter's server peer
+and share the same core version. The exact
+package contract and frozen lock retain these development dependencies; they
+do not add a listener, change the host contract, or permit package publication.
+
 Run the build, test, source-lineage verification, and pack checks only from this repository's source checkout, where `src/`, `test/`, and `scripts/build.mjs` are present:
 
 ```text

@@ -1064,7 +1064,7 @@
       "path": "hyperframes/package.json",
       "occurrences": 1,
       "line_numbers": [
-        36
+        37
       ],
       "categories": [
         "installer_or_clone",
@@ -1454,7 +1454,7 @@
       "occurrences": 2,
       "line_numbers": [
         21,
-        74
+        76
       ],
       "categories": [
         "installer_or_clone",
@@ -1546,7 +1546,7 @@
       "path": "risk-fork-hosted-mcp/package.json",
       "occurrences": 1,
       "line_numbers": [
-        62
+        66
       ],
       "categories": [
         "installer_or_clone",
@@ -1558,7 +1558,7 @@
       "path": "risk-fork-hosted-mcp/scripts/build.mjs",
       "occurrences": 1,
       "line_numbers": [
-        101
+        105
       ],
       "categories": [
         "installer_or_clone"
@@ -1568,7 +1568,7 @@
       "path": "risk-fork-hosted-mcp/scripts/verify-integrity.mjs",
       "occurrences": 1,
       "line_numbers": [
-        90
+        94
       ],
       "categories": [
         "installer_or_clone"
