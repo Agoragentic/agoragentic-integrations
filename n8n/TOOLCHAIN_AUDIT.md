@@ -7,7 +7,34 @@ peer ranges, clean install, tests, lint, build, dependency audits, and package
 contents. Historical CLI compatibility and Creator Portal acceptance were not
 revalidated.
 
-## Current lint patch candidate - 2026-11-13
+## Current parser consumer candidate - 2026-11-13
+
+The development-only [parser consumer fixture](fixtures/lint-parser/README.md)
+carries upstream's minimatch range fix in the verified published TypeScript
+ESLint 8.72.2 artifact. Its 90 code/declaration/license files remain unchanged.
+Only consumer metadata changes: a transparent local build-metadata version,
+private status, the patched dependency range, and omission of unused upstream
+monorepo build commands/dependencies. All installed runtime dependencies and
+peer requirements remain present and audited. This is a maintained local
+package, not a newly published upstream release.
+
+Normal frozen installation and peer validation pass. The existing strict
+development audit now reports zero vulnerabilities, with minimatch 11.0.8.
+The complete existing check also passes: full Zod source/fixture reproduction
+(300 source files, 1,193 artifacts), strict installed consumers, unit tests,
+lint and build. The final test suite passed 73 cases with one Windows symlink
+EPERM skip, including all ten parser provenance, lint and project-service
+regressions. Eleven lint input comparisons and
+all three effective rule configurations match the original toolchain exactly.
+The package dry run contains no fixture or node_modules entries.
+
+The strict audit code, no-overrides rule, compiler and community-plugin peer
+pins, previous safety rules and production boundaries are unchanged. The new
+provenance gate runs before the existing checks. Local qualification still
+requires independent review and exact-head CI; no merge, package publication,
+native provider execution or production qualification is implied.
+
+## Historical compatible lint patch candidate - 2026-11-13
 
 The direct TypeScript ESLint stack is now 8.72.2 and import-x is 4.18.1.
 The exact ESLint 9.29.0 community-plugin peer, TypeScript 5.9.2 compiler,
