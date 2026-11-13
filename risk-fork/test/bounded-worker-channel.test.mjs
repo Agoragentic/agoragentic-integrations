@@ -5,12 +5,45 @@ import { PassThrough } from 'node:stream';
 import { spawn } from 'node:child_process';
 import { createBoundedWorkerChannel } from '../scripts/lib/bounded-worker-channel.mjs';
 
+function waitForEvent(emitter, event, deadlineMs = 2_000) {
+  return new Promise((resolve, reject) => {
+    const onEvent = () => { clearTimeout(timer); resolve(); };
+    const timer = setTimeout(() => {
+      emitter.removeListener(event, onEvent);
+      reject(new Error(`Timed out waiting for ${event}`));
+    }, deadlineMs);
+    emitter.once(event, onEvent);
+  });
+}
+
+async function stopChild(child, isClosed) {
+  if (isClosed()) return;
+  const closed = waitForEvent(child, 'close');
+  child.kill('SIGKILL');
+  try { await closed; }
+  finally {
+    child.stdin.destroy();
+    child.stdout.destroy();
+    child.stderr.destroy();
+  }
+}
+
 function fixture(options) {
   const child = Object.assign(new EventEmitter(), {
     stdin: new PassThrough(), stdout: new PassThrough(), stderr: new PassThrough(),
   });
   return { child, channel: createBoundedWorkerChannel(child, options) };
 }
+
+test('fixture event observation times out and removes its listener', async () => {
+  const emitter = new EventEmitter();
+  await assert.rejects(waitForEvent(emitter, 'end', 10), /Timed out waiting for end/);
+  assert.equal(emitter.listenerCount('end'), 0);
+  const completed = waitForEvent(emitter, 'close', 10);
+  emitter.emit('close');
+  await completed;
+  assert.equal(emitter.listenerCount('close'), 0);
+});
 
 test('fragmented UTF-8 frames survive byte boundaries', async () => {
   const { child, channel } = fixture();
@@ -74,14 +107,18 @@ test('real provider-free child exchanges a frame; exit revokes channel', async (
   const child = spawn(process.execPath, ['-e', 'process.stdout.write("{\\"phase\\":\\"ready\\"}\\n");process.stdin.once("data",()=>process.exit(0));'], {
     env: {}, stdio: ['pipe', 'pipe', 'pipe'],
   });
-  const channel = createBoundedWorkerChannel(child);
+  const channel = createBoundedWorkerChannel(child, { deadlineMs: 2_000 });
+  let didClose = false;
+  child.once('close', () => { didClose = true; });
   try {
     assert.deepEqual(await channel.next(), { phase: 'ready' });
-    const exit = new Promise(resolve => child.once('close', resolve));
+    const exit = waitForEvent(child, 'close');
+    // Keep the observation handled if send itself fails before the await.
+    exit.catch(() => {});
     channel.send({ finish: true });
     await exit;
     await assert.rejects(channel.next());
-  } finally { channel.close(); child.kill(); }
+  } finally { channel.close(); await stopChild(child, () => didClose); }
 });
 
 test('invalid limits and oversized handoff are rejected before writing', async () => {
@@ -98,7 +135,7 @@ test('stdout EOF discards a queued ready frame even with truncated UTF-8', async
   const { child, channel } = fixture();
   child.stdout.write('{"phase":"ready"}\n');
   child.stdout.write(Buffer.from([0xc3]));
-  const ended = new Promise(resolve => child.stdout.once('end', resolve));
+  const ended = waitForEvent(child.stdout, 'end');
   child.stdout.end();
   await ended;
   await assert.rejects(channel.next());
@@ -121,16 +158,19 @@ test('half-open stream lifecycle revokes queued frames and pending reads', async
   }
 });
 
-test('real keyless worker closing stdout while alive cannot retain handoff', async () => {
+// Raw descriptor half-close is qualified only by the Linux observer.
+// Synthetic stream lifecycle coverage above remains enabled on every platform.
+test('real keyless worker closing stdout while alive cannot retain handoff', { skip: process.platform !== 'linux' }, async () => {
   const child = spawn(process.execPath, ['-e', 'require("node:fs").writeSync(1,"{\\"phase\\":\\"ready\\"}\\n");require("node:fs").closeSync(1);setInterval(()=>{},1000);'], {
     env: {}, stdio: ['pipe', 'pipe', 'pipe'],
   });
   const channel = createBoundedWorkerChannel(child);
-  const closed = new Promise(resolve => child.once('close', resolve));
+  let didClose = false;
+  child.once('close', () => { didClose = true; });
   try {
-    await new Promise(resolve => child.stdout.once('end', resolve));
+    await waitForEvent(child.stdout, 'end');
     assert.equal(child.exitCode, null);
     await assert.rejects(channel.next());
     assert.throws(() => channel.send({ start: true }));
-  } finally { channel.close(); child.kill(); await closed; }
+  } finally { channel.close(); await stopChild(child, () => didClose); }
 });
