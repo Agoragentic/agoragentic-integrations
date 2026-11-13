@@ -16,6 +16,11 @@ not install the optional peer automatically. Hosts choosing E2B must install the
 exact SDK on a supported runtime, audit their actual full dependency graph, and
 establish their own signed exact-byte closure binding.
 
+The provider-free HTTP-refusal tests explicitly pin `undici@7.30.1` as a
+development-only dependency rather than relying on the removed E2B transitive
+dependency. Running this development test graph requires Node >=20.18.1; the
+core production runtime remains Node >=20 and does not install Undici.
+
 ## Evidence and historical cleanup
 
 Current evidence uses `agoragentic.risk-fork.e2b-qualification-evidence.v2`, bound

@@ -69,8 +69,8 @@ jobs:
         shell: bash
         run: |
           state_root="$RUNNER_TEMP/risk-fork-state"
-          mkdir -p -- "$state_root"
-          chmod 700 -- "$state_root"
+          mkdir -p "$state_root"
+          chmod 700 "$state_root"
           printf 'XDG_STATE_HOME=%s\n' "$state_root" >> "$GITHUB_ENV"
       - name: Install locked test dependencies
         working-directory: ${{ matrix.package }}
@@ -125,8 +125,8 @@ jobs:
       - name: Prepare private state for provider-free qualification
         run: |
           state_root="$RUNNER_TEMP/risk-fork-state"
-          mkdir -p -- "$state_root"
-          chmod 700 -- "$state_root"
+          mkdir -p "$state_root"
+          chmod 700 "$state_root"
           printf 'XDG_STATE_HOME=%s\n' "$state_root" >> "$GITHUB_ENV"
       - name: Use canonical temporary paths for strict filesystem tests
         run: |
@@ -421,8 +421,8 @@ jobs:
         shell: bash
         run: |
           state_root="$RUNNER_TEMP/risk-fork-state"
-          mkdir -p -- "$state_root"
-          chmod 700 -- "$state_root"
+          mkdir -p "$state_root"
+          chmod 700 "$state_root"
           printf 'XDG_STATE_HOME=%s\n' "$state_root" >> "$GITHUB_ENV"
       - name: Install locked source and demo dependencies
         run: |
