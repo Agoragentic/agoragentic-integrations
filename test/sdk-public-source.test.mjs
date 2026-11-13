@@ -75,7 +75,7 @@ test('PyPI trusted publishing builds from the public sdk/python source', () => {
     assert.match(buildJob, /env:\n\s+RELEASE_TAG: \$\{\{ github\.event\.release\.tag_name \}\}/);
     assert.match(buildJob, /test "\$\{RELEASE_TAG\}" = "py-v\$\{package_version\}"/);
     assert.match(buildJob, /path: sdk\/python\/dist\//);
-    assert.match(buildJob, /actions\/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a/);
+    assert.match(buildJob, /actions\/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9/);
 
     const uploadName = buildJob.match(/name: (agoragentic-python-\$\{\{ github\.event\.release\.tag_name \}\})/);
     const downloadName = publishJob.match(/name: (agoragentic-python-\$\{\{ github\.event\.release\.tag_name \}\})/);
