@@ -63,6 +63,13 @@ host composition. These are tested source capabilities, not deployed enforcement
 - prove every verifier callback is observational, read-only, retry-safe, and incapable of creating, changing, or deleting provider resources when simultaneous journal deliveries both reach verification;
 - add a reviewed production qualification class. The current registry accepts `local_test` only.
 
+Local source now bounds each registry verifier wait and reserves independent
+resource, cleanup and recovery capacity. See [VERIFIER_BOUNDS.md](./VERIFIER_BOUNDS.md).
+Timed-out callbacks retain their slot until actual settlement; timeout is not
+cancellation or proof that a provider operation stopped. Production isolation,
+observational/retry-safe callback qualification and circuit-breaker operations
+remain open. This change does not add a production qualification class.
+
 ## 4. Managed PostgreSQL qualification
 
 Portable-handle source now attests the exact reviewed relation/column/constraint/
