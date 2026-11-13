@@ -4,6 +4,10 @@ This experimental, public-OSS, source-only workflow turns an explicitly supplied
 
 The reviewed upstream is pinned to commit `9ec9e3a711531b3d45c30a1e2c3006df97dbe5cb` and npm package `hyperframes@0.7.102`. No upstream implementation code is copied here.
 
+The local Hono pins are `hono@4.13.18` and `@hono/node-server@2.1.8`,
+including the core and static-path middleware security fixes. These dependency
+updates grant no new rendering, publication, or hosted-service authority.
+
 The local lock overrides `sharp` to `0.35.5`, `source-map-js` to `1.2.2`, and `onnxruntime-node` to `1.30.0`. The ONNX update removes the older `global-agent` / `roarr` / `sprintf-js` dependency chain and resolves `adm-zip` to `0.6.1`. The receipt-render fixture covers the local video path; optional background-removal inference is not qualified by that render test. Dependency installation uses disabled lifecycle scripts, so it does not run ONNX's platform-download installer.
 
 ## Status and boundary
