@@ -64,7 +64,9 @@ host composition. These are tested source capabilities, not deployed enforcement
 - add a reviewed production qualification class. The current registry accepts `local_test` only.
 
 Local source now bounds each registry verifier wait and reserves independent
-resource, cleanup and recovery capacity. See [VERIFIER_BOUNDS.md](./VERIFIER_BOUNDS.md).
+resource, cleanup and recovery capacity. See the online repository-source guide
+[VERIFIER_BOUNDS.md](https://github.com/Agoragentic/agoragentic-integrations/blob/main/risk-fork/managed-service/VERIFIER_BOUNDS.md),
+which is not included in the installed core SDK tarball.
 Timed-out callbacks retain their slot until actual settlement; timeout is not
 cancellation or proof that a provider operation stopped. Production isolation,
 observational/retry-safe callback qualification and circuit-breaker operations
