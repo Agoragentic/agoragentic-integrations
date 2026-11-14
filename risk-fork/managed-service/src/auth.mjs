@@ -15,6 +15,20 @@ import {
 const TOKEN_PATTERN = /^[A-Za-z0-9._~-]{32,512}$/;
 const managedPrincipalVerifiers = new WeakMap();
 
+// An additional restriction from an already authenticated OAuth principal, not
+// a permission grant. Stores must still check the persisted credential.
+export function assertManagedPrincipalWindow(window, nowValue) {
+  if (window == null) return;
+  assertPlainRecord(window, 'principal window');
+  assertAllowedKeys(window, ['not_before', 'expires_at'], 'principal window');
+  const notBefore = requireIso(window.not_before, 'principal window.not_before');
+  const expiresAt = requireIso(window.expires_at, 'principal window.expires_at');
+  const now = requireIso(nowValue, 'principal window time');
+  if (Date.parse(now) < Date.parse(notBefore) || Date.parse(now) >= Date.parse(expiresAt)) {
+    throw managedError('Authenticated principal has expired or is not yet active', 'AUTHENTICATION_FAILED', 401);
+  }
+}
+
 export function hashManagedApiKey(token) {
   const normalized = requireString(token, 'API key', { minBytes: 32, maxBytes: 512 });
   if (!TOKEN_PATTERN.test(normalized)) throw new TypeError('API key format is invalid');

@@ -11,6 +11,7 @@ import { sha256Ref } from '../../src/canonical.mjs';
 import { validateChildOperation } from '../../src/child-operation.mjs';
 import { verifyPostgresControlPlaneAttestation } from './postgres-control-plane-attestation.mjs';
 import { createManagedAuditEvent } from './audit.mjs';
+import { assertManagedPrincipalWindow } from './auth.mjs';
 import { createManagedBacklogSnapshot, MANAGED_BACKLOG_COUNT_FIELDS, normalizeBacklogRead } from './backlog-snapshot.mjs';
 import { cancellationAuditDetails, normalizeCancellationFields, planCancellation,
   verifyCancellationObservation } from './cancellation.mjs';
@@ -438,7 +439,7 @@ export class PostgresManagedServiceStore {
   }
 
   async #isClaimantCredentialActive(client, tenantId, claimantKeyId, requiredScope) {
-    if (requiredScope !== 'invocations:cancel'
+    if (requiredScope !== 'invocations:write' && requiredScope !== 'invocations:cancel'
       && !/^worker:(execution|cleanup|recovery):(claim|write)$/.test(requiredScope)) {
       throw new TypeError('claimant scope must be purpose-specific');
     }
@@ -469,6 +470,13 @@ export class PostgresManagedServiceStore {
     if (!await this.#isClaimantCredentialActive(client, tenantId, claimantKeyId, requiredScope)) {
       throw managedError('Claimant credential is not active', 'AUTHENTICATION_FAILED', 401);
     }
+  }
+
+  async #assertAdmissionAuthority(client, input) {
+    await this.#assertClaimantCredentialActive(client, requireTenantId(input.tenant_id),
+      requireOpaqueRef(input.key_id, 'admitting key_id'), 'invocations:write');
+    // Database time is authoritative, including after lock waits and retries.
+    assertManagedPrincipalWindow(input.principal_window, await this.#databaseNow(client));
   }
 
   async #appendAudit(client, row, eventType, occurredAt, details = {}, eventRef = undefined) {
@@ -571,18 +579,19 @@ export class PostgresManagedServiceStore {
     assertPlainRecord(input, 'idempotency lookup');
     assertAllowedKeys(
       input,
-      ['tenant_id', 'idempotency_hash', 'request_hash'],
+      ['tenant_id', 'key_id', 'principal_window', 'idempotency_hash', 'request_hash'],
       'idempotency lookup',
     );
     const tenantId = requireTenantId(input.tenant_id);
     const idempotencyHash = requireSha256(input.idempotency_hash, 'idempotency_hash');
     const requestHash = requireSha256(input.request_hash, 'request_hash');
-    return this.#withClient(async (client) => {
+    return this.#withTransaction(async (client) => {
       const result = await client.query(
         `SELECT * FROM ${this.#schema}.managed_invocations
           WHERE tenant_id = $1 AND idempotency_hash = $2`,
         [tenantId, idempotencyHash],
       );
+      await this.#assertAdmissionAuthority(client, input);
       if (result.rowCount === 0) return null;
       const existing = result.rows[0];
       if (existing.request_hash !== requestHash) {
@@ -639,12 +648,18 @@ export class PostgresManagedServiceStore {
       return await this.#withTransaction(async (client) => {
       const tenantId = requireTenantId(input.tenant_id);
       const invocationRef = requireInvocationRef(input.invocation_ref, 'invocation_ref');
+      // Match the tenant -> invocation -> credential order used by mutations.
+      const tenantResult = await client.query(
+        `SELECT * FROM ${this.#schema}.lock_managed_tenant_update($1)`,
+        [tenantId],
+      );
       const existingResult = await client.query(
         `SELECT * FROM ${this.#schema}.managed_invocations
           WHERE tenant_id = $1 AND idempotency_hash = $2
           FOR UPDATE`,
         [tenantId, requireSha256(input.idempotency_hash, 'idempotency_hash')],
       );
+      await this.#assertAdmissionAuthority(client, input);
       if (existingResult.rowCount === 1) {
         const existing = existingResult.rows[0];
         if (existing.request_hash !== input.request_hash) {
@@ -656,10 +671,6 @@ export class PostgresManagedServiceStore {
         }
         return deepFreeze({ created: false, invocation: normalizeInvocationRow(existing) });
       }
-      const tenantResult = await client.query(
-        `SELECT * FROM ${this.#schema}.lock_managed_tenant_update($1)`,
-        [tenantId],
-      );
       const tenant = tenantResult.rowCount === 1 ? tenantResult.rows[0] : null;
       if (!tenant || tenant.status !== 'active') {
         throw managedError('Tenant is not active', 'TENANT_NOT_ACTIVE', 403);
@@ -747,14 +758,25 @@ export class PostgresManagedServiceStore {
         [tenantId, day, estimated, now],
       );
       const inserted = await client.query(
-        `INSERT INTO ${this.#schema}.managed_invocations (
+        `WITH admission_clock AS MATERIALIZED (SELECT clock_timestamp() AS now)
+         INSERT INTO ${this.#schema}.managed_invocations (
            tenant_id, invocation_ref, admitted_key_id, provider_id,
            provider_binding_hash, provider_adapter_digest,
            provider_qualification_receipt_hash,
            idempotency_hash, request_hash, operation_hash, operation_json,
            estimated_cost_micros, budget_day_utc, provider_recovery_key,
            state, admitted_at, updated_at
-         ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12,$13::date,$14,'admitted',$15,$15)
+         ) SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12,$13::date,$14,'admitted',admission_clock.now,admission_clock.now
+           FROM admission_clock
+          WHERE EXISTS (SELECT 1 FROM ${this.#schema}.managed_api_keys AS credential
+            WHERE credential.tenant_id = $1 AND credential.key_id = $3
+              AND credential.revoked_at IS NULL
+              AND credential.not_before <= admission_clock.now
+              AND credential.expires_at > admission_clock.now
+              AND credential.scopes ? 'invocations:write')
+            AND ($15::timestamptz IS NULL OR $15 <= admission_clock.now)
+            AND ($16::timestamptz IS NULL OR $16 > admission_clock.now)
+            AND $13::date = (admission_clock.now AT TIME ZONE 'UTC')::date
          RETURNING *`,
         [
           tenantId,
@@ -771,11 +793,18 @@ export class PostgresManagedServiceStore {
           estimated,
           day,
           input.provider_recovery_key,
-          now,
+          input.principal_window?.not_before ?? null,
+          input.principal_window?.expires_at ?? null,
         ],
       );
+      if (inserted.rowCount !== 1) {
+        // The preceding reservation is provisional and rolls back with this
+        // transaction, including expiry while waiting for the budget bucket.
+        await this.#assertAdmissionAuthority(client, input);
+        throw managedError('Admission crossed its budget day', 'ADMISSION_BUDGET_DAY_CHANGED', 409);
+      }
       const row = inserted.rows[0];
-      await this.#appendAudit(client, row, 'invocation_admitted', now, {
+      await this.#appendAudit(client, row, 'invocation_admitted', pgIso(row.admitted_at, 'admission time'), {
         request_hash: input.request_hash,
         operation_hash: input.operation_hash,
         provider_id: input.provider_id,

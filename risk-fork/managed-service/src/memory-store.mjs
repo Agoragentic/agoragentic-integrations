@@ -16,7 +16,7 @@ import {
   workerClaimScope,
   workerWriteScope,
 } from './constants.mjs';
-import { normalizeApiKeyRecord } from './auth.mjs';
+import { assertManagedPrincipalWindow, normalizeApiKeyRecord } from './auth.mjs';
 import { cancellationAuditDetails, normalizeCancellationFields, planCancellation,
   verifyCancellationObservation } from './cancellation.mjs';
 import {
@@ -236,15 +236,19 @@ export class MemoryManagedServiceStore {
     return this.#credentials.get(keyHash) ?? null;
   }
 
-  async findIdempotentInvocation(input) {
+  async findIdempotentInvocation(input, { clock = () => new Date() } = {}) {
+    if (typeof clock !== 'function') throw new TypeError('admission clock must be a function');
     return this.#exclusive(async () => {
       assertPlainRecord(input, 'idempotency lookup');
       assertAllowedKeys(
         input,
-        ['tenant_id', 'idempotency_hash', 'request_hash'],
+        ['tenant_id', 'key_id', 'principal_window', 'idempotency_hash', 'request_hash'],
         'idempotency lookup',
       );
       const tenantId = requireTenantId(input.tenant_id);
+      const now = requireIso(clock(), 'admission clock result');
+      this.#requireActiveClaimant(tenantId, input.key_id, now, 'invocations:write');
+      assertManagedPrincipalWindow(input.principal_window, now);
       const idempotencyHash = requireSha256(input.idempotency_hash, 'idempotency_hash');
       const requestHash = requireSha256(input.request_hash, 'request_hash');
       const existingRef = this.#idempotency.get(idempotencyKey(tenantId, idempotencyHash));
@@ -295,10 +299,15 @@ export class MemoryManagedServiceStore {
     });
   }
 
-  async admitInvocation(input) {
+  async admitInvocation(input, { clock = () => new Date() } = {}) {
+    if (typeof clock !== 'function') throw new TypeError('admission clock must be a function');
     return this.#exclusive(async () => {
       assertPlainRecord(input, 'admission');
       const tenantId = requireTenantId(input.tenant_id);
+      // Capture time after the exclusive wait, never from the earlier request.
+      const now = requireIso(clock(), 'admission clock result');
+      this.#requireActiveClaimant(tenantId, input.key_id, now, 'invocations:write');
+      assertManagedPrincipalWindow(input.principal_window, now);
       const invocationRef = requireInvocationRef(input.invocation_ref, 'invocation_ref');
       const requestHash = requireSha256(input.request_hash, 'request_hash');
       const idempotencyHash = requireSha256(input.idempotency_hash, 'idempotency_hash');
@@ -321,7 +330,6 @@ export class MemoryManagedServiceStore {
           503,
         );
       }
-      const now = requireIso(input.now, 'admission.now');
       const tenant = this.#tenants.get(tenantId);
       if (!tenant || tenant.status !== 'active') {
         throw managedError('Tenant is not active', 'TENANT_NOT_ACTIVE', 403);
@@ -694,7 +702,7 @@ export class MemoryManagedServiceStore {
   }
 
   #requireActiveClaimant(tenantIdValue, claimantKeyIdValue, nowValue, requiredScope) {
-    if (requiredScope !== 'invocations:cancel' && requiredScope !== 'audit:read'
+    if (requiredScope !== 'invocations:write' && requiredScope !== 'invocations:cancel' && requiredScope !== 'audit:read'
       && !/^worker:(execution|cleanup|recovery):(claim|write)$/.test(requiredScope)) {
       throw new TypeError('claimant scope must be purpose-specific');
     }

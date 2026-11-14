@@ -137,6 +137,7 @@ test('idempotent replay survives a restart with tighter admission policy', async
     store: fixture.store,
     providerRegistry: fixture.providerRegistry,
     requirePrincipal: fixture.authenticator.requirePrincipal,
+    clock: () => new Date('2026-09-05T12:00:00.000Z'),
   });
   const replay = await restarted.admitInvocation(fixture.principal, request);
   assert.equal(replay.created, false);

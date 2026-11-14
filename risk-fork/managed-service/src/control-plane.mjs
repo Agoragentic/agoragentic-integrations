@@ -326,6 +326,12 @@ export function createManagedRiskForkControlPlane(options = {}) {
     async admitInvocation(principalValue, input = {}) {
       enabled();
       const principal = await normalizePrincipal(principalValue, 'invocations:write', requirePrincipal);
+      // Only the branded, authenticated principal can supply a narrower token
+      // window. Request payloads cannot supply authority or override the clock.
+      const principalWindow = principalValue.expires_at === undefined ? null : {
+        not_before: principalValue.not_before,
+        expires_at: principalValue.expires_at,
+      };
       assertPlainRecord(input, 'invocation request');
       assertAllowedKeys(input, [
         'idempotency_key',
@@ -367,9 +373,12 @@ export function createManagedRiskForkControlPlane(options = {}) {
       });
       const replay = await store.findIdempotentInvocation({
         tenant_id: principal.tenant_id,
+        key_id: principal.key_id,
+        principal_window: principalWindow,
         idempotency_hash: idempotencyHash,
         request_hash: requestHash,
-      });
+      }, { clock });
+      await requirePrincipal(principalValue, 'invocations:write');
       if (replay !== null) return replay;
 
       if (Buffer.byteLength(idempotency, 'utf8') > config.limits.max_idempotency_key_bytes) {
@@ -396,6 +405,7 @@ export function createManagedRiskForkControlPlane(options = {}) {
       return store.admitInvocation({
         tenant_id: principal.tenant_id,
         key_id: principal.key_id,
+        principal_window: principalWindow,
         invocation_ref: invocationReference,
         idempotency_hash: idempotencyHash,
         request_hash: requestHash,
@@ -410,7 +420,7 @@ export function createManagedRiskForkControlPlane(options = {}) {
         estimated_cost_micros: estimatedCostMicros,
         now,
         limits: config.limits,
-      });
+      }, { clock });
     },
 
     async requestCancellation(principalValue, input = {}) {
