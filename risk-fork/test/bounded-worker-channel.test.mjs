@@ -65,6 +65,47 @@ test('protocol failures latch, discard queued frames and deny later handoff', as
   }
 });
 
+for (const [name, suffix] of [
+  ['malformed JSON', Buffer.from('invalid\n')],
+  ['non-object JSON', Buffer.from('null\n')],
+  ['malformed UTF-8', Buffer.from([0xff, 10])],
+  ['queue overflow', Buffer.from('{}\n{}\n')],
+]) {
+  test(`pending acknowledgement is rejected when its chunk ends with ${name}`, async () => {
+    const { child, channel } = fixture({ maxFrames: 1 });
+    const pending = assert.rejects(channel.next());
+    child.stdout.write(Buffer.concat([
+      Buffer.from('{"phase":"sdk_root_closed","tree_cleanup_verified":false}\n'), suffix,
+    ]));
+    await pending;
+    assert.throws(() => channel.send({ start: true }));
+    await assert.rejects(channel.next());
+  });
+}
+
+test('valid batch serves pending readers and retains only the bounded remainder', async () => {
+  const { child, channel } = fixture({ maxFrames: 2 });
+  const first = channel.next();
+  const second = channel.next();
+  child.stdout.write('{"n":1}\n{"n":2}\n{"n":3}\n{"n":4}\n');
+  assert.deepEqual(await first, { n: 1 });
+  assert.deepEqual(await second, { n: 2 });
+  assert.deepEqual(await channel.next(), { n: 3 });
+  assert.deepEqual(await channel.next(), { n: 4 });
+  channel.close();
+});
+
+test('revocation before promise consumption rejects both pending and queued reads', async () => {
+  for (const queued of [false, true]) {
+    const { child, channel } = fixture();
+    if (queued) child.stdout.write('{"phase":"ready"}\n');
+    const pending = assert.rejects(channel.next());
+    if (!queued) child.stdout.write('{"phase":"ready"}\n');
+    child.stderr.emit('error', new Error('revoked before continuation'));
+    await pending;
+  }
+});
+
 test('stdout and stderr share a lifetime output limit', async () => {
   const { child, channel } = fixture({ maxBytes: 20 });
   child.stdout.write('{"ok":true}\n');

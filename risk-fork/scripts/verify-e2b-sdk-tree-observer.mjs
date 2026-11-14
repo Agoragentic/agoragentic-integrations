@@ -60,6 +60,13 @@ export function cleanupStatus({ bound, readonly, killed, empty, removed, absent,
     && removed === true && absent === true && uncertain === false ? 'verified' : 'unknown';
 }
 
+// Synchronous final boundary after host observations. No await may separate the
+// channel check from the caller's workload-completed assignment.
+export function completeWorkerObservation(channel) {
+  channel.assertOpen();
+  return true;
+}
+
 export function workloadStatus({ completed, uncertain, cleanup }) {
   const workload_completed = completed === true;
   return { workload_completed, workload_passed: workload_completed && uncertain === false && cleanup === 'verified' };
@@ -256,7 +263,7 @@ export async function runSdkTreeLab(sourceRoot, fixtureRoot, scenario = 'detache
     metrics.process_incarnations_observed = 1;
     assert.equal(interrupted, false);
     if (scenario === 'cancel_before_handoff') {
-      workloadOk = true;
+      workloadOk = completeWorkerObservation(channel);
       metrics.cancel_before_sdk_import = 'verified';
     } else {
     channel.send({ start: true }); // No SDK import/effect before host scope observation.
@@ -275,7 +282,8 @@ export async function runSdkTreeLab(sourceRoot, fixtureRoot, scenario = 'detache
     assert.deepEqual(await channel.next(), { phase: 'sdk_root_closed', tree_cleanup_verified: false });
     assert.equal(await incarnationGone(worker[0]), true); metrics.sdk_root_exit_observed = 'verified';
     assert.equal(await incarnationGone(descendant[0]), false); metrics.detached_survived_sdk_exit = 'verified';
-    assert.ok((await observeScope(scope)).pids.includes(descendant[0].pid)); workloadOk = true;
+    assert.ok((await observeScope(scope)).pids.includes(descendant[0].pid));
+    workloadOk = completeWorkerObservation(channel);
     }
   } catch { uncertain = true; }
   finally {

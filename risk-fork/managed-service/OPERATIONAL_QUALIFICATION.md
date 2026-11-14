@@ -258,7 +258,12 @@ The provider-free tree lab uses an internal bounded worker channel. Combined
 stdout/stderr bytes, buffered frames, pending reads and per-read deadlines are
 bounded. Malformed UTF-8/JSON, non-object frames, stream loss, timeout and
 cancellation permanently revoke that channel; late frames cannot re-enable
-handoff. Failure discards queued frames and rejects pending reads. The host
+handoff. Each received chunk's complete frames and queue bounds are validated
+before any waiting reader receives an acknowledgement. Failure discards queued
+frames and rejects pending reads. Readers recheck revocation before delivery;
+the observer also rechecks synchronously after awaited host observations before
+marking either normal or pre-handoff-cancellation work complete. These checks
+cover observed revocation, not future or not-yet-delivered stream events. The host
 still owns exact-ID teardown and independent kernel observation: closing this
 channel is not process-tree cleanup proof. Unit tests include a keyless local
 Node child and do not qualify Docker, a credentialed SDK launch or production.

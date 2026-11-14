@@ -47,20 +47,27 @@ export function createBoundedWorkerChannel(child, { deadlineMs = 10_000, maxByte
     if (!count(chunk)) return;
     try {
       tail += decoder.decode(chunk, { stream: true });
+      const batch = [];
       while (tail.includes('\n')) {
         const end = tail.indexOf('\n');
         const frame = JSON.parse(tail.slice(0, end));
         tail = tail.slice(end + 1);
         if (frame === null || typeof frame !== 'object' || Array.isArray(frame)) throw new Error();
+        batch.push(frame);
+        // Validate the whole available chunk before settling any read. A later
+        // malformed frame or queue overflow cannot retract a resolved promise.
+        if (frames.length + batch.length > waiters.length + maxFrames) throw new Error();
+      }
+      for (const frame of batch) {
         if (waiters.length) waiters.shift().resolve(frame);
-        else {
-          if (frames.length >= maxFrames) throw new Error();
-          frames.push(frame);
-        }
+        else frames.push(frame);
       }
     } catch { fail(); }
   });
   return Object.freeze({
+    // Recheck after asynchronous host observations and immediately before using
+    // an acknowledgement as success. This cannot predict future stream events.
+    assertOpen,
     send(value) {
       assertOpen();
       const frame = `${JSON.stringify(value)}\n`;
@@ -69,7 +76,10 @@ export function createBoundedWorkerChannel(child, { deadlineMs = 10_000, maxByte
     },
     next() {
       try { assertOpen(); } catch (error) { return Promise.reject(error); }
-      if (frames.length) return Promise.resolve(frames.shift());
+      if (frames.length) {
+        const frame = frames.shift();
+        return Promise.resolve().then(() => { assertOpen(); return frame; });
+      }
       if (waiters.length >= maxFrames) return Promise.reject(fail());
       return new Promise((resolve, reject) => {
         const timer = setTimeout(fail, deadlineMs);
@@ -77,7 +87,7 @@ export function createBoundedWorkerChannel(child, { deadlineMs = 10_000, maxByte
           resolve(value) { clearTimeout(timer); resolve(value); },
           reject(error) { clearTimeout(timer); reject(error); },
         });
-      });
+      }).then((frame) => { assertOpen(); return frame; });
     },
     // Cancels protocol authority only; the owning supervisor must still perform
     // exact-ID teardown and independent kernel observation, even after failure.
