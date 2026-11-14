@@ -50,7 +50,7 @@
     },
     "devDependencies": {
         "@eslint/js": "9.29.0",
-        "@n8n/eslint-plugin-community-nodes": "0.32.0",
+        "@n8n/eslint-plugin-community-nodes": "0.40.0",
         "@n8n/expression-runtime": "file:fixtures/zod4-compat/packages/expression-runtime",
         "@typescript-eslint/typescript-estree": "file:fixtures/lint-parser/package",
         "eslint": "9.29.0",
