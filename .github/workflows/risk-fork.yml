@@ -146,6 +146,9 @@ jobs:
           npm --prefix risk-fork/sdk-qualification audit
       - name: Qualify exact SDK closure, binding, process gates and loopback contract
         run: npm --prefix risk-fork/sdk-qualification test
+      - name: Verify disabled client review writes and recovery on Windows
+        if: runner.os == 'Windows'
+        run: node --test risk-fork/test/client-adoption.test.mjs risk-fork/test/client-review-recovery.test.mjs
 
   postgres-authority:
     runs-on: ubuntu-latest

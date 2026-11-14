@@ -203,6 +203,26 @@ try {
   assert.equal(installedClientPlan.controls.provider_calls, 0);
   assert.equal(installedClientPlan.controls.live_traffic_protected, false);
 
+  const reviewOutput = path.join(tempRoot, 'installed-client-review');
+  const installedClientCli = path.join(installedRoot, 'scripts/client-adoption.mjs');
+  const gatewayArgs = ['--gateway', externalGateway, '--gateway-sha256', externalGatewaySha256];
+  const installedReview = JSON.parse(run('installed client review write', process.execPath, [
+    installedClientCli, 'write-review', '--client', 'all', '--output', reviewOutput,
+    '--yes', ...gatewayArgs,
+  ], consumerRoot));
+  assert.equal(installedReview.manifest.controls.client_enabled, false);
+  assert.equal(installedReview.manifest.controls.active_client_paths_written, false);
+  const verification = JSON.parse(run('installed client review verification', process.execPath, [
+    installedClientCli, 'verify-review', '--manifest', installedReview.manifest_path, ...gatewayArgs,
+  ], consumerRoot));
+  assert.equal(verification.status, 'passed');
+  assert.equal(verification.files_verified, 5);
+  assert.equal(verification.provider_calls, 0);
+  await writeFile(path.join(reviewOutput, 'codex-risk-fork.disabled.toml'), 'enabled = true\n');
+  runExpectedFailure('installed client review tamper refusal', process.execPath, [
+    installedClientCli, 'verify-review', '--manifest', installedReview.manifest_path, ...gatewayArgs,
+  ], consumerRoot, /Review file does not match current source/);
+
   run('installed package exports', process.execPath, ['--input-type=module', '--eval', `
     import assert from 'node:assert/strict';
     import * as core from '@agoragentic/risk-fork';
@@ -434,6 +454,7 @@ try {
     installed_exports: true, mcp_http_phase_exports: 'verified', local_lifecycle: localLifecycleStatus,
     mcp_host_example: mcpHostExampleStatus, framework_adapter_example: 'passed',
     installed_client_plan: 'passed',
+    installed_client_review: 'passed', installed_client_review_tamper_refused: true,
     registry_publication_verified: false,
     live_traffic_protected: false, provider_calls: 0,
   }, null, 2)}\n`);
