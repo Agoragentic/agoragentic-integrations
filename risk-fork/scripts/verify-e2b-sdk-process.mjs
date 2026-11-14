@@ -345,11 +345,15 @@ if (mode === '--prepare') {
     await boundary.close();
   });
   test('four 10 MiB files fit the 64 MiB aggregate and reach provider create', async (t) => {
-    const { boundary, Sandbox } = await opened(t);
+    // Real workspace inspection/export can exceed the small fixtures' 10 s
+    // worker lifetime. Keep this positive size case alive through preparation;
+    // the shared lifetime, request deadlines and retirement tests stay intact.
+    const { boundary, Sandbox } = await opened(t, { lifetimeMs: 60_000 });
     const fixture = await adapterFixture(t, Sandbox, {
       fileBytes: Array.from({ length: 4 }, (_, index) => [`part-${index}.bin`, Buffer.alloc(10 * 1024 * 1024, index + 1)]),
       maxBytes: 64 * 1024 * 1024,
     });
+    assert.equal(boundary.metrics().sdk_process_retired, false, 'SDK worker must remain active after large-file preparation');
     const before = (await effects()).filter((value) => value === 'create').length;
     await assert.rejects(fixture.adapter.createFork(fixture.request), (error) => {
       assert.doesNotMatch(String(error), /each file must be at most 33554432 bytes/);
