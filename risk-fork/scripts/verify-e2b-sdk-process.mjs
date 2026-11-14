@@ -118,7 +118,7 @@ if (mode === '--prepare') {
     const dependency = path.join(modules, 'synthetic-sdk-dependency');
     await mkdir(path.join(sdk, 'dist'), { recursive: true });
     await mkdir(dependency, { recursive: true });
-    await writeFile(path.join(sdk, 'package.json'), JSON.stringify({ name: 'e2b', version: '2.39.0', main: 'dist/index.js', dependencies: { 'synthetic-sdk-dependency': '1.0.0' } }));
+    await writeFile(path.join(sdk, 'package.json'), JSON.stringify({ name: 'e2b', version: '2.63.0', main: 'dist/index.js', dependencies: { 'synthetic-sdk-dependency': '1.0.0' } }));
     await writeFile(path.join(sdk, 'dist/index.js'), `(${syntheticSdk.toString()})();\n`);
     await writeFile(path.join(dependency, 'package.json'), JSON.stringify({ name: 'synthetic-sdk-dependency', version: '1.0.0', main: 'index.js' }));
     await writeFile(path.join(dependency, 'index.js'), 'module.exports = { revision: "fresh" };\n');
@@ -345,11 +345,15 @@ if (mode === '--prepare') {
     await boundary.close();
   });
   test('four 10 MiB files fit the 64 MiB aggregate and reach provider create', async (t) => {
-    const { boundary, Sandbox } = await opened(t);
+    // Real workspace inspection/export can exceed the small fixtures' 10 s
+    // worker lifetime. Keep this positive size case alive through preparation;
+    // the shared lifetime, request deadlines and retirement tests stay intact.
+    const { boundary, Sandbox } = await opened(t, { lifetimeMs: 60_000 });
     const fixture = await adapterFixture(t, Sandbox, {
       fileBytes: Array.from({ length: 4 }, (_, index) => [`part-${index}.bin`, Buffer.alloc(10 * 1024 * 1024, index + 1)]),
       maxBytes: 64 * 1024 * 1024,
     });
+    assert.equal(boundary.metrics().sdk_process_retired, false, 'SDK worker must remain active after large-file preparation');
     const before = (await effects()).filter((value) => value === 'create').length;
     await assert.rejects(fixture.adapter.createFork(fixture.request), (error) => {
       assert.doesNotMatch(String(error), /each file must be at most 33554432 bytes/);

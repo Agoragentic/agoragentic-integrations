@@ -96,7 +96,8 @@
     "PROVIDER_COMPARISON.md",
     "ADVERSARIAL_REMEDIATION.md",
     "LICENSE",
-    "NOTICE"
+    "NOTICE",
+    "E2B_SDK_MIGRATION.md"
   ],
   "scripts": {
     "test": "node --test test/*.test.mjs",
@@ -118,11 +119,8 @@
     "ajv-formats": "3.0.1",
     "pg": "8.16.3"
   },
-  "devDependencies": {
-    "e2b": "2.39.0"
-  },
   "peerDependencies": {
-    "e2b": "2.39.0"
+    "e2b": "2.63.0"
   },
   "peerDependenciesMeta": {
     "e2b": {
@@ -130,11 +128,7 @@
     }
   },
   "overrides": {
-    "fast-uri": "3.1.9",
-    "e2b@2.39.0": {
-      "undici": "npm:undici@7.30.1",
-      "undici8": "npm:undici@8.12.2"
-    }
+    "fast-uri": "3.1.9"
   },
   "keywords": [
     "ai-agents",
@@ -154,5 +148,8 @@
   },
   "bugs": {
     "url": "https://github.com/rhein1/agoragentic-integrations/issues"
+  },
+  "devDependencies": {
+    "undici": "7.30.1"
   }
 }

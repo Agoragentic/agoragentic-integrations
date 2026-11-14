@@ -2,12 +2,14 @@ import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import test from 'node:test';
 
-import { Sandbox } from 'e2b';
+import { createRequire } from 'node:module';
+const sdkRequire = createRequire(new URL('../package.json', import.meta.url));
+const { Sandbox } = sdkRequire('e2b');
 
 import {
   buildE2BCleanSandboxCreateOptions,
   validateE2BSandboxInfo,
-} from '../src/adapters/e2b.mjs';
+} from '../../src/adapters/e2b.mjs';
 
 const SANDBOX_ID = 'sandbox-loopback-contract';
 const TEMPLATE_ID = 'template-loopback-contract';
@@ -246,6 +248,7 @@ test('clean creation output cannot acquire inherited provider authority after co
 
 test('pinned E2B SDK preserves the clean request and observation contract over loopback', async (t) => {
   const requests = [];
+  const envdToken = 'synthetic-loopback-envd-access-token';
   const server = createServer(async (request, response) => {
     try {
       const { raw, value: body } = await readJson(request);
@@ -256,13 +259,14 @@ test('pinned E2B SDK preserves the clean request and observation contract over l
         body,
         rawBody: raw,
       });
-      if (request.method === 'POST' && request.url === '/sandboxes') {
+      if (request.method === 'POST' && request.url === '/v2/sandboxes') {
         sendJson(response, 201, {
           sandboxID: SANDBOX_ID,
           templateID: TEMPLATE_ID,
           clientID: 'loopback-client',
           domain: 'localhost',
           envdVersion: '0.6.5',
+          envdAccessToken: envdToken,
         });
         return;
       }
@@ -291,6 +295,15 @@ test('pinned E2B SDK preserves the clean request and observation contract over l
         });
         return;
       }
+      if (request.method === 'GET' && request.url.startsWith('/files?')) {
+        if (request.headers['x-access-token'] !== envdToken) {
+          sendJson(response, 401, { code: 401, message: 'missing synthetic envd authority' });
+          return;
+        }
+        response.writeHead(200, { 'content-type': 'text/plain' });
+        response.end('synthetic bounded file');
+        return;
+      }
       sendJson(response, 404, { code: 404, message: 'unexpected loopback request' });
     } catch (error) {
       sendJson(response, 500, { code: 500, message: error.message });
@@ -301,6 +314,7 @@ test('pinned E2B SDK preserves the clean request and observation contract over l
 
   const connection = {
     apiUrl,
+    sandboxUrl: apiUrl,
     apiKey: 'local-contract-placeholder',
     validateApiKey: false,
     requestTimeoutMs: 10_000,
@@ -382,13 +396,12 @@ test('pinned E2B SDK preserves the clean request and observation contract over l
   assert.equal(sandbox.sandboxId, SANDBOX_ID);
   assert.equal(requests.length, 1);
   assert.equal(requests[0].method, 'POST');
-  assert.equal(requests[0].url, '/sandboxes');
+  assert.equal(requests[0].url, '/v2/sandboxes');
   assert.deepEqual(requests[0].body, {
     templateID: TEMPLATE_ID,
     metadata: METADATA,
     envVars: {},
     timeout: 70,
-    secure: true,
     allow_internet_access: false,
     network: {
       allowOut: [],
@@ -402,10 +415,19 @@ test('pinned E2B SDK preserves the clean request and observation contract over l
   assert.ok(requests[0].rawBody.includes(
     '"network":{"allowOut":[],"denyOut":["0.0.0.0/0"],"allowPublicTraffic":false}',
   ));
-  // e2b@2.39.0 omits an empty IAM input from the wire body. This exact SDK
+  // e2b@2.63.0 omits an empty IAM input from the wire body. This exact SDK
   // behavior is recorded here and is not treated as provider-side absence
   // proof; live credential-inheritance qualification remains external.
   assert.equal('iam' in requests[0].body, false);
+  // Upstream 2.51+ moved create to v2, where secure envd access is mandatory
+  // and the deprecated `secure` option is ignored. Preserve secure:true in
+  // our creation options, assert the exact v2 endpoint, and verify the actual
+  // token on a subsequent SDK file request rather than asserting a removed
+  // wire field. This is loopback protocol evidence, not live qualification.
+  // https://github.com/e2b-dev/E2B/blob/main/packages/js-sdk/CHANGELOG.md
+  assert.equal(createOptions.secure, true);
+  assert.equal(Object.hasOwn(requests[0].body, 'secure'), false);
+  assert.equal(sandbox.envdAccessToken, envdToken);
 
   const info = await Sandbox.getInfo(SANDBOX_ID, connection);
   const observation = validateE2BSandboxInfo(info, {
@@ -422,4 +444,8 @@ test('pinned E2B SDK preserves the clean request and observation contract over l
   assert.equal(observation.network_status, 'exact_sdk_ipv4_sentinel_observed_ipv6_unqualified');
   assert.equal(observation.volume_mount_status, 'provider_reported_zero_observed');
   assert.equal(observation.lifecycle_status, 'provider_reported_kill_no_auto_resume_observed');
+  assert.equal(await sandbox.files.read('/synthetic-bounded.txt'), 'synthetic bounded file');
+  assert.equal(requests.length, 3);
+  assert.equal(requests[2].headers['x-access-token'], envdToken);
+  assert.equal(requests[2].headers['x-api-key'], undefined, 'provider API key must not reach envd');
 });
