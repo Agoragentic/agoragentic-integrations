@@ -184,11 +184,10 @@ See [worker contract](./managed-service/WORKER.md) and
 restart limits. Delivery replay never replays a provider effect or recreates a
 prepared object, and reaping never asserts cloud resource deletion.
 
-The source checkout keeps E2B pinned at `2.39.0` while repairing its development
-dependency closure: compatible `brace-expansion`/Undici 7 patches and an explicit
-E2B-scoped `undici8` alias override to `undici@8.10.2`. The SDK's original optional
-alias pins an affected version, so ordinary range updates are insufficient for
-that edge. This is not live qualification or a security exception. npm overrides
-are root-project policy, not a promise that downstream consumers receive them;
-a host installing the optional SDK must review and exact-hash its own patched
-dependency closure before any separately approved qualification run.
+The optional E2B SDK is pinned at `2.63.0` and requires Node >=22.19.0.
+Its development graph lives in `sdk-qualification/`; the core Node 20 graph
+does not install it. The SDK upgrade replaces the affected glob/minimatch graph
+through upstream dependencies without E2B overrides or audit exceptions.
+Hosts must review and exact-hash their own installed closure; a source lockfile
+does not qualify a downstream installation. See [migration notes](./E2B_SDK_MIGRATION.md)
+before changing an existing host or attempting historical cleanup.

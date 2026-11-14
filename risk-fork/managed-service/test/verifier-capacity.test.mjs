@@ -60,6 +60,18 @@ test('synchronous callback returning after deadline cannot attest success', asyn
   }), false);
 });
 
+test('a deferred verifier is not started after its deadline already elapsed', async () => {
+  const verify = gate(); let calls = 0;
+  const pending = verify(() => { calls++; return true; });
+  // The callback is still a queued microtask. Timers cannot run while this
+  // trusted-host fixture occupies the event loop, so invocation needs a check.
+  const until = performance.now() + 65;
+  while (performance.now() < until) {}
+  assert.equal(await pending, false);
+  assert.equal(calls, 0);
+  assert.equal(await verify(() => true), true, 'expired unstarted work releases capacity');
+});
+
 test('invalid capacity and deadline options fail closed', () => {
   for (const value of [undefined, null, 0, 65, 1.5, '1']) assert.throws(() => createVerifierCapacity({ timeoutMs: 50, concurrency: value }));
   for (const value of [undefined, null, 49, 30001, '50']) assert.throws(() => createVerifierCapacity({ timeoutMs: value, concurrency: 1 }));
@@ -69,7 +81,7 @@ import { createManagedProviderRegistry } from '../src/provider-registry.mjs';
 import { RiskForkProvider, REQUIRED_PROVIDER_METHODS } from '../../src/provider.mjs';
 import { sha256Ref } from '../../src/canonical.mjs';
 
-function registry(callbacks = {}) {
+function registry(callbacks = {}, captureProvider = () => {}) {
   const provider = new RiskForkProvider({ id: 'local-test-provider', capabilities: {
     supports_filesystem_snapshot: true, supports_network_policy: true,
     supports_verified_destruction: true, supports_hard_ttl: true,
@@ -77,6 +89,7 @@ function registry(callbacks = {}) {
     adapter_implementation: 'managed_service_test_fixture', mock_conformance: 'local_unit_test',
   } });
   for (const method of REQUIRED_PROVIDER_METHODS) provider[method] = async () => {};
+  captureProvider(provider);
   return createManagedProviderRegistry([{
     provider, enabled: true, adapter_digest: sha256Ref('adapter'), qualification_class: 'local_test',
     qualification_receipt_hash: sha256Ref('receipt'), tenant_ids: ['tenant_alpha'],
@@ -93,6 +106,37 @@ function request(reg) {
     evidence: { evidence_hash: sha256Ref('evidence'), provider_recovery_key: 'recovery:test' },
     request: { request_hash: sha256Ref('request') },
   };
+}
+
+for (const [method, verifier] of [
+  ['verifyResourceBinding', 'verify_resource_binding'],
+  ['verifyCleanupEvidence', 'verify_cleanup_evidence'],
+  ['verifyRecoveryAbsence', 'verify_recovery_absence'],
+]) {
+  test(`registry rejects binding drift before deferred ${method} invocation`, async () => {
+    let provider, calls = 0;
+    const reg = registry({ [verifier]: () => { calls++; return true; } }, value => { provider = value; });
+    const input = request(reg);
+    const original = provider[REQUIRED_PROVIDER_METHODS[0]];
+    const pending = reg[method](input);
+    provider[REQUIRED_PROVIDER_METHODS[0]] = async () => {};
+    await assert.rejects(pending, { code: 'PROVIDER_BINDING_DRIFT' });
+    assert.equal(calls, 0, 'a drifted binding must not reach the verifier');
+    provider[REQUIRED_PROVIDER_METHODS[0]] = original;
+    assert.match(await reg[method](input), /^sha256:/);
+    assert.equal(calls, 1, 'rejected invocation must release capacity');
+  });
+
+  test(`registry still rejects drift introduced during ${method} verification`, async () => {
+    let provider, calls = 0;
+    const reg = registry({ [verifier]: () => {
+      calls++;
+      provider[REQUIRED_PROVIDER_METHODS[0]] = async () => {};
+      return true;
+    } }, value => { provider = value; });
+    await assert.rejects(reg[method](request(reg)), { code: 'PROVIDER_BINDING_DRIFT' });
+    assert.equal(calls, 1);
+  });
 }
 
 test('registry bounds actual resource verifier without exhausting cleanup or recovery', async () => {

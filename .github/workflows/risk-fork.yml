@@ -69,8 +69,8 @@ jobs:
         shell: bash
         run: |
           state_root="$RUNNER_TEMP/risk-fork-state"
-          mkdir -p -- "$state_root"
-          chmod 700 -- "$state_root"
+          mkdir -p "$state_root"
+          chmod 700 "$state_root"
           printf 'XDG_STATE_HOME=%s\n' "$state_root" >> "$GITHUB_ENV"
       - name: Install locked test dependencies
         working-directory: ${{ matrix.package }}
@@ -78,6 +78,10 @@ jobs:
       - name: Syntax and contract checks
         working-directory: ${{ matrix.package }}
         run: npm run check
+      - name: Audit the full core dependency graph
+        if: matrix.package == 'risk-fork'
+        working-directory: risk-fork
+        run: npm audit
       - name: Deterministic tests
         working-directory: ${{ matrix.package }}
         run: npm test
@@ -87,6 +91,61 @@ jobs:
       - name: Package dry run
         working-directory: ${{ matrix.package }}
         run: npm run pack:dry
+
+  e2b-sdk-qualification:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ['22.19.0', '22', '24']
+        os: [ubuntu-latest]
+        include:
+          - node-version: '22'
+            os: windows-latest
+          - node-version: '22'
+            os: macos-latest
+    env:
+      AGORAGENTIC_NO_SPEND: '1'
+      AGORAGENTIC_ALLOW_REAL_SPEND: '0'
+      AGORAGENTIC_ALLOW_NETWORK_CANARIES: '0'
+      npm_config_engine_strict: 'true'
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: |
+            risk-fork/package-lock.json
+            risk-fork/sdk-qualification/package-lock.json
+      - name: Prepare private state for provider-free qualification
+        run: |
+          state_root="$RUNNER_TEMP/risk-fork-state"
+          mkdir -p "$state_root"
+          chmod 700 "$state_root"
+          printf 'XDG_STATE_HOME=%s\n' "$state_root" >> "$GITHUB_ENV"
+      - name: Use canonical temporary paths for strict filesystem tests
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import os from 'node:os';
+          const canonicalTemp = fs.realpathSync.native(os.tmpdir());
+          for (const name of ['TMPDIR', 'TMP', 'TEMP']) {
+            fs.appendFileSync(process.env.GITHUB_ENV, `${name}=${canonicalTemp}\n`);
+          }
+          NODE
+      - name: Install and audit both locked development graphs
+        run: |
+          npm --prefix risk-fork ci --ignore-scripts --no-audit --no-fund
+          npm --prefix risk-fork/sdk-qualification ci --ignore-scripts --no-audit --no-fund
+          npm --prefix risk-fork audit
+          npm --prefix risk-fork/sdk-qualification audit
+      - name: Qualify exact SDK closure, binding, process gates and loopback contract
+        run: npm --prefix risk-fork/sdk-qualification test
 
   postgres-authority:
     runs-on: ubuntu-latest
@@ -336,7 +395,7 @@ jobs:
             risk-fork-hosted-mcp/integrity-manifest.json \
             risk-fork-hosted-mcp/migrations/001_distributed_authority.pg.sql \
             risk-fork-hosted-mcp/ops/postgres/ \
-            risk-fork-hosted-mcp/schema/e2b-qualification-evidence.v1.json
+            risk-fork-hosted-mcp/schema/e2b-qualification-evidence.v2.json
 
   hackathon-demo:
     runs-on: ubuntu-latest
@@ -362,8 +421,8 @@ jobs:
         shell: bash
         run: |
           state_root="$RUNNER_TEMP/risk-fork-state"
-          mkdir -p -- "$state_root"
-          chmod 700 -- "$state_root"
+          mkdir -p "$state_root"
+          chmod 700 "$state_root"
           printf 'XDG_STATE_HOME=%s\n' "$state_root" >> "$GITHUB_ENV"
       - name: Install locked source and demo dependencies
         run: |

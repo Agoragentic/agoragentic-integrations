@@ -16,6 +16,14 @@ closed immediately without queuing or invoking another callback. Only strict
 expired waits use the existing purpose-specific attestation failure paths; raw
 callback diagnostics are not returned.
 
+The deferred invocation rechecks its monotonic deadline before entering the
+callback. Each registry lane also rechecks provider-binding stability inside
+that deferred boundary, immediately before calling its verifier, and retains
+the existing post-await stability check. A binding that drifts between initial
+admission and deferred invocation cannot reach the verifier. Rejected unstarted
+work releases its reservation; a callback already in progress remains counted
+until actual settlement.
+
 A timeout only bounds the caller's asynchronous wait. The underlying callback is
 not terminated. Its slot stays occupied until it actually settles, and late true
 results cannot convert a failed attestation into success. Never reset or recreate

@@ -35,7 +35,7 @@ function qualificationFixture(adapterArtifactHash = null) {
     ...E2B_EXTERNAL_BIRTH_CONTROLS, ...E2B_EXTERNAL_PROVIDER_CONTROLS]);
   const provisional = createE2BQualificationEvidence({
     provider: { name: 'e2b', project_ref_hash: hash('synthetic-project'), region: 'test-region' },
-    sdk: { package: 'e2b', version: '2.39.0', integrity_hash: hash('synthetic-sdk') },
+    sdk: { package: 'e2b', version: '2.63.0', integrity_hash: hash('synthetic-sdk') },
     template: { template_id_hash: hash(TEMPLATE), build_id_hash: hash('synthetic-build'),
       template_evidence_hash: hash('synthetic-template-evidence'), provenance_hash: hash('synthetic-provenance') },
     runtime: { bootstrap_artifact_hash: hash('synthetic-bootstrap'),

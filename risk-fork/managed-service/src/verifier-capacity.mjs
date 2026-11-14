@@ -14,7 +14,12 @@ export function createVerifierCapacity({ timeoutMs, concurrency }) {
     const expired = new Promise(resolve => { timer = setTimeout(() => resolve(false), timeoutMs); });
     // Keep the slot until actual callback settlement, even if the caller's wait
     // has expired. Repeated retries cannot multiply hung verifier operations.
-    const settled = Promise.resolve().then(callback).then(
+    const settled = Promise.resolve().then(() => {
+      // A queued microtask can run before an overdue timer after the host has
+      // blocked the event loop. Do not begin an already-expired invocation.
+      if (performance.now() - started >= timeoutMs) return false;
+      return callback();
+    }).then(
       value => value === true && performance.now() - started < timeoutMs,
       () => false,
     ).finally(() => { active -= 1; clearTimeout(timer); });

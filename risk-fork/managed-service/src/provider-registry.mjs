@@ -311,7 +311,10 @@ export function createManagedProviderRegistry(registrations = [], options = {}) 
           context,
           binding: publicBinding(registration),
         });
-        verified = await verifyResource(() => registration.verify_resource_binding(payload));
+        verified = await verifyResource(() => {
+          registration.assert_provider_stable();
+          return registration.verify_resource_binding(payload);
+        });
       } catch {
         verified = false;
       }
@@ -359,7 +362,10 @@ export function createManagedProviderRegistry(registrations = [], options = {}) 
           context,
           binding: publicBinding(registration),
         });
-        verified = await verifyCleanup(() => registration.verify_cleanup_evidence(payload));
+        verified = await verifyCleanup(() => {
+          registration.assert_provider_stable();
+          return registration.verify_cleanup_evidence(payload);
+        });
       } catch {
         verified = false;
       }
@@ -404,7 +410,10 @@ export function createManagedProviderRegistry(registrations = [], options = {}) 
           context,
           binding: publicBinding(registration),
         });
-        verified = await verifyRecovery(() => registration.verify_recovery_absence(payload));
+        verified = await verifyRecovery(() => {
+          registration.assert_provider_stable();
+          return registration.verify_recovery_absence(payload);
+        });
       } catch {
         verified = false;
       }
