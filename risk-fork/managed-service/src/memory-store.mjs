@@ -242,12 +242,12 @@ export class MemoryManagedServiceStore {
       assertPlainRecord(input, 'idempotency lookup');
       assertAllowedKeys(
         input,
-        ['tenant_id', 'key_id', 'principal_window', 'idempotency_hash', 'request_hash'],
+        ['tenant_id', 'key_id', 'key_hash', 'principal_window', 'idempotency_hash', 'request_hash'],
         'idempotency lookup',
       );
       const tenantId = requireTenantId(input.tenant_id);
       const now = requireIso(clock(), 'admission clock result');
-      this.#requireActiveClaimant(tenantId, input.key_id, now, 'invocations:write');
+      this.#requireActiveClaimant(tenantId, input.key_id, now, 'invocations:write', input.key_hash);
       assertManagedPrincipalWindow(input.principal_window, now);
       const idempotencyHash = requireSha256(input.idempotency_hash, 'idempotency_hash');
       const requestHash = requireSha256(input.request_hash, 'request_hash');
@@ -306,7 +306,7 @@ export class MemoryManagedServiceStore {
       const tenantId = requireTenantId(input.tenant_id);
       // Capture time after the exclusive wait, never from the earlier request.
       const now = requireIso(clock(), 'admission clock result');
-      this.#requireActiveClaimant(tenantId, input.key_id, now, 'invocations:write');
+      this.#requireActiveClaimant(tenantId, input.key_id, now, 'invocations:write', input.key_hash);
       assertManagedPrincipalWindow(input.principal_window, now);
       const invocationRef = requireInvocationRef(input.invocation_ref, 'invocation_ref');
       const requestHash = requireSha256(input.request_hash, 'request_hash');
@@ -701,7 +701,7 @@ export class MemoryManagedServiceStore {
     return record;
   }
 
-  #requireActiveClaimant(tenantIdValue, claimantKeyIdValue, nowValue, requiredScope) {
+  #requireActiveClaimant(tenantIdValue, claimantKeyIdValue, nowValue, requiredScope, expectedKeyHash) {
     if (requiredScope !== 'invocations:write' && requiredScope !== 'invocations:cancel' && requiredScope !== 'audit:read'
       && !/^worker:(execution|cleanup|recovery):(claim|write)$/.test(requiredScope)) {
       throw new TypeError('claimant scope must be purpose-specific');
@@ -709,10 +709,11 @@ export class MemoryManagedServiceStore {
     const tenantId = requireTenantId(tenantIdValue);
     const claimantKeyId = requireOpaqueRef(claimantKeyIdValue, 'claimant_key_id');
     const now = requireIso(nowValue, 'claimant credential time');
-    const claimantCredential = [...this.#credentials.values()].find(
-      (credential) => credential.key_id === claimantKeyId,
-    );
+    const claimantCredential = requiredScope === 'invocations:write'
+      ? this.#credentials.get(requireSha256(expectedKeyHash, 'admitting credential hash'))
+      : [...this.#credentials.values()].find((credential) => credential.key_id === claimantKeyId);
     if (!claimantCredential
+      || claimantCredential.key_id !== claimantKeyId
       || claimantCredential.tenant_id !== tenantId
       || claimantCredential.revoked_at !== null
       || Date.parse(claimantCredential.not_before) > Date.parse(now)

@@ -8,7 +8,7 @@ import {
 } from '../../src/provider.mjs';
 import { verifyManagedAuditChain, verifyManagedAuditWindow } from './audit.mjs';
 import { normalizeAuditPageRequest, normalizeAuditWindowRequest, verifyAuditInvocationPage } from './audit-read.mjs';
-import { assertManagedPrincipalVerifier } from './auth.mjs';
+import { assertManagedPrincipalVerifier, getManagedAdmissionBinding } from './auth.mjs';
 import { normalizeManagedBacklogSnapshot } from './backlog-snapshot.mjs';
 import { cancellationRequest } from './cancellation.mjs';
 import {
@@ -326,12 +326,7 @@ export function createManagedRiskForkControlPlane(options = {}) {
     async admitInvocation(principalValue, input = {}) {
       enabled();
       const principal = await normalizePrincipal(principalValue, 'invocations:write', requirePrincipal);
-      // Only the branded, authenticated principal can supply a narrower token
-      // window. Request payloads cannot supply authority or override the clock.
-      const principalWindow = principalValue.expires_at === undefined ? null : {
-        not_before: principalValue.not_before,
-        expires_at: principalValue.expires_at,
-      };
+      const binding = getManagedAdmissionBinding(principalValue, requirePrincipal, store);
       assertPlainRecord(input, 'invocation request');
       assertAllowedKeys(input, [
         'idempotency_key',
@@ -374,7 +369,8 @@ export function createManagedRiskForkControlPlane(options = {}) {
       const replay = await store.findIdempotentInvocation({
         tenant_id: principal.tenant_id,
         key_id: principal.key_id,
-        principal_window: principalWindow,
+        key_hash: binding.key_hash,
+        principal_window: binding.principal_window,
         idempotency_hash: idempotencyHash,
         request_hash: requestHash,
       }, { clock });
@@ -405,7 +401,8 @@ export function createManagedRiskForkControlPlane(options = {}) {
       return store.admitInvocation({
         tenant_id: principal.tenant_id,
         key_id: principal.key_id,
-        principal_window: principalWindow,
+        key_hash: binding.key_hash,
+        principal_window: binding.principal_window,
         invocation_ref: invocationReference,
         idempotency_hash: idempotencyHash,
         request_hash: requestHash,

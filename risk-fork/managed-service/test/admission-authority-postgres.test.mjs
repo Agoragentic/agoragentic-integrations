@@ -9,7 +9,7 @@ import { createManagedRiskForkControlPlane } from '../src/control-plane.mjs';
 import { migrateManagedServicePostgres } from '../src/postgres-migrator.mjs';
 import { PostgresManagedServiceStore } from '../src/postgres-store.mjs';
 import { createManagedProviderRegistry } from '../src/provider-registry.mjs';
-import { createStablePostgresClock, invocationRequest, TestProvider, TEST_TOKEN } from './helpers.mjs';
+import { createStablePostgresClock, invocationRequest, TestProvider, TEST_TOKEN, OTHER_TOKEN } from './helpers.mjs';
 
 const connectionString = process.env.RISK_FORK_MANAGED_TEST_POSTGRES_URL;
 let skip = 'An explicit disposable loopback risk_fork_managed_test database is required';
@@ -61,7 +61,7 @@ async function fixture(t) {
     }
     return result;
   }
-  return { pool, clock, schema, store, control, principal, snapshot, providerRegistry };
+  return { pool, clock, schema, store, control, principal, snapshot, providerRegistry, auth };
 }
 
 async function waitUntilBlocked(pool, blockerPid) {
@@ -74,6 +74,86 @@ async function waitUntilBlocked(pool, blockerPid) {
     await new Promise((resolve) => setTimeout(resolve, 10));
   }
   assert.fail('admission did not reach the expected database lock within five seconds');
+}
+
+async function oauthAuthority(f, token = TEST_TOKEN) {
+  const identity = {
+    key_hash: hashManagedApiKey(token), key_id: 'key_alpha', tenant_id: 'tenant_alpha',
+    subject: 'key_alpha', issuer: 'https://fixture.invalid/issuer', audience: 'risk-fork-fixture',
+    scopes: ['invocations:write'], not_before: f.clock().toISOString(),
+    expires_at: new Date(f.clock().getTime() + 60_000).toISOString(),
+  };
+  const auth = createTrustedOAuthAuthenticator({ store: f.store, verify: async () => identity,
+    issuer: identity.issuer, audience: identity.audience, clock: f.clock });
+  const control = createManagedRiskForkControlPlane({
+    config: createManagedServiceConfig({ enabled: true, environment: 'local_test' }),
+    store: f.store, providerRegistry: f.providerRegistry, requirePrincipal: auth.requirePrincipal, clock: f.clock,
+  });
+  return { control, principal: await auth.authenticate(`Bearer ${token}`, 'invocations:write') };
+}
+
+for (const kind of ['API key', 'OAuth']) {
+  for (const method of ['findIdempotentInvocation', 'admitInvocation']) {
+    for (const replay of [false, true]) {
+      test(`PostgreSQL binds ${kind} hash across rotation in ${method} (replay=${replay})`,
+        { skip, timeout: 15_000 }, async (t) => {
+          const f = await fixture(t);
+          const authority = kind === 'OAuth' ? await oauthAuthority(f) : f;
+          const request = invocationRequest();
+          if (replay && method === 'findIdempotentInvocation') {
+            await authority.control.admitInvocation(authority.principal, request);
+          }
+          const original = f.store[method].bind(f.store);
+          let before;
+          let decision;
+          f.store[method] = async (...args) => {
+            // A concurrent admission can win after the early lookup returns
+            // null. Commit that winner through the real store before the
+            // outer call reaches its second, transactional replay check.
+            if (replay && method === 'admitInvocation') await original(...args);
+            before = await f.snapshot();
+            const blocker = await f.pool.connect();
+            let pending;
+            try {
+              await blocker.query('BEGIN');
+              await blocker.query(`UPDATE ${f.schema}.managed_api_keys SET key_hash = $1
+                WHERE key_id = 'key_alpha' AND tenant_id = 'tenant_alpha'`, [hashManagedApiKey(OTHER_TOKEN)]);
+              const { rows: [{ pid }] } = await blocker.query('SELECT pg_backend_pid() AS pid');
+              pending = original(...args).then((value) => ({ value }), (error) => ({ error }));
+              await waitUntilBlocked(f.pool, pid);
+              await blocker.query('COMMIT');
+            } finally {
+              await blocker.query('ROLLBACK');
+              blocker.release();
+            }
+            decision = await pending;
+            if (decision.error) throw decision.error;
+            return decision.value;
+          };
+          await assert.rejects(authority.control.admitInvocation(authority.principal, request), denied);
+          // Check the store decision itself; later authenticator revalidation
+          // must not hide a store that already accepted the replacement key.
+          assert.ok(decision?.error && denied(decision.error));
+          assert.equal(decision.value, undefined);
+          assert.deepEqual(await f.snapshot(), before);
+          assert.equal(JSON.stringify(decision.error).includes(hashManagedApiKey(TEST_TOKEN)), false);
+          f.store[method] = original;
+          const fresh = kind === 'OAuth' ? await oauthAuthority(f, OTHER_TOKEN) : {
+            control: f.control,
+            principal: await f.auth.authenticate(`Bearer ${OTHER_TOKEN}`, 'invocations:write'),
+          };
+          const accepted = await fresh.control.admitInvocation(fresh.principal, request);
+          assert.equal(accepted.created, !replay);
+          const publicResult = JSON.stringify({ principal: fresh.principal, accepted,
+            audit: await f.store.getAuditSnapshot('tenant_alpha', accepted.invocation.invocation_ref) });
+          for (const token of [TEST_TOKEN, OTHER_TOKEN]) {
+            assert.equal(publicResult.includes(token), false);
+            assert.equal(publicResult.includes(hashManagedApiKey(token)), false);
+          }
+          await assert.rejects(authority.control.admitInvocation(authority.principal, request), denied);
+        });
+    }
+  }
 }
 
 for (const barrier of ['tenant', 'credential', 'budget']) {
@@ -134,7 +214,7 @@ for (const barrier of ['tenant', 'credential', 'budget']) {
   }
 }
 
-for (const change of ['revocation', 'scope']) {
+for (const change of ['revocation', 'scope', 'credential hash rotation']) {
   test(`PostgreSQL observes ${change} committed while admission waits for the credential lock`,
     { skip, timeout: 15_000 }, async (t) => {
       const f = await fixture(t);
@@ -149,8 +229,10 @@ for (const change of ['revocation', 'scope']) {
           const { rows: [{ pid }] } = await blocker.query('SELECT pg_backend_pid() AS pid');
           pending = commit(...args).then((value) => ({ value }), (error) => ({ error }));
           await waitUntilBlocked(f.pool, pid);
-          const assignment = change === 'revocation' ? 'revoked_at = clock_timestamp()' : "scopes = '[]'::jsonb";
-          await blocker.query(`UPDATE ${f.schema}.managed_api_keys SET ${assignment} WHERE key_id = 'key_alpha'`);
+          const assignment = change === 'revocation' ? 'revoked_at = clock_timestamp()'
+            : change === 'scope' ? "scopes = '[]'::jsonb" : 'key_hash = $1';
+          await blocker.query(`UPDATE ${f.schema}.managed_api_keys SET ${assignment} WHERE key_id = 'key_alpha'`,
+            change === 'credential hash rotation' ? [hashManagedApiKey(OTHER_TOKEN)] : []);
           await blocker.query('COMMIT');
         } finally {
           await blocker.query('ROLLBACK');

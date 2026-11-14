@@ -438,11 +438,13 @@ export class PostgresManagedServiceStore {
     }
   }
 
-  async #isClaimantCredentialActive(client, tenantId, claimantKeyId, requiredScope) {
+  async #isClaimantCredentialActive(client, tenantId, claimantKeyId, requiredScope, expectedKeyHash) {
     if (requiredScope !== 'invocations:write' && requiredScope !== 'invocations:cancel'
       && !/^worker:(execution|cleanup|recovery):(claim|write)$/.test(requiredScope)) {
       throw new TypeError('claimant scope must be purpose-specific');
     }
+    const admissionHash = requiredScope === 'invocations:write'
+      ? requireSha256(expectedKeyHash, 'admitting credential hash') : null;
     // Hold the credential row through the enclosing mutation transaction.
     // Revocation/scope edits must serialize with the final authority decision.
     // Lock by identity first: WHERE predicates can run before a row-lock wait,
@@ -456,25 +458,26 @@ export class PostgresManagedServiceStore {
       `SELECT EXISTS (
          SELECT 1 FROM ${this.#schema}.managed_api_keys AS claimant
           WHERE claimant.key_id = $2 AND claimant.tenant_id = $1
+            AND ($4::text IS NULL OR claimant.key_hash = $4)
             AND claimant.revoked_at IS NULL
             AND claimant.not_before <= clock_timestamp()
             AND claimant.expires_at > clock_timestamp()
             AND claimant.scopes ? $3
        ) AS active`,
-      [tenantId, claimantKeyId, requiredScope],
+      [tenantId, claimantKeyId, requiredScope, admissionHash],
     );
     return result.rowCount === 1 && result.rows[0]?.active === true;
   }
 
-  async #assertClaimantCredentialActive(client, tenantId, claimantKeyId, requiredScope) {
-    if (!await this.#isClaimantCredentialActive(client, tenantId, claimantKeyId, requiredScope)) {
+  async #assertClaimantCredentialActive(client, tenantId, claimantKeyId, requiredScope, expectedKeyHash) {
+    if (!await this.#isClaimantCredentialActive(client, tenantId, claimantKeyId, requiredScope, expectedKeyHash)) {
       throw managedError('Claimant credential is not active', 'AUTHENTICATION_FAILED', 401);
     }
   }
 
   async #assertAdmissionAuthority(client, input) {
     await this.#assertClaimantCredentialActive(client, requireTenantId(input.tenant_id),
-      requireOpaqueRef(input.key_id, 'admitting key_id'), 'invocations:write');
+      requireOpaqueRef(input.key_id, 'admitting key_id'), 'invocations:write', input.key_hash);
     // Database time is authoritative, including after lock waits and retries.
     assertManagedPrincipalWindow(input.principal_window, await this.#databaseNow(client));
   }
@@ -579,7 +582,7 @@ export class PostgresManagedServiceStore {
     assertPlainRecord(input, 'idempotency lookup');
     assertAllowedKeys(
       input,
-      ['tenant_id', 'key_id', 'principal_window', 'idempotency_hash', 'request_hash'],
+      ['tenant_id', 'key_id', 'key_hash', 'principal_window', 'idempotency_hash', 'request_hash'],
       'idempotency lookup',
     );
     const tenantId = requireTenantId(input.tenant_id);
@@ -770,6 +773,7 @@ export class PostgresManagedServiceStore {
            FROM admission_clock
           WHERE EXISTS (SELECT 1 FROM ${this.#schema}.managed_api_keys AS credential
             WHERE credential.tenant_id = $1 AND credential.key_id = $3
+              AND credential.key_hash = $17
               AND credential.revoked_at IS NULL
               AND credential.not_before <= admission_clock.now
               AND credential.expires_at > admission_clock.now
@@ -795,6 +799,7 @@ export class PostgresManagedServiceStore {
           input.provider_recovery_key,
           input.principal_window?.not_before ?? null,
           input.principal_window?.expires_at ?? null,
+          requireSha256(input.key_hash, 'admitting credential hash'),
         ],
       );
       if (inserted.rowCount !== 1) {
