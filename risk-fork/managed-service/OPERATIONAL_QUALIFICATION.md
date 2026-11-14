@@ -252,6 +252,22 @@ environment-name set and explicit provider-key absence before handoff. The
 outer launcher reports `lab_resources_cleanup_verified` only for temporary
 local files/containers; that is not the observer's kernel `cleanup_status`.
 
+### Bounded host/worker protocol remains local-only
+
+The provider-free tree lab uses an internal bounded worker channel. Combined
+stdout/stderr bytes, buffered frames, pending reads and per-read deadlines are
+bounded. Malformed UTF-8/JSON, non-object frames, stream loss, timeout and
+cancellation permanently revoke that channel; late frames cannot re-enable
+handoff. Each received chunk's complete frames and queue bounds are validated
+before any waiting reader receives an acknowledgement. Failure discards queued
+frames and rejects pending reads. Readers recheck revocation before delivery;
+the observer also rechecks synchronously after awaited host observations before
+marking either normal or pre-handoff-cancellation work complete. These checks
+cover observed revocation, not future or not-yet-delivered stream events. The host
+still owns exact-ID teardown and independent kernel observation: closing this
+channel is not process-tree cleanup proof. Unit tests include a keyless local
+Node child and do not qualify Docker, a credentialed SDK launch or production.
+
 ### Cleanup recovery is not current qualification
 
 The E2B adapter can recover already-journaled local export obligations after an
