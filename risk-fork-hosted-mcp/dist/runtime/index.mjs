@@ -77874,6 +77874,7 @@ var MAX_RUNTIME_SDK_FILES = 8192;
 var MAX_RUNTIME_SDK_BYTES_PER_PACKAGE = 64 * 1024 * 1024;
 var MAX_RUNTIME_SDK_BYTES = 256 * 1024 * 1024;
 var MAX_RUNTIME_DEPENDENCIES_PER_PACKAGE = 256;
+var MAX_RUNTIME_DEPENDENCY_LOOKUP_PATHS = 128;
 var MIN_EXTERNAL_OBSERVATION_LIFETIME_MS = 1e3;
 var MAX_EXTERNAL_OBSERVATION_LIFETIME_MS = 24 * 60 * 60 * 1e3;
 var E2B_EXTERNAL_QUALIFICATION_AUDIENCE = "agoragentic.risk-fork.e2b-qualification";
@@ -79143,6 +79144,53 @@ async function locateDependencyPackage(fromRoot, requestedName, anchor) {
   }
   return null;
 }
+async function assertOptionalDependencyAbsent(fromRoot, requestedName) {
+  const resolver = createRequire(path4.join(fromRoot, "package.json"));
+  let resolved;
+  try {
+    resolved = resolver.resolve(requestedName);
+  } catch (error) {
+    if (error?.code !== "MODULE_NOT_FOUND") {
+      throw new Error(`E2B runtime absent optional dependency ${requestedName} cannot be established`);
+    }
+  }
+  if (resolved !== void 0) {
+    if (!path4.isAbsolute(resolved) || runtimeSdkCachedModule(resolved) !== void 0) {
+      throw new Error(`E2B runtime optional dependency ${requestedName} resolves outside its inspected closure`);
+    }
+    try {
+      await lstat(resolved);
+      throw new Error(`E2B runtime optional dependency ${requestedName} resolves outside its inspected closure`);
+    } catch (error) {
+      if (error?.code !== "ENOENT" && error?.code !== "ENOTDIR") throw error;
+    }
+  }
+  const lookupPaths = resolver.resolve.paths(requestedName);
+  if (!Array.isArray(lookupPaths) || lookupPaths.length > MAX_RUNTIME_DEPENDENCY_LOOKUP_PATHS) {
+    throw new Error(`E2B runtime absent optional dependency ${requestedName} has unsupported lookup paths`);
+  }
+  const cachedFiles = Object.getOwnPropertyNames(RUNTIME_SDK_COMMONJS_CACHE);
+  if (cachedFiles.length > MAX_RUNTIME_SDK_CACHE_PROVENANCE) {
+    throw new Error("E2B runtime SDK cache provenance capacity reached; restart required");
+  }
+  for (const directory of lookupPaths) {
+    const candidate = path4.join(directory, ...dependencyPathSegments(requestedName));
+    for (const cachedFile of cachedFiles) {
+      if (path4.isAbsolute(cachedFile) && (isContainedPath(candidate, cachedFile) || [".js", ".json", ".node"].some((suffix) => cachedFile === `${candidate}${suffix}`)) && runtimeSdkCachedModule(cachedFile) !== void 0) {
+        throw new Error(`E2B runtime optional dependency ${requestedName} has cached code outside its inspected closure`);
+      }
+    }
+    for (const suffix of ["", ".js", ".json", ".node"]) {
+      try {
+        await lstat(`${candidate}${suffix}`);
+      } catch (error) {
+        if (error?.code === "ENOENT" || error?.code === "ENOTDIR") continue;
+        throw error;
+      }
+      throw new Error(`E2B runtime optional dependency ${requestedName} exists outside its inspected closure`);
+    }
+  }
+}
 async function inspectRuntimePackageTree(root, anchor, state) {
   const location = canonicalClosureLocation(anchor, root, "E2B runtime package");
   const files = [];
@@ -79295,6 +79343,7 @@ async function inspectRuntimeSdkPackage(packageDirectory) {
             `E2B runtime dependency ${dependency.requested_name} is required but missing`
           );
         }
+        await assertOptionalDependencyAbsent(canonicalRoot, dependency.requested_name);
         edges.push({
           from_location: inspected.record.location,
           requested_name: dependency.requested_name,
@@ -79374,6 +79423,7 @@ async function inspectRuntimeSdkPackage(packageDirectory) {
   return {
     binding,
     entry: path4.join(root, sdk.manifest.main),
+    hasAbsentOptionalDependencies: edges.some((edge) => edge.resolution === "absent_optional"),
     runtimeFiles: [...packagesByRoot.values()].flatMap((entry) => entry.record.files.map((file) => ({
       path: path4.join(entry.root, ...file.path.split("/")),
       hash: file.hash
@@ -79404,9 +79454,23 @@ function assertRuntimeSdkCacheProvenance(files) {
     }
   }
 }
+function assertOptionalSdkLoadCacheClosure(inspected) {
+  if (!inspected.hasAbsentOptionalDependencies) return;
+  const cachedFiles = Object.getOwnPropertyNames(RUNTIME_SDK_COMMONJS_CACHE);
+  if (cachedFiles.length > MAX_RUNTIME_SDK_CACHE_PROVENANCE) {
+    throw new Error("E2B runtime SDK cache provenance capacity reached; restart required");
+  }
+  const allowedFiles = new Set(inspected.runtimeFiles.map((file) => file.path));
+  for (const file of cachedFiles) {
+    if (runtimeSdkCachedModule(file) !== void 0 && !allowedFiles.has(file)) {
+      throw new Error("E2B runtime SDK absent optional dependency requires a fresh process without unrelated cached modules");
+    }
+  }
+}
 async function loadRuntimeSdkWithCacheFence(expected, inspect) {
   const before = await inspect();
   assertRuntimeSdkBindingMatches(before.binding, expected);
+  assertOptionalSdkLoadCacheClosure(before);
   let loaded = RUNTIME_SDK_LOADED_ENTRIES.get(before.entry);
   if (loaded && (loaded.state !== "verified" || !safeEqual(loaded.hash, before.binding.integrity_hash))) {
     throw new Error("E2B runtime SDK loaded binding changed or failed; restart required");
@@ -79423,6 +79487,7 @@ async function loadRuntimeSdkWithCacheFence(expected, inspect) {
     const module = await import(pathToFileURL(before.entry).href);
     const after = await inspect();
     assertRuntimeSdkBindingMatches(after.binding, expected);
+    assertOptionalSdkLoadCacheClosure(after);
     if (!safeEqual(before.binding.integrity_hash, after.binding.integrity_hash)) {
       throw new Error("E2B runtime SDK package changed while it was loaded");
     }
@@ -85921,7 +85986,7 @@ function createE2BAuthorityFreeSourceVerifier(options = {}) {
 }
 
 // risk-fork-hosted-mcp/src/index.mjs
-var REVIEWED_SOURCE_INTEGRITY = true ? "sha256:8d8bf406a2f4f3cf263e46a9a727af3247ebfc5957633a722eda453da4e99434" : null;
+var REVIEWED_SOURCE_INTEGRITY = true ? "sha256:2a70bd098f19d6bd673c740e2de7aff12dd8ff9fad935ba27d905ed8473ad2f3" : null;
 var HOSTED_MCP_BUNDLE_METADATA = Object.freeze({
   package_name: "@agoragentic/risk-fork-hosted-mcp",
   package_version: "0.1.0-alpha.0",
