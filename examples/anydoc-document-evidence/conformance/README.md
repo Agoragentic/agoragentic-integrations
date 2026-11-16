@@ -24,8 +24,8 @@ The adapter-level network guard blocks Node built-in and global network APIs. It
 | Long CSV | hard chunk limits, ordered-prefix coverage, and incomplete-receipt blocker |
 | XLSX hidden/formatted values | hidden content, percent formatting, formulas, coordinates, merged cells |
 | XLSM alias | advertised macro-format alias normalizes to canonical `xlsx` |
-| DOCX nested table | text recall versus recoverable table structure |
-| PPTX untitled slides | presentation container boundaries and layout |
+| DOCX nested table with a header and footer | nested cell text retained, header and footer text absent from untruncated Markdown |
+| PPTX untitled slides with speaker notes | slide and note text retained in Markdown, zero notes counted in the structured result |
 | Text PDF control | both text markers retained without OCR, complete text coverage, and a receipt blocked on unavailable document structure |
 | Image-only PDF | explicit OCR-required failure |
 | Password-protected PDF | explicit encrypted-document failure |

@@ -81,13 +81,18 @@
       "format": "docx",
       "expected_canonical_format": "docx",
       "expect_conversion": true,
-      "expected_markdown_tokens": ["Height", "120", "Weight", "34"],
+      "expected_markdown_tokens": ["Nested table evidence", "Height", "120", "Weight", "34"],
+      "expected_absent_markdown_tokens": ["Synthetic section header", "Synthetic section footer"],
       "expected_risk": "medium",
       "expected_receipt_status": "pending",
       "expected_coverage_complete": true,
       "expected_limitations": [
         "nested_tables_may_be_flattened",
-        "embedded_assets_need_separate_review"
+        "embedded_assets_need_separate_review",
+        "layout_text_boxes_headers_and_footers_may_be_lossy"
+      ],
+      "semantic_observation_labels": [
+        "docx_section_header_and_footer_text_absent_from_markdown"
       ]
     },
     {
@@ -98,14 +103,20 @@
       "expect_conversion": true,
       "expected_markdown_tokens": [
         "Second slide, no title placeholder.",
-        "Third slide, also untitled."
+        "Third slide, also untitled.",
+        "Synthetic speaker notes"
       ],
       "expected_risk": "medium",
       "expected_receipt_status": "pending",
       "expected_coverage_complete": true,
+      "expected_structured_note_count": 0,
       "expected_limitations": [
         "untitled_slide_boundaries_may_be_lossy",
         "speaker_notes_and_layout_need_output_review"
+      ],
+      "semantic_observation_labels": [
+        "pptx_speaker_note_text_present_in_markdown",
+        "pptx_speaker_note_not_counted_as_structured_note"
       ]
     },
     {

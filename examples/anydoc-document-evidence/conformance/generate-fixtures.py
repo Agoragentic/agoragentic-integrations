@@ -26,6 +26,9 @@ MANIFEST = GENERATED / "fixture-manifest.json"
 REQUIREMENTS_LOCK = ROOT / "requirements.txt"
 TEXT_PDF_LINES = ("Synthetic text PDF control", "Text evidence marker 1269")
 ENCRYPTED_PDF_TEXT = "Synthetic encrypted document"
+DOCX_HEADER_TEXT = "Synthetic section header"
+DOCX_FOOTER_TEXT = "Synthetic section footer"
+PPTX_SPEAKER_NOTE = "Synthetic speaker notes"
 GENERATOR_DISTRIBUTIONS = (
     "charset-normalizer",
     "et-xmlfile",
@@ -91,6 +94,9 @@ def write_xlsx() -> None:
 def write_docx() -> None:
     document = Document()
     document.add_heading("Nested table evidence", level=1)
+    section = document.sections[0]
+    section.header.paragraphs[0].text = DOCX_HEADER_TEXT
+    section.footer.paragraphs[0].text = DOCX_FOOTER_TEXT
     outer = document.add_table(rows=1, cols=1)
     cell = outer.cell(0, 0)
     cell.paragraphs[0].add_run("Section A")
@@ -116,6 +122,7 @@ def write_pptx() -> None:
 
     second = presentation.slides.add_slide(presentation.slide_layouts[6])
     add_textbox(second, "Second slide, no title placeholder.")
+    second.notes_slide.notes_text_frame.text = PPTX_SPEAKER_NOTE
 
     third = presentation.slides.add_slide(presentation.slide_layouts[6])
     add_textbox(third, "Third slide, also untitled.")
@@ -184,6 +191,9 @@ def verify_sources() -> dict[str, list[str]]:
     assert (GENERATED / "semantic-risks.xlsx").read_bytes() == (GENERATED / "semantic-risks.xlsm").read_bytes()
 
     document = Document(GENERATED / "nested-table.docx")
+    section = document.sections[0]
+    assert section.header.paragraphs[0].text == DOCX_HEADER_TEXT
+    assert section.footer.paragraphs[0].text == DOCX_FOOTER_TEXT
     nested = document.tables[0].cell(0, 0).tables[0]
     assert [[cell.text for cell in row.cells] for row in nested.rows] == [
         ["Metric", "Value"],
@@ -202,6 +212,8 @@ def verify_sources() -> dict[str, list[str]]:
     ]
     assert "Second slide, no title placeholder." in slide_text[1]
     assert "Third slide, also untitled." in slide_text[2]
+    assert presentation.slides[1].notes_slide.notes_text_frame.text == PPTX_SPEAKER_NOTE
+    assert all(PPTX_SPEAKER_NOTE not in text for text in slide_text)
 
     text_pdf = (GENERATED / "text.pdf").read_bytes()
     assert text_pdf.startswith(b"%PDF-") and b"/Subtype /Image" not in text_pdf
@@ -232,8 +244,11 @@ def verify_sources() -> dict[str, list[str]]:
             "merged_range_verified",
         ],
         "semantic-risks.xlsm": ["byte_identical_alias_fixture_verified"],
-        "nested-table.docx": ["nested_table_cells_verified"],
-        "untitled-slides.pptx": ["untitled_slide_structure_and_text_verified"],
+        "nested-table.docx": ["nested_table_cells_verified", "section_header_and_footer_text_verified"],
+        "untitled-slides.pptx": [
+            "untitled_slide_structure_and_text_verified",
+            "speaker_note_text_verified_outside_slide_shapes",
+        ],
         "text.pdf": ["pdf_contains_both_text_showing_operators", "pdf_contains_no_image_objects"],
         "image-only.pdf": ["pdf_contains_embedded_image_object"],
         "encrypted.pdf": ["pdf_standard_encryption_dictionary_present", "pdf_marker_absent_in_plaintext"],

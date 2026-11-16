@@ -354,6 +354,18 @@ function verifyConvertedResult(result, item, context, sourceBytes) {
       `${item.id} missing expected Markdown token ${JSON.stringify(token)}`,
     );
   }
+  const absentTokens = item.expected_absent_markdown_tokens || [];
+  if (absentTokens.length > 0) {
+    assert.equal(result.output.truncated, false, `${item.id} cannot verify absence in truncated Markdown`);
+    for (const token of absentTokens) {
+      assert(!result.output.markdown.includes(token), `${item.id} emitted an expected-absent Markdown token`);
+    }
+  }
+  if (item.expected_structured_note_count !== undefined) {
+    assert.equal(result.output.structure.status, 'available');
+    assert.equal(result.output.structure.traversal_truncated, false);
+    assert.equal(result.output.structure.note_count, item.expected_structured_note_count);
+  }
   for (const blocker of item.expected_blockers || []) {
     assert(result.output.completeness.blockers.includes(blocker), `${item.id} missing blocker ${blocker}`);
     assert(result.ecf_handoff.blockers.includes(blocker), `${item.id} handoff missing blocker ${blocker}`);
