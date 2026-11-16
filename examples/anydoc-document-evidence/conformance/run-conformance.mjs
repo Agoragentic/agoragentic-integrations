@@ -354,6 +354,27 @@ function verifyConvertedResult(result, item, context, sourceBytes) {
       `${item.id} missing expected Markdown token ${JSON.stringify(token)}`,
     );
   }
+  let markdownOffset = 0;
+  for (const token of item.expected_ordered_markdown_tokens || []) {
+    const nextOffset = result.output.markdown.indexOf(token, markdownOffset);
+    assert(nextOffset >= 0, `${item.id} missing ordered Markdown token`);
+    markdownOffset = nextOffset + token.length;
+  }
+  const absentTokens = item.expected_absent_markdown_tokens || [];
+  if (absentTokens.length > 0) {
+    assert.equal(result.output.truncated, false, `${item.id} cannot verify absence in truncated Markdown`);
+    for (const token of absentTokens) {
+      assert(!result.output.markdown.includes(token), `${item.id} emitted an expected-absent Markdown token`);
+    }
+  }
+  if (item.expected_structured_note_count !== undefined) {
+    assert.equal(result.output.structure.status, 'available');
+    assert.equal(result.output.structure.traversal_truncated, false);
+    assert.equal(result.output.structure.note_count, item.expected_structured_note_count);
+  }
+  for (const [field, count] of Object.entries(item.expected_receipt_counts || {})) {
+    assert.equal(result.ecf_handoff.receipt[field], count, `${item.id} unexpected receipt ${field}`);
+  }
   for (const blocker of item.expected_blockers || []) {
     assert(result.output.completeness.blockers.includes(blocker), `${item.id} missing blocker ${blocker}`);
     assert(result.ecf_handoff.blockers.includes(blocker), `${item.id} handoff missing blocker ${blocker}`);
@@ -436,6 +457,9 @@ async function runCases(context) {
         if (item.expect_conversion === false
           && error instanceof AnyDocEvidenceError
           && error.code === item.expected_error_code) {
+          if (item.expected_retryable !== undefined) {
+            assert.equal(error.retryable, item.expected_retryable, `${item.id} unexpected retry status`);
+          }
           results.push({
             id: item.id,
             file: item.file,
@@ -472,6 +496,11 @@ async function runCases(context) {
         evidence_coverage: result.output.evidence_coverage,
         completeness: result.output.completeness,
         structure: result.output.structure,
+        receipt_counts: {
+          table_count: result.ecf_handoff.receipt.table_count,
+          image_count: result.ecf_handoff.receipt.image_count,
+          formula_count: result.ecf_handoff.receipt.formula_count,
+        },
         context_packet_ready: result.ecf_handoff.context_packet_ready,
         no_authority_grants_verified: true,
         parser_boundary: result.parser.boundary,

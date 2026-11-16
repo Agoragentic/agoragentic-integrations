@@ -7,7 +7,7 @@ It does **not** assert that AnyDoc preserves every source semantic. It verifies 
 - runs the installed package in a killable child process with a deadline, V8 heap bound, sanitized environment, and Node permission boundary;
 - reports installed parser and native-binding provenance instead of trusting hard-coded metadata;
 - hard-splits evidence units and accounts for every covered or omitted character;
-- fails closed for an image-only PDF instead of silently invoking OCR;
+- fails closed for image-only, password-protected, and malformed PDFs;
 - independently recomputes fixture, source, parser-output, bounded-output, and evidence-coverage hashes;
 - marks the result as non-source-exact and discloses format-specific limitations;
 - blocks incomplete output, structure failures, unreviewed assets, and unattested custom parsers;
@@ -24,9 +24,15 @@ The adapter-level network guard blocks Node built-in and global network APIs. It
 | Long CSV | hard chunk limits, ordered-prefix coverage, and incomplete-receipt blocker |
 | XLSX hidden/formatted values | hidden content, percent formatting, formulas, coordinates, merged cells |
 | XLSM alias | advertised macro-format alias normalizes to canonical `xlsx` |
-| DOCX nested table | text recall versus recoverable table structure |
-| PPTX untitled slides | presentation container boundaries and layout |
+| XLSX display formats and formula cache | worksheet order and date text retained, numeric display formats omitted, stale cached formula value emitted with a zero formula count |
+| XLSX input size cap | a small valid workbook exceeds a deliberately lower byte limit and is rejected without retry |
+| DOCX nested table with a header and footer | nested cell text retained, header and footer text absent from untruncated Markdown |
+| DOCX with one embedded image | image counted in the receipt, image excluded from evidence, and incomplete receipt blocker |
+| PPTX untitled slides with speaker notes | slide and note text retained in Markdown, zero notes counted in the structured result |
+| Text PDF control | both text markers retained without OCR, complete text coverage, and a receipt blocked on unavailable document structure |
 | Image-only PDF | explicit OCR-required failure |
+| Password-protected PDF | explicit encrypted-document failure |
+| Truncated PDF container | explicit malformed-document failure |
 
 The Python generator reopens and verifies the source-side facts before writing `generated/fixture-manifest.json`. The Node harness checks every fixture hash, the full generator dependency inventory, and the hash-locked requirements file against that manifest before invoking AnyDoc.
 

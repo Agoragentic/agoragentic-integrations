@@ -76,18 +76,82 @@
       ]
     },
     {
+      "id": "xlsx-display-formats-and-formula-cache",
+      "file": "formats.xlsx",
+      "format": "xlsx",
+      "expected_canonical_format": "xlsx",
+      "expect_conversion": true,
+      "expected_ordered_markdown_tokens": [
+        "## Format Controls",
+        "| Calendar value | 2025-01-15 |",
+        "| Currency value | 82.75 |",
+        "| Accounting value | -64.2 |",
+        "| Scientific value | 0.00000275 |",
+        "| Cached result | 43 |",
+        "## Second Tab",
+        "Second sheet marker 1269"
+      ],
+      "expected_absent_markdown_tokens": ["USD 82.75", "2.75E-06", "=6*7"],
+      "expected_receipt_counts": { "formula_count": 0 },
+      "expected_risk": "high",
+      "expected_receipt_status": "pending",
+      "expected_coverage_complete": true,
+      "expected_limitations": [
+        "number_formats_may_be_dropped_or_change_interpretation",
+        "worksheet_identity_and_source_coordinates_may_be_incomplete",
+        "formulas_are_not_independently_recalculated"
+      ],
+      "semantic_observation_labels": [
+        "xlsx_worksheet_order_and_date_text_retained",
+        "xlsx_stored_numeric_values_emitted_without_display_formats",
+        "xlsx_stale_formula_cache_emitted_without_recalculation_or_formula_count"
+      ]
+    },
+    {
+      "id": "xlsx-input-size-cap",
+      "file": "formats.xlsx",
+      "format": "xlsx",
+      "expected_canonical_format": "xlsx",
+      "options": { "maxInputBytes": 512 },
+      "expect_conversion": false,
+      "expected_error_code": "input_too_large",
+      "expected_retryable": false
+    },
+    {
       "id": "docx-nested-table",
       "file": "nested-table.docx",
       "format": "docx",
       "expected_canonical_format": "docx",
       "expect_conversion": true,
-      "expected_markdown_tokens": ["Height", "120", "Weight", "34"],
+      "expected_markdown_tokens": ["Nested table evidence", "Height", "120", "Weight", "34"],
+      "expected_absent_markdown_tokens": ["Synthetic section header", "Synthetic section footer"],
       "expected_risk": "medium",
       "expected_receipt_status": "pending",
       "expected_coverage_complete": true,
       "expected_limitations": [
         "nested_tables_may_be_flattened",
-        "embedded_assets_need_separate_review"
+        "embedded_assets_need_separate_review",
+        "layout_text_boxes_headers_and_footers_may_be_lossy"
+      ],
+      "semantic_observation_labels": [
+        "docx_section_header_and_footer_text_absent_from_markdown"
+      ]
+    },
+    {
+      "id": "docx-embedded-image-blocks-receipt",
+      "file": "embedded-image.docx",
+      "format": "docx",
+      "expected_canonical_format": "docx",
+      "expect_conversion": true,
+      "expected_markdown_tokens": ["Text beside a synthetic image"],
+      "expected_receipt_counts": { "image_count": 1 },
+      "expected_risk": "medium",
+      "expected_receipt_status": "incomplete",
+      "expected_coverage_complete": true,
+      "expected_blockers": ["embedded_assets_not_in_evidence_packet"],
+      "expected_limitations": ["embedded_assets_need_separate_review"],
+      "semantic_observation_labels": [
+        "docx_image_detected_but_excluded_from_evidence"
       ]
     },
     {
@@ -98,14 +162,37 @@
       "expect_conversion": true,
       "expected_markdown_tokens": [
         "Second slide, no title placeholder.",
-        "Third slide, also untitled."
+        "Third slide, also untitled.",
+        "Synthetic speaker notes"
       ],
       "expected_risk": "medium",
       "expected_receipt_status": "pending",
       "expected_coverage_complete": true,
+      "expected_structured_note_count": 0,
       "expected_limitations": [
         "untitled_slide_boundaries_may_be_lossy",
         "speaker_notes_and_layout_need_output_review"
+      ],
+      "semantic_observation_labels": [
+        "pptx_speaker_note_text_present_in_markdown",
+        "pptx_speaker_note_not_counted_as_structured_note"
+      ]
+    },
+    {
+      "id": "pdf-text-layer-control",
+      "file": "text.pdf",
+      "format": "pdf",
+      "expected_canonical_format": "pdf",
+      "expect_conversion": true,
+      "expected_markdown_tokens": ["Synthetic text PDF control", "Text evidence marker 1269"],
+      "expected_risk": "medium",
+      "expected_receipt_status": "incomplete",
+      "expected_coverage_complete": true,
+      "expected_blockers": ["document_structure_unavailable_for_pdf"],
+      "expected_limitations": [
+        "scanned_or_image_only_pdf_requires_ocr_fallback",
+        "pdf_document_model_and_embedded_assets_are_not_available",
+        "reading_order_may_be_ambiguous_in_complex_layouts"
       ]
     },
     {
@@ -115,6 +202,22 @@
       "expected_canonical_format": "pdf",
       "expect_conversion": false,
       "expected_error_code": "unsupported_or_ocr_required"
+    },
+    {
+      "id": "pdf-encrypted-rejected",
+      "file": "encrypted.pdf",
+      "format": "pdf",
+      "expected_canonical_format": "pdf",
+      "expect_conversion": false,
+      "expected_error_code": "encrypted_document"
+    },
+    {
+      "id": "pdf-malformed-rejected",
+      "file": "malformed.pdf",
+      "format": "pdf",
+      "expected_canonical_format": "pdf",
+      "expect_conversion": false,
+      "expected_error_code": "malformed_document"
     }
   ]
 }
