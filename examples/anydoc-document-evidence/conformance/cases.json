@@ -76,6 +76,48 @@
       ]
     },
     {
+      "id": "xlsx-display-formats-and-formula-cache",
+      "file": "formats.xlsx",
+      "format": "xlsx",
+      "expected_canonical_format": "xlsx",
+      "expect_conversion": true,
+      "expected_ordered_markdown_tokens": [
+        "## Format Controls",
+        "| Calendar value | 2025-01-15 |",
+        "| Currency value | 82.75 |",
+        "| Accounting value | -64.2 |",
+        "| Scientific value | 0.00000275 |",
+        "| Cached result | 43 |",
+        "## Second Tab",
+        "Second sheet marker 1269"
+      ],
+      "expected_absent_markdown_tokens": ["USD 82.75", "2.75E-06", "=6*7"],
+      "expected_receipt_counts": { "formula_count": 0 },
+      "expected_risk": "high",
+      "expected_receipt_status": "pending",
+      "expected_coverage_complete": true,
+      "expected_limitations": [
+        "number_formats_may_be_dropped_or_change_interpretation",
+        "worksheet_identity_and_source_coordinates_may_be_incomplete",
+        "formulas_are_not_independently_recalculated"
+      ],
+      "semantic_observation_labels": [
+        "xlsx_worksheet_order_and_date_text_retained",
+        "xlsx_stored_numeric_values_emitted_without_display_formats",
+        "xlsx_stale_formula_cache_emitted_without_recalculation_or_formula_count"
+      ]
+    },
+    {
+      "id": "xlsx-input-size-cap",
+      "file": "formats.xlsx",
+      "format": "xlsx",
+      "expected_canonical_format": "xlsx",
+      "options": { "maxInputBytes": 512 },
+      "expect_conversion": false,
+      "expected_error_code": "input_too_large",
+      "expected_retryable": false
+    },
+    {
       "id": "docx-nested-table",
       "file": "nested-table.docx",
       "format": "docx",
@@ -93,6 +135,23 @@
       ],
       "semantic_observation_labels": [
         "docx_section_header_and_footer_text_absent_from_markdown"
+      ]
+    },
+    {
+      "id": "docx-embedded-image-blocks-receipt",
+      "file": "embedded-image.docx",
+      "format": "docx",
+      "expected_canonical_format": "docx",
+      "expect_conversion": true,
+      "expected_markdown_tokens": ["Text beside a synthetic image"],
+      "expected_receipt_counts": { "image_count": 1 },
+      "expected_risk": "medium",
+      "expected_receipt_status": "incomplete",
+      "expected_coverage_complete": true,
+      "expected_blockers": ["embedded_assets_not_in_evidence_packet"],
+      "expected_limitations": ["embedded_assets_need_separate_review"],
+      "semantic_observation_labels": [
+        "docx_image_detected_but_excluded_from_evidence"
       ]
     },
     {

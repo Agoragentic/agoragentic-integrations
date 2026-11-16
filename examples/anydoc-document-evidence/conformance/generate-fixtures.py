@@ -4,14 +4,17 @@
 from __future__ import annotations
 
 import csv
+from datetime import datetime
 import hashlib
 from importlib.metadata import version
 from io import BytesIO
 import json
 from pathlib import Path
 import shutil
+from zipfile import ZipFile
 
 from docx import Document
+from docx.shared import Inches as DocxInches
 from openpyxl import Workbook, load_workbook
 from PIL import Image, ImageDraw
 from pptx import Presentation
@@ -19,6 +22,7 @@ from pptx.util import Inches
 from reportlab.lib.pdfencrypt import StandardEncryption
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
+import xlsxwriter
 
 ROOT = Path(__file__).resolve().parent
 GENERATED = ROOT / "generated"
@@ -29,6 +33,13 @@ ENCRYPTED_PDF_TEXT = "Synthetic encrypted document"
 DOCX_HEADER_TEXT = "Synthetic section header"
 DOCX_FOOTER_TEXT = "Synthetic section footer"
 PPTX_SPEAKER_NOTE = "Synthetic speaker notes"
+XLSX_FORMAT_ROWS = (
+    ("Calendar value", datetime(2025, 1, 15), "yyyy-mm-dd"),
+    ("Currency value", 82.75, '"USD "#,##0.00'),
+    ("Accounting value", -64.2, '_("$"* #,##0.00_);_("$"* (#,##0.00);_("$"* "-"??_);_(@_)'),
+    ("Scientific value", 0.00000275, "0.00E+00"),
+)
+DOCX_IMAGE_SIZE = (12, 12)
 GENERATOR_DISTRIBUTIONS = (
     "charset-normalizer",
     "et-xmlfile",
@@ -91,6 +102,19 @@ def write_xlsx() -> None:
     shutil.copyfile(xlsx_path, GENERATED / "semantic-risks.xlsm")
 
 
+def write_xlsx_formats() -> None:
+    with xlsxwriter.Workbook(GENERATED / "formats.xlsx") as workbook:
+        workbook.set_properties({"created": datetime(2025, 1, 15)})
+        sheet = workbook.add_worksheet("Format Controls")
+        for row, (label, value, number_format) in enumerate(XLSX_FORMAT_ROWS):
+            sheet.write(row, 0, label)
+            sheet.write(row, 1, value, workbook.add_format({"num_format": number_format}))
+        sheet.write(4, 0, "Cached result")
+        # The intentionally stale cache distinguishes reading from recalculation.
+        sheet.write_formula(4, 1, "=6*7", None, 43)
+        workbook.add_worksheet("Second Tab").write(0, 0, "Second sheet marker 1269")
+
+
 def write_docx() -> None:
     document = Document()
     document.add_heading("Nested table evidence", level=1)
@@ -108,6 +132,16 @@ def write_docx() -> None:
     inner.cell(2, 0).text = "Weight"
     inner.cell(2, 1).text = "34"
     document.save(GENERATED / "nested-table.docx")
+
+
+def write_docx_embedded_image() -> None:
+    png = BytesIO()
+    Image.new("RGB", DOCX_IMAGE_SIZE, "navy").save(png, format="PNG")
+    png.seek(0)
+    document = Document()
+    document.add_paragraph("Text beside a synthetic image")
+    document.add_picture(png, width=DocxInches(1))
+    document.save(GENERATED / "embedded-image.docx")
 
 
 def add_textbox(slide, text: str) -> None:
@@ -190,6 +224,30 @@ def verify_sources() -> dict[str, list[str]]:
     assert "F1:O3" in {str(item) for item in sheet.merged_cells.ranges}
     assert (GENERATED / "semantic-risks.xlsx").read_bytes() == (GENERATED / "semantic-risks.xlsm").read_bytes()
 
+    formats_path = GENERATED / "formats.xlsx"
+    formats = load_workbook(formats_path, data_only=False)
+    assert formats.sheetnames == ["Format Controls", "Second Tab"]
+    assert formats["Second Tab"]["A1"].value == "Second sheet marker 1269"
+    formatted_sheet = formats["Format Controls"]
+    for row, (label, value, number_format) in enumerate(XLSX_FORMAT_ROWS, start=1):
+        assert formatted_sheet.cell(row, 1).value == label
+        assert formatted_sheet.cell(row, 2).value == value
+        assert formatted_sheet.cell(row, 2).number_format == number_format
+    assert formatted_sheet["B5"].value == "=6*7"
+    cached_formats = load_workbook(formats_path, data_only=True)
+    assert cached_formats["Format Controls"]["B5"].value == 43
+
+    image_path = GENERATED / "embedded-image.docx"
+    image_document = Document(image_path)
+    assert len(image_document.inline_shapes) == 1
+    assert image_document.paragraphs[0].text == "Text beside a synthetic image"
+    with ZipFile(image_path) as archive:
+        media = [name for name in archive.namelist() if name.startswith("word/media/")]
+        assert len(media) == 1
+        with Image.open(BytesIO(archive.read(media[0]))) as image:
+            assert image.format == "PNG" and image.size == DOCX_IMAGE_SIZE
+            image.verify()
+
     document = Document(GENERATED / "nested-table.docx")
     section = document.sections[0]
     assert section.header.paragraphs[0].text == DOCX_HEADER_TEXT
@@ -244,6 +302,12 @@ def verify_sources() -> dict[str, list[str]]:
             "merged_range_verified",
         ],
         "semantic-risks.xlsm": ["byte_identical_alias_fixture_verified"],
+        "formats.xlsx": [
+            "dates_currency_accounting_and_scientific_formats_verified",
+            "formula_and_distinct_cached_value_verified",
+            "worksheet_names_order_and_cell_coordinates_verified",
+        ],
+        "embedded-image.docx": ["single_inline_png_and_image_dimensions_verified"],
         "nested-table.docx": ["nested_table_cells_verified", "section_header_and_footer_text_verified"],
         "untitled-slides.pptx": [
             "untitled_slide_structure_and_text_verified",
@@ -288,7 +352,9 @@ def main() -> None:
     write_csv()
     write_long_csv()
     write_xlsx()
+    write_xlsx_formats()
     write_docx()
+    write_docx_embedded_image()
     write_pptx()
     write_text_pdf()
     write_image_only_pdf()
