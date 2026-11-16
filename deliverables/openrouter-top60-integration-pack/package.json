@@ -18,7 +18,7 @@
     "@openrouter/agent": "0.11.0",
     "@types/node": "20.19.43",
     "tsx": "4.23.15",
-    "typescript": "5.9.3",
+    "typescript": "7.0.2",
     "zod": "4.6.7"
   }
 }
