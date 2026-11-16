@@ -132,6 +132,22 @@
       "expected_canonical_format": "pdf",
       "expect_conversion": false,
       "expected_error_code": "unsupported_or_ocr_required"
+    },
+    {
+      "id": "pdf-encrypted-rejected",
+      "file": "encrypted.pdf",
+      "format": "pdf",
+      "expected_canonical_format": "pdf",
+      "expect_conversion": false,
+      "expected_error_code": "encrypted_document"
+    },
+    {
+      "id": "pdf-malformed-rejected",
+      "file": "malformed.pdf",
+      "format": "pdf",
+      "expected_canonical_format": "pdf",
+      "expect_conversion": false,
+      "expected_error_code": "malformed_document"
     }
   ]
 }

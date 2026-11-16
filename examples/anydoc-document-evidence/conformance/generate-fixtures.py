@@ -16,6 +16,7 @@ from openpyxl import Workbook, load_workbook
 from PIL import Image, ImageDraw
 from pptx import Presentation
 from pptx.util import Inches
+from reportlab.lib.pdfencrypt import StandardEncryption
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
@@ -24,6 +25,7 @@ GENERATED = ROOT / "generated"
 MANIFEST = GENERATED / "fixture-manifest.json"
 REQUIREMENTS_LOCK = ROOT / "requirements.txt"
 TEXT_PDF_LINES = ("Synthetic text PDF control", "Text evidence marker 1269")
+ENCRYPTED_PDF_TEXT = "Synthetic encrypted document"
 GENERATOR_DISTRIBUTIONS = (
     "charset-normalizer",
     "et-xmlfile",
@@ -147,6 +149,22 @@ def write_image_only_pdf() -> None:
     pdf.save()
 
 
+def write_encrypted_pdf() -> None:
+    path = GENERATED / "encrypted.pdf"
+    encryption = StandardEncryption("public-test-fixture-only")
+    pdf = canvas.Canvas(
+        str(path), pagesize=(360, 180), invariant=1, pageCompression=0, encrypt=encryption,
+    )
+    pdf.drawString(36, 132, ENCRYPTED_PDF_TEXT)
+    pdf.showPage()
+    pdf.save()
+
+
+def write_malformed_pdf() -> None:
+    path = GENERATED / "malformed.pdf"
+    path.write_bytes(b"%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n")
+
+
 def verify_sources() -> dict[str, list[str]]:
     with (GENERATED / "baseline.csv").open(encoding="utf-8", newline="") as handle:
         assert list(csv.reader(handle)) == [["name", "value"], ["alpha", "1"], ["beta", "2"]]
@@ -193,6 +211,16 @@ def verify_sources() -> dict[str, list[str]]:
     pdf_bytes = (GENERATED / "image-only.pdf").read_bytes()
     assert pdf_bytes.startswith(b"%PDF-") and b"/Subtype /Image" in pdf_bytes
 
+    encrypted_pdf = (GENERATED / "encrypted.pdf").read_bytes()
+    assert encrypted_pdf.startswith(b"%PDF-") and encrypted_pdf.rstrip().endswith(b"%%EOF")
+    assert b"/Encrypt " in encrypted_pdf and b"/Filter /Standard" in encrypted_pdf
+    assert ENCRYPTED_PDF_TEXT.encode("ascii") not in encrypted_pdf
+
+    malformed_pdf = (GENERATED / "malformed.pdf").read_bytes()
+    assert malformed_pdf.startswith(b"%PDF-") and b"/Pages 2 0 R" in malformed_pdf
+    assert b"2 0 obj" not in malformed_pdf
+    assert b"startxref" not in malformed_pdf and b"%%EOF" not in malformed_pdf
+
     return {
         "baseline.csv": ["exact_csv_rows_verified"],
         "long-content.csv": ["long_cell_length_and_terminal_marker_verified"],
@@ -208,6 +236,8 @@ def verify_sources() -> dict[str, list[str]]:
         "untitled-slides.pptx": ["untitled_slide_structure_and_text_verified"],
         "text.pdf": ["pdf_contains_both_text_showing_operators", "pdf_contains_no_image_objects"],
         "image-only.pdf": ["pdf_contains_embedded_image_object"],
+        "encrypted.pdf": ["pdf_standard_encryption_dictionary_present", "pdf_marker_absent_in_plaintext"],
+        "malformed.pdf": ["pdf_page_tree_reference_has_no_target", "pdf_cross_reference_and_eof_missing"],
     }
 
 
@@ -247,6 +277,8 @@ def main() -> None:
     write_pptx()
     write_text_pdf()
     write_image_only_pdf()
+    write_encrypted_pdf()
+    write_malformed_pdf()
     facts = verify_sources()
     write_manifest(facts)
     for path in sorted(GENERATED.iterdir()):
