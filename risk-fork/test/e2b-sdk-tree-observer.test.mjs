@@ -1,6 +1,47 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { parseProcStat, parseCgroup, parsePids, parseEvents, cleanupStatus, workloadStatus, assertKeylessImageEnvironment } from '../scripts/verify-e2b-sdk-tree-observer.mjs';
+import { EventEmitter } from 'node:events';
+import { PassThrough } from 'node:stream';
+import { createBoundedWorkerChannel } from '../scripts/lib/bounded-worker-channel.mjs';
+import { parseProcStat, parseCgroup, parsePids, parseEvents, cleanupStatus, workloadStatus, completeWorkerObservation, assertKeylessImageEnvironment } from '../scripts/verify-e2b-sdk-tree-observer.mjs';
+
+for (const [scenario, acknowledgement] of [
+  ['normal completion', { phase: 'sdk_root_closed', tree_cleanup_verified: false }],
+  ['cancel before handoff', { phase: 'pre_scope_ready', migration_denied: true }],
+]) {
+  test(`observer completion boundary rechecks channel after awaited host evidence: ${scenario}`, async () => {
+    for (const revoke of [false, true]) {
+      const child = Object.assign(new EventEmitter(), {
+        stdin: new PassThrough(), stdout: new PassThrough(), stderr: new PassThrough(),
+      });
+      const channel = createBoundedWorkerChannel(child, { deadlineMs: 2_000 });
+      let acknowledgeConsumed, finishObservation;
+      const consumed = new Promise(resolve => { acknowledgeConsumed = resolve; });
+      const observation = new Promise(resolve => { finishObservation = resolve; });
+      let completed = false;
+      const run = (async () => {
+        assert.deepEqual(await channel.next(), acknowledgement);
+        acknowledgeConsumed();
+        // A stand-in only for the asynchronous kernel observation. The channel
+        // and synchronous completion boundary are the actual observer code.
+        await observation;
+        completed = completeWorkerObservation(channel);
+      })();
+      try {
+        child.stdout.write(`${JSON.stringify(acknowledgement)}\n`);
+        // A broken acknowledgement must reject this test rather than leave the
+        // observation fixture waiting forever for its consumed notification.
+        await Promise.race([consumed, run]);
+        if (revoke) child.stdout.write('invalid\n');
+        const result = revoke ? assert.rejects(run) : run;
+        finishObservation();
+        await result;
+        assert.equal(completed, !revoke);
+        assert.equal(workloadStatus({ completed, uncertain: false, cleanup: 'verified' }).workload_passed, !revoke);
+      } finally { finishObservation(); channel.close(); }
+    }
+  });
+}
 
 test('outside observer independently rejects inherited credentials and missing or duplicate image environment names', () => {
   const clean = ['PATH=/usr/bin:/bin', 'NODE_VERSION=24.20.0', 'YARN_VERSION=1.22.22'];

@@ -21,7 +21,7 @@
     "integrity-manifest.json",
     "migrations/001_distributed_authority.pg.sql",
     "ops/postgres/",
-    "schema/e2b-qualification-evidence.v1.json",
+    "schema/e2b-qualification-evidence.v2.json",
     "scripts/verify-integrity.mjs",
     "THIRD_PARTY_NOTICES.txt",
     "README.md",
@@ -54,7 +54,7 @@
     "hono": "4.13.18"
   },
   "peerDependencies": {
-    "e2b": "2.39.0"
+    "e2b": "2.63.0"
   },
   "peerDependenciesMeta": {
     "e2b": {

@@ -25,6 +25,10 @@ they are intentionally excluded from the core npm tarball.
 ## Install a local package candidate
 
 The candidate package is `@agoragentic/risk-fork@0.1.0-alpha.1`, ESM, Node 20+.
+The optional E2B 2.63.0 adapter requires Node >=22.19.0 and a separately
+installed exact SDK; it fails closed on older runtimes before loading the SDK.
+Core imports, local execution and offline demonstrations remain Node 20+.
+See [E2B migration and qualification](./E2B_SDK_MIGRATION.md).
 Registry publication must be confirmed on the official release before using an
 npm registry installation command. You can test the real package today:
 

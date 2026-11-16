@@ -39,7 +39,7 @@ const HOSTED_FIXTURE_COPIES = Object.freeze([
   ['risk-fork/migrations/001_distributed_authority.pg.sql', 'risk-fork/migrations/001_distributed_authority.pg.sql'],
   ['risk-fork/ops/postgres', 'risk-fork/ops/postgres'],
   ['risk-fork/package.json', 'risk-fork/package.json'],
-  ['risk-fork/schema/e2b-qualification-evidence.v1.json', 'risk-fork/schema/e2b-qualification-evidence.v1.json'],
+  ['risk-fork/schema/e2b-qualification-evidence.v2.json', 'risk-fork/schema/e2b-qualification-evidence.v2.json'],
   ['risk-fork/src', 'risk-fork/src'],
   ['transaction-assurance/src', 'transaction-assurance/src'],
   ['risk-fork-hosted-mcp/integrity-manifest.json', 'risk-fork-hosted-mcp/integrity-manifest.json'],
@@ -77,7 +77,7 @@ const GENERATED_HOSTED_OUTPUT_PATHS = Object.freeze([
   'migrations/001_distributed_authority.pg.sql',
   'ops/postgres/owner-bootstrap.sql.template',
   'ops/postgres/roles.sql.template',
-  'schema/e2b-qualification-evidence.v1.json',
+  'schema/e2b-qualification-evidence.v2.json',
 ]);
 
 function compareOrdinal(left, right) {
@@ -297,7 +297,7 @@ test('package contract is private, exact-version, and has no mandatory runtime d
   });
   assert.equal(pkg.dependencies, undefined);
   assert.equal(pkg.optionalDependencies, undefined);
-  assert.deepEqual(pkg.peerDependencies, { e2b: '2.39.0' });
+  assert.deepEqual(pkg.peerDependencies, { e2b: '2.63.0' });
   assert.deepEqual(pkg.peerDependenciesMeta, { e2b: { optional: true } });
   assert.match(pkg.scripts.prepublishOnly, /PUBLISH_DISABLED/);
   assert.deepEqual(pkg.files, [
@@ -306,7 +306,7 @@ test('package contract is private, exact-version, and has no mandatory runtime d
     'integrity-manifest.json',
     'migrations/001_distributed_authority.pg.sql',
     'ops/postgres/',
-    'schema/e2b-qualification-evidence.v1.json',
+    'schema/e2b-qualification-evidence.v2.json',
     'scripts/verify-integrity.mjs',
     'THIRD_PARTY_NOTICES.txt',
     'README.md',
@@ -375,7 +375,7 @@ test('build is deterministic and records exact source and artifact integrity', a
   });
   assert.deepEqual(manifest.runtime_dependencies, []);
   assert.deepEqual(manifest.optional_peer_dependencies, [
-    { name: 'e2b', version: '2.39.0', optional: true },
+    { name: 'e2b', version: '2.63.0', optional: true },
   ]);
   assert.ok(manifest.build.external_imports.includes('e2b'));
   assert.deepEqual(
@@ -546,7 +546,7 @@ test('build is deterministic and records exact source and artifact integrity', a
     'mcp/mcp-server.js',
     'risk-fork/e2b-template/template.mjs',
     'risk-fork/ops/postgres/owner-bootstrap.sql.template',
-    'risk-fork/schema/e2b-qualification-evidence.v1.json',
+    'risk-fork/schema/e2b-qualification-evidence.v2.json',
     'risk-fork/src/adapters/e2b-source-verifier.mjs',
     'risk-fork/src/adapters/e2b.mjs',
     'risk-fork/src/adapters/postgres-authority-migrator.mjs',
@@ -1500,7 +1500,7 @@ test('bundle exposes the reviewed relay and Risk Fork controller boundaries', as
     api.HOSTED_MCP_BUNDLE_METADATA.reviewed_source_integrity,
     manifest.source_attestation.sha256,
   );
-  assert.equal(api.HOSTED_MCP_BUNDLE_METADATA.optional_e2b_peer_version, '2.39.0');
+  assert.equal(api.HOSTED_MCP_BUNDLE_METADATA.optional_e2b_peer_version, '2.63.0');
   assert.equal(api.HOSTED_MCP_BUNDLE_METADATA.risk_fork_source_version, '0.1.0-alpha.1');
   assert.equal(api.HOSTED_MCP_BUNDLE_METADATA.outbound_mcp_transport_qualified, false);
   assert.equal(api.HOSTED_MCP_BUNDLE_METADATA.managed_postgres_qualified, false);
@@ -1705,7 +1705,7 @@ test('npm-packed artifact installs and runs with no repository or registry depen
       'ops/postgres/owner-bootstrap.sql.template',
       'ops/postgres/roles.sql.template',
       'package.json',
-      'schema/e2b-qualification-evidence.v1.json',
+      'schema/e2b-qualification-evidence.v2.json',
       'scripts/verify-integrity.mjs',
     ]);
     assert.deepEqual(
