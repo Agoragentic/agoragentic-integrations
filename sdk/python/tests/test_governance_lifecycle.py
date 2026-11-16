@@ -56,7 +56,7 @@ class CancellationTests(unittest.IsolatedAsyncioTestCase):
             directory.rmdir()
             directory.write_text("obstruction")
             task.cancel()
-            with self.assertRaises(asyncio.CancelledError) as raised:
+            with self.assertRaises(asyncio.CancelledError):
                 await task
             self.assertTrue(task.cancelled())
             self.assertIs(observed[0], cancellations[0])
@@ -108,7 +108,7 @@ class CancellationTests(unittest.IsolatedAsyncioTestCase):
                 directory.rmdir()  # Verified empty fixture directory, inside TemporaryDirectory.
                 directory.write_text("private-obstruction")
                 task.cancel()
-                with self.assertRaises(asyncio.CancelledError) as raised:
+                with self.assertRaises(asyncio.CancelledError):
                     await task
                 self.assertTrue(task.cancelled())
                 self.assertIs(observed[0], cancellations[0])
@@ -251,7 +251,7 @@ class CancellationTests(unittest.IsolatedAsyncioTestCase):
                 task = asyncio.create_task(observe_cancellation(wrapped("private-payload-and-error"), observed))
                 await asyncio.wait_for(entered.wait(), 2)
                 task.cancel()
-                with self.assertRaises(asyncio.CancelledError) as raised:
+                with self.assertRaises(asyncio.CancelledError):
                     await task
                 self.assertTrue(task.cancelled())
                 files = list(Path(root, ".agoragentic/receipts").glob("*.json"))

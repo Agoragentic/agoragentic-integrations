@@ -43,7 +43,7 @@ const EXPECTED_BUILD_TRANSFORMS = Object.freeze([
   'reviewed UTF-8 source CRLF pairs normalized to LF while lone CR bytes remain distinct',
   'canonical upstream project sources verified against the reviewed SHA-256 digest inventory',
   'pg-native optional adapter disabled; reviewed pg JavaScript driver bundled',
-  'e2b is retained only as the exact optional peer e2b@2.39.0',
+  'e2b is retained only as the exact optional peer e2b@2.63.0',
 ]);
 const EXPECTED_PACKAGE_JSON = Object.freeze({
   name: '@agoragentic/risk-fork-hosted-mcp',
@@ -66,7 +66,7 @@ const EXPECTED_PACKAGE_JSON = Object.freeze({
     'integrity-manifest.json',
     'migrations/001_distributed_authority.pg.sql',
     'ops/postgres/',
-    'schema/e2b-qualification-evidence.v1.json',
+    'schema/e2b-qualification-evidence.v2.json',
     'scripts/verify-integrity.mjs',
     'THIRD_PARTY_NOTICES.txt',
     'README.md',
@@ -85,16 +85,20 @@ const EXPECTED_PACKAGE_JSON = Object.freeze({
     prepublishOnly: 'node -e "throw new Error(\'RISK_FORK_HOSTED_MCP_PUBLISH_DISABLED\')"',
   },
   devDependencies: {
-    '@modelcontextprotocol/client': '2.3.0',
-    '@modelcontextprotocol/node': '2.1.1',
+    '@modelcontextprotocol/client': '2.4.0',
+    '@modelcontextprotocol/node': '2.1.2',
     '@modelcontextprotocol/sdk': '1.32.0',
-    '@modelcontextprotocol/server': '2.3.0',
+    '@modelcontextprotocol/server': '2.4.0',
     ajv: '8.20.0',
     'ajv-formats': '3.0.1',
     esbuild: '0.28.1',
     pg: '8.16.3',
   },
-  peerDependencies: { e2b: '2.39.0' },
+  overrides: {
+    '@hono/node-server': '2.1.8',
+    hono: '4.13.18',
+  },
+  peerDependencies: { e2b: '2.63.0' },
   peerDependenciesMeta: { e2b: { optional: true } },
   repository: {
     type: 'git',
@@ -264,7 +268,7 @@ const REVIEWED_SOURCE_EXACT_FILES = Object.freeze([
   'risk-fork/NOTICE',
   'risk-fork/migrations/001_distributed_authority.pg.sql',
   'risk-fork/package.json',
-  'risk-fork/schema/e2b-qualification-evidence.v1.json',
+  'risk-fork/schema/e2b-qualification-evidence.v2.json',
 ]);
 const REVIEWED_SOURCE_RECURSIVE_ROOTS = Object.freeze([
   'risk-fork/e2b-template',
@@ -342,8 +346,8 @@ const PACKAGED_REVIEWED_ASSETS = Object.freeze([
     target: 'ops/postgres/roles.sql.template',
   },
   {
-    source: 'risk-fork/schema/e2b-qualification-evidence.v1.json',
-    target: 'schema/e2b-qualification-evidence.v1.json',
+    source: 'risk-fork/schema/e2b-qualification-evidence.v2.json',
+    target: 'schema/e2b-qualification-evidence.v2.json',
   },
 ]);
 
@@ -668,7 +672,7 @@ function assertGeneratedManifestContract(manifest, expectedAttestation) {
     || JSON.stringify(manifest.build.transforms) !== JSON.stringify(EXPECTED_BUILD_TRANSFORMS)
     || JSON.stringify(manifest.runtime_dependencies) !== '[]'
     || JSON.stringify(manifest.optional_peer_dependencies) !== JSON.stringify([
-      { name: 'e2b', version: '2.39.0', optional: true },
+      { name: 'e2b', version: '2.63.0', optional: true },
     ])
     || JSON.stringify(manifest.exports) !== JSON.stringify(EXPECTED_EXPORTS)
     || manifest.third_party_notices.path !== THIRD_PARTY_NOTICES_PATH
@@ -1283,7 +1287,7 @@ const manifest = {
   },
   runtime_dependencies: [],
   optional_peer_dependencies: [
-    { name: 'e2b', version: '2.39.0', optional: true },
+    { name: 'e2b', version: '2.63.0', optional: true },
   ],
   exports: [...EXPECTED_EXPORTS],
   inputs,

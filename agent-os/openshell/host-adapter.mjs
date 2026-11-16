@@ -169,4 +169,4 @@ export function openShellHostReadiness() {
   });
 }
 
-export async function invokeOpenShell() { fail('openshell_live_adapter_not_implemented'); }
+export async function invokeOpenShell(_options) { fail('openshell_live_adapter_not_implemented'); }

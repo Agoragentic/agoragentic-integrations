@@ -75,7 +75,7 @@ test('PyPI trusted publishing builds from the public sdk/python source', () => {
     assert.match(buildJob, /env:\n\s+RELEASE_TAG: \$\{\{ github\.event\.release\.tag_name \}\}/);
     assert.match(buildJob, /test "\$\{RELEASE_TAG\}" = "py-v\$\{package_version\}"/);
     assert.match(buildJob, /path: sdk\/python\/dist\//);
-    assert.match(buildJob, /actions\/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a/);
+    assert.match(buildJob, /actions\/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9/);
 
     const uploadName = buildJob.match(/name: (agoragentic-python-\$\{\{ github\.event\.release\.tag_name \}\})/);
     const downloadName = publishJob.match(/name: (agoragentic-python-\$\{\{ github\.event\.release\.tag_name \}\})/);
@@ -85,7 +85,7 @@ test('PyPI trusted publishing builds from the public sdk/python source', () => {
     assert.deepEqual(permissions(publishJob), ['contents: read', 'id-token: write']);
     assert.match(publishJob, /actions\/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333/);
     assert.match(publishJob, /path: dist\//);
-    assert.match(publishJob, /pypa\/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33/);
+    assert.match(publishJob, /pypa\/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086/);
     assert.match(publishJob, /packages-dir: dist\//);
     assert.equal((publishJob.match(/uses:/g) ?? []).length, 2, 'publisher may only download and invoke PyPI publisher');
     assert.doesNotMatch(publishJob, /actions\/checkout@|\brun:\s*|python -m build/);
