@@ -8,7 +8,7 @@ import { pathToFileURL } from 'node:url';
 import {
   createE2BRuntimeSdkIntegrityVerifier,
   loadVerifiedE2BRuntimeSdk,
-} from '../src/e2b-qualification.mjs';
+} from '../../src/e2b-qualification.mjs';
 
 // Local synthetic code only. No SDK/provider calls, qualification or billing proof.
 async function fixture(t, dependency = false) {
@@ -18,7 +18,7 @@ async function fixture(t, dependency = false) {
   const sdk = path.join(modules, 'e2b');
   await mkdir(path.join(sdk, 'dist'), { recursive: true });
   await writeFile(path.join(sdk, 'package.json'), JSON.stringify({
-    name: 'e2b', version: '2.39.0', main: 'dist/index.js',
+    name: 'e2b', version: '2.63.0', main: 'dist/index.js',
     ...(dependency ? { dependencies: { 'synthetic-dependency': '1.0.0' } } : {}),
   }));
   const entry = path.join(sdk, 'dist', 'index.js');
@@ -129,7 +129,7 @@ test('cache eviction or substitution cannot make a verified entry safe to import
 test('an ESM root claiming the CJS SDK identity is rejected instead of trusting an opaque ESM cache', async (t) => {
   const f = await fixture(t);
   await writeFile(path.join(f.sdk, 'package.json'), JSON.stringify({
-    name: 'e2b', version: '2.39.0', main: 'dist/index.js', type: 'module',
+    name: 'e2b', version: '2.63.0', main: 'dist/index.js', type: 'module',
   }));
   await assert.rejects(f.verifier.inspect(), /CommonJS.*profile/i);
 });
