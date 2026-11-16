@@ -76,6 +76,16 @@ This PowerShell command creates disabled review artifacts only. The generated ga
 
 The helper creates only filenames containing `.disabled.` plus `manifest.json`. It refuses an existing output directory and never writes `.mcp.json`, `.codex/config.toml`, `.cursor/mcp.json`, `.claude/settings.json`, or a user-level client configuration.
 
+If a write fails, the helper attempts to remove only its own unchanged files and
+empty output directory so the same command can be retried. The error reports
+`review_cleanup_status: "removed"` after that cleanup, or `"incomplete"` if it
+cannot establish ownership, finds unexpected or edited contents, or cannot remove
+a file. It never recursively deletes a review directory. Inspect an incomplete
+attempt before removing it or choosing a fresh output path. This is recovery from
+caught write errors, not atomic publication or recovery from process termination,
+power loss, or concurrent same-privilege host changes. The manifest is written
+last; require the verification below before using any review packet.
+
 Verify the review packet offline:
 
 ```bash

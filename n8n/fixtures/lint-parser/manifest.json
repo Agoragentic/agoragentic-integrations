@@ -1,0 +1,14 @@
+{
+  "schema": "agoragentic.n8n-lint-parser-fixture.v1",
+  "upstream_package": "@typescript-eslint/typescript-estree",
+  "upstream_version": "8.72.2",
+  "upstream_integrity": "sha512-pQEGqIK/cqEvKivVWaFLYpe7XYejFxfuAOi4mu1oAWFvIo36aRHI9esRFTUxcIy/z8N482RJyH+LpZB0ZIU7Ow==",
+  "upstream_package_json_sha256": "e80c0a230f1d94751af1a91ce2431759781f40e206f8d9b67f0b7db90714c39c",
+  "upstream_fix_commit": "837401e92d7379a8623ccf6a0883250f4e706ad7",
+  "local_version": "8.72.2+agoragentic.minimatch.1",
+  "minimatch_range": "^11.0.1",
+  "artifact_inventory_sha256": "623f261482104ff86492e34e9eb3d71bfd52292dc879d28125a543b7b60e5d1c",
+  "unchanged_artifact_files": 90,
+  "published": false,
+  "runtime_code_changed": false
+}

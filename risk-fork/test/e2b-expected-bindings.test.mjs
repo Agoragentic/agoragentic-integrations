@@ -25,7 +25,7 @@ const ADAPTER_ARTIFACT_REF = 'evidence:e2b-risk-fork-adapter-artifact';
 function evidenceFixture(adapterArtifactHash = null) {
   return createE2BQualificationEvidence({
     provider: { name: 'e2b', project_ref_hash: sha256Ref('synthetic-project'), region: 'test-region' },
-    sdk: { package: 'e2b', version: '2.39.0', integrity_hash: sha256Ref('synthetic-sdk') },
+    sdk: { package: 'e2b', version: '2.63.0', integrity_hash: sha256Ref('synthetic-sdk') },
     template: {
       template_id_hash: sha256Ref('synthetic-template'),
       build_id_hash: sha256Ref('synthetic-build'),

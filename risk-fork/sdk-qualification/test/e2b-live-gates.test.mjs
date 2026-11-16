@@ -12,34 +12,36 @@ import path from 'node:path';
 import { performance } from 'node:perf_hooks';
 import test from 'node:test';
 
-import { FileNotFoundError, SandboxNotFoundError } from 'e2b';
+import { createRequire } from 'node:module';
+const sdkRequire = createRequire(new URL('../package.json', import.meta.url));
+const { FileNotFoundError, SandboxNotFoundError } = sdkRequire('e2b');
 
 import {
   E2B_TEMPLATE_BUILD_ATTEMPT_SCHEMA,
   assertE2BTemplateBuildGate,
   persistE2BTemplateBuildAttempt,
   runE2BTemplateBuild,
-} from '../scripts/e2b-build-template.mjs';
+} from '../../scripts/e2b-build-template.mjs';
 import {
   E2B_LIVE_QUALIFICATION_ATTEMPT_SCHEMA,
   assertE2BLiveQualificationGate,
   persistE2BLiveQualificationAttempt,
   runE2BLiveQualification,
-} from '../scripts/e2b-live-qualification.mjs';
-import { E2B_WINDOWS_EVIDENCE_DACL_UNVERIFIED } from '../scripts/e2b-evidence-platform.mjs';
+} from '../../scripts/e2b-live-qualification.mjs';
+import { E2B_WINDOWS_EVIDENCE_DACL_UNVERIFIED } from '../../scripts/e2b-evidence-platform.mjs';
 import {
   E2B_BOOT_EVIDENCE_PATH,
   createBootEvidenceEnvelope,
   createE2BBirthAttestation,
   e2bBirthRequestPaths,
-} from '../e2b-template/lib/runtime-contract.mjs';
-import { canonicalize, sha256Ref } from '../src/canonical.mjs';
+} from '../../e2b-template/lib/runtime-contract.mjs';
+import { canonicalize, sha256Ref } from '../../src/canonical.mjs';
 import {
   E2B_EXTERNAL_BIRTH_CONTROLS,
   E2B_EXTERNAL_QUALIFICATION_EVIDENCE_REFS,
   E2B_QUALIFICATION_FAILURE_CLASSES,
   E2B_QUALIFICATION_FAILURE_STAGES,
-} from '../src/e2b-qualification.mjs';
+} from '../../src/e2b-qualification.mjs';
 
 const contradictory = Object.freeze({
   E2B_API_KEY: 'present-but-never-inspected-by-test',
@@ -328,7 +330,7 @@ test('template build attempt intent is durable, sanitized, one-shot, and precede
   ].map((field) => [field, sha256Ref(field)]));
   const sdk = {
     package: 'e2b',
-    version: '2.39.0',
+    version: '2.63.0',
     integrity_hash: env.RISK_FORK_E2B_SDK_INTEGRITY_HASH,
   };
   const provenanceHash = sha256Ref({ sdk, runtime });
@@ -424,7 +426,7 @@ test('template build attempt intent is durable, sanitized, one-shot, and precede
   assert.deepEqual(await readdir(legacyDirectory), [path.basename(legacyPath)]);
 
   const source = await readFile(
-    new URL('../scripts/e2b-build-template.mjs', import.meta.url),
+    new URL('../../scripts/e2b-build-template.mjs', import.meta.url),
     'utf8',
   );
   const durableClaim = source.indexOf('const attemptIntentPath = await persistE2BTemplateBuildAttempt(');
@@ -459,7 +461,7 @@ test('live qualification claims approval and run exactly once before provider I/
   assert.equal(serialized.includes(env.RISK_FORK_E2B_RUN_REF), false);
 
   const source = await readFile(
-    new URL('../scripts/e2b-live-qualification.mjs', import.meta.url),
+    new URL('../../scripts/e2b-live-qualification.mjs', import.meta.url),
     'utf8',
   );
   const durableClaim = source.indexOf('await persistE2BLiveQualificationAttempt(');
@@ -475,8 +477,8 @@ test('live qualification claims approval and run exactly once before provider I/
 
 test('default provider paths bind the exact inspected SDK tree before SDK or provider I/O', async () => {
   for (const relative of [
-    '../scripts/e2b-build-template.mjs',
-    '../scripts/e2b-live-qualification.mjs',
+    '../../scripts/e2b-build-template.mjs',
+    '../../scripts/e2b-live-qualification.mjs',
   ]) {
     const source = await readFile(new URL(relative, import.meta.url), 'utf8');
     assert.match(source, /createE2BRuntimeSdkIntegrityVerifier/);
@@ -522,7 +524,7 @@ test('Windows evidence-producing E2B paths fail closed before claims, SDK, or pr
 });
 
 test('the shipped live module does not export its ungated provider runner', async () => {
-  const liveModule = await import('../scripts/e2b-live-qualification.mjs');
+  const liveModule = await import('../../scripts/e2b-live-qualification.mjs');
   assert.equal(Object.hasOwn(liveModule, 'runDefaultE2BSingleSandboxCanary'), false);
 });
 
@@ -582,7 +584,7 @@ test('injected harness seams fail before SDK/provider I/O and cannot write evide
         sdkLoads += 1;
         return { Template, waitForFile: () => ({}) };
       },
-      sdkVersionLoader: async () => '2.39.0',
+      sdkVersionLoader: async () => '2.63.0',
     }),
     /Injected.*evidence-producing.*template-build/i,
   );
@@ -593,7 +595,7 @@ test('injected harness seams fail before SDK/provider I/O and cannot write evide
         sdkLoads += 1;
         return { Sandbox };
       },
-      sdkVersionLoader: async () => '2.39.0',
+      sdkVersionLoader: async () => '2.63.0',
       canaryRunner: async () => {
         providerCalls += 1;
         return {};
@@ -608,11 +610,11 @@ test('injected harness seams fail before SDK/provider I/O and cannot write evide
 
 test('USD cap is a software admission/evidence gate and is not sent as a provider option', async () => {
   const buildSource = await readFile(
-    new URL('../scripts/e2b-build-template.mjs', import.meta.url),
+    new URL('../../scripts/e2b-build-template.mjs', import.meta.url),
     'utf8',
   );
   const liveSource = await readFile(
-    new URL('../scripts/e2b-live-qualification.mjs', import.meta.url),
+    new URL('../../scripts/e2b-live-qualification.mjs', import.meta.url),
     'utf8',
   );
   const buildCall = buildSource.slice(
@@ -641,7 +643,7 @@ let instrumentedLiveQualificationPromise;
 async function loadInstrumentedLiveQualification() {
   if (!instrumentedLiveQualificationPromise) {
     instrumentedLiveQualificationPromise = (async () => {
-      const scriptUrl = new URL('../scripts/e2b-live-qualification.mjs', import.meta.url);
+      const scriptUrl = new URL('../../scripts/e2b-live-qualification.mjs', import.meta.url);
       const source = await readFile(scriptUrl, 'utf8');
       const instrumented = source
         .replace(

@@ -29,9 +29,7 @@ import {
   createE2BExternalQualificationObservationVerifier,
   createE2BQualificationEvidence,
   createE2BQualificationTrustVerifier,
-  createE2BRuntimeSdkIntegrityVerifier,
   isE2BQualificationEvidenceCanonical,
-  loadVerifiedE2BRuntimeSdk,
   sha256BytesRef,
   validateE2BQualificationEvidence,
 } from '../src/e2b-qualification.mjs';
@@ -68,8 +66,8 @@ function input(overrides = {}) {
     },
     sdk: {
       package: 'e2b',
-      version: '2.39.0',
-      integrity_hash: hash('e2b@2.39.0-integrity'),
+      version: '2.63.0',
+      integrity_hash: hash('e2b@2.63.0-integrity'),
     },
     template: {
       template_id_hash: hash(TEMPLATE_ID),
@@ -278,7 +276,7 @@ test('qualification evidence is closed, hash-bound, schema-valid, and exact-prof
     runnerArtifactHash: RUNNER_HASH,
   }), evidence);
 
-  const schemaPath = fileURLToPath(new URL('../schema/e2b-qualification-evidence.v1.json', import.meta.url));
+  const schemaPath = fileURLToPath(new URL('../schema/e2b-qualification-evidence.v2.json', import.meta.url));
   const schema = JSON.parse(await readFile(schemaPath, 'utf8'));
   const ajv = new Ajv2020({ allErrors: true, strict: true });
   addFormats(ajv);
@@ -337,220 +335,23 @@ test('qualification evidence is closed, hash-bound, schema-valid, and exact-prof
   assert.equal(validate(finalized), true, ajv.errorsText(validate.errors));
 });
 
-test('runtime SDK integrity verifier loads only the exact signed e2b package tree', async (t) => {
-  const root = await canonicalFixtureRoot('risk-fork-e2b-sdk-integrity-');
-  t.after(() => rm(root, { recursive: true, force: true }));
-  await mkdir(path.join(root, 'dist'), { recursive: true });
-  await writeFile(path.join(root, 'package.json'), JSON.stringify({
-    name: 'e2b',
-    version: '2.39.0',
-    main: 'dist/index.js',
-  }));
-  await writeFile(path.join(root, 'dist', 'index.js'), 'module.exports = { Sandbox: class Sandbox {} };\n');
-
-  const verifier = createE2BRuntimeSdkIntegrityVerifier({ packageDirectory: root });
-  const inspected = await verifier.inspect();
-  const loaded = await loadVerifiedE2BRuntimeSdk(inspected, verifier);
-  assert.equal(loaded.package, 'e2b');
-  assert.equal(loaded.version, '2.39.0');
-  assert.equal(loaded.integrity_hash, inspected.integrity_hash);
-  assert.equal(typeof loaded.module.default.Sandbox, 'function');
-
-  await writeFile(path.join(root, 'dist', 'index.js'), 'module.exports = { Sandbox: class Tampered {} };\n');
-  await assert.rejects(
-    loadVerifiedE2BRuntimeSdk(inspected, verifier),
-    /integrity|binding|changed/i,
-  );
-  await assert.rejects(
-    loadVerifiedE2BRuntimeSdk(inspected, Object.freeze({
-      inspect: async () => inspected,
-      load: async () => ({ module: { Sandbox: class Sandbox {} }, ...inspected }),
-    })),
-    /trusted|verifier|factory/i,
-  );
-});
-
-async function writeRuntimePackage(root, manifest, source = 'module.exports = {};\n') {
-  await mkdir(root, { recursive: true });
-  await writeFile(path.join(root, 'package.json'), JSON.stringify(manifest));
-  await writeFile(path.join(root, manifest.main ?? 'index.js'), source);
-}
-
-test('runtime SDK closure binds recursive dependencies plus present and absent optional peers', async (t) => {
-  const fixture = await canonicalFixtureRoot('risk-fork-e2b-sdk-closure-');
-  t.after(() => rm(fixture, { recursive: true, force: true }));
-  const modules = path.join(fixture, 'node_modules');
-  const sdkRoot = path.join(modules, 'e2b');
-  const importMarker = '__riskForkSyntheticClosureImported';
-  delete globalThis[importMarker];
-  t.after(() => { delete globalThis[importMarker]; });
-  await mkdir(path.join(sdkRoot, 'dist'), { recursive: true });
-  await writeFile(path.join(sdkRoot, 'package.json'), JSON.stringify({
-    name: 'e2b',
-    version: '2.39.0',
-    main: 'dist/index.js',
-    dependencies: { 'required-dependency': '1.0.0' },
-    optionalDependencies: {
-      'present-optional': '1.0.0',
-      'late-optional': '1.0.0',
-    },
-    peerDependencies: {
-      'required-peer': '1.0.0',
-      'optional-peer': '1.0.0',
-    },
-    peerDependenciesMeta: {
-      'optional-peer': { optional: true },
-    },
-  }));
-  await writeFile(
-    path.join(sdkRoot, 'dist', 'index.js'),
-    `globalThis.${importMarker} = true; module.exports = { Sandbox: class Sandbox {} };\n`,
-  );
-  await writeRuntimePackage(path.join(modules, 'required-dependency'), {
-    name: 'required-dependency',
-    version: '1.0.0',
-    main: 'index.js',
-    dependencies: { 'transitive-dependency': '1.0.0' },
-  });
-  await writeRuntimePackage(path.join(modules, 'transitive-dependency'), {
-    name: 'transitive-dependency',
-    version: '1.0.0',
-    main: 'index.js',
-  });
-  await writeRuntimePackage(path.join(modules, 'present-optional'), {
-    name: 'present-optional',
-    version: '1.0.0',
-    main: 'index.js',
-  });
-  await writeRuntimePackage(path.join(modules, 'required-peer'), {
-    name: 'required-peer',
-    version: '1.0.0',
-    main: 'index.js',
-  });
-
-  const verifier = createE2BRuntimeSdkIntegrityVerifier({ packageDirectory: sdkRoot });
-  const absentOptionalBinding = await verifier.inspect();
-  await writeRuntimePackage(path.join(modules, 'optional-peer'), {
-    name: 'optional-peer',
-    version: '1.0.0',
-    main: 'index.js',
-  });
-  const presentOptionalPeerBinding = await verifier.inspect();
-  assert.notEqual(
-    presentOptionalPeerBinding.integrity_hash,
-    absentOptionalBinding.integrity_hash,
-    'installing a previously absent optional peer must change the closure binding',
-  );
-  await rm(path.join(modules, 'optional-peer'), { recursive: true, force: true });
-
-  await writeRuntimePackage(path.join(modules, 'late-optional'), {
-    name: 'late-optional',
-    version: '1.0.0',
-    main: 'index.js',
-  });
-  await assert.rejects(
-    loadVerifiedE2BRuntimeSdk(absentOptionalBinding, verifier),
-    /integrity|binding/i,
-  );
-  assert.equal(globalThis[importMarker], undefined, 'optional drift must fail before SDK import');
-  await rm(path.join(modules, 'late-optional'), { recursive: true, force: true });
-  await rm(path.join(modules, 'required-peer'), { recursive: true, force: true });
-  await assert.rejects(
-    loadVerifiedE2BRuntimeSdk(absentOptionalBinding, verifier),
-    /required-peer|required.*missing/i,
-  );
-  assert.equal(globalThis[importMarker], undefined, 'missing required peer must fail before import');
-});
-
-test('copied installed e2b closure rejects transitive drift, missing packages, and substitution before import', async (t) => {
-  const installedEntry = fileURLToPath(import.meta.resolve('e2b'));
-  let installedRoot = path.dirname(installedEntry);
-  let foundInstalledRoot = false;
-  for (let depth = 0; depth < 8; depth += 1) {
-    try {
-      const manifest = JSON.parse(await readFile(path.join(installedRoot, 'package.json'), 'utf8'));
-      if (manifest.name === 'e2b') {
-        foundInstalledRoot = true;
-        break;
-      }
-    } catch (error) {
-      if (error?.code !== 'ENOENT') throw error;
-    }
-    installedRoot = path.dirname(installedRoot);
-  }
-  assert.equal(foundInstalledRoot, true, 'the real installed e2b package root must be discoverable');
-  const installedModules = path.dirname(installedRoot);
-  const fixture = await canonicalFixtureRoot('risk-fork-real-e2b-closure-');
-  t.after(() => rm(fixture, { recursive: true, force: true }));
-  const copiedModules = path.join(fixture, 'node_modules');
-  await cp(installedModules, copiedModules, { recursive: true, errorOnExist: true });
-  const copiedSdkRoot = path.join(copiedModules, 'e2b');
-  const copiedSdkEntry = path.join(copiedSdkRoot, 'dist', 'index.js');
-  const originalSdkBytes = await readFile(copiedSdkEntry);
-  const sdkImportMarker = '__riskForkCopiedSdkImported';
-  delete globalThis[sdkImportMarker];
-  await writeFile(
-    copiedSdkEntry,
-    Buffer.concat([
-      Buffer.from(`globalThis.${sdkImportMarker} = true;\n`, 'utf8'),
-      originalSdkBytes,
-    ]),
-  );
-  const copiedVerifier = createE2BRuntimeSdkIntegrityVerifier({
-    packageDirectory: copiedSdkRoot,
-  });
-  const expected = await copiedVerifier.inspect();
-  const transitiveRoot = path.join(copiedModules, 'openapi-fetch');
-  const transitiveEntry = path.join(transitiveRoot, 'dist', 'index.cjs');
-  const originalTransitiveBytes = await readFile(transitiveEntry);
-  const importMarker = '__riskForkTamperedTransitiveImported';
-  delete globalThis[importMarker];
-  t.after(() => {
-    delete globalThis[sdkImportMarker];
-    delete globalThis[importMarker];
-  });
-  await writeFile(
-    transitiveEntry,
-    Buffer.concat([
-      Buffer.from(`globalThis.${importMarker} = true;\n`, 'utf8'),
-      originalTransitiveBytes,
-    ]),
-  );
-  await assert.rejects(
-    loadVerifiedE2BRuntimeSdk(expected, copiedVerifier),
-    /integrity|binding/i,
-  );
-  assert.equal(
-    globalThis[importMarker],
-    undefined,
-    'a copied transitive dependency must be rejected before its executable bytes import',
-  );
-  assert.equal(
-    globalThis[sdkImportMarker],
-    undefined,
-    'transitive drift must be rejected before the copied root SDK import begins',
-  );
-
-  await writeFile(transitiveEntry, originalTransitiveBytes);
-  await rm(transitiveRoot, { recursive: true, force: true });
-  await assert.rejects(
-    loadVerifiedE2BRuntimeSdk(expected, copiedVerifier),
-    /openapi-fetch|required.*missing/i,
-  );
-  assert.equal(globalThis[sdkImportMarker], undefined);
-  assert.equal(globalThis[importMarker], undefined);
-
-  await cp(
-    path.join(installedModules, 'chalk'),
-    transitiveRoot,
-    { recursive: true, errorOnExist: true },
-  );
-  await assert.rejects(
-    loadVerifiedE2BRuntimeSdk(expected, copiedVerifier),
-    /package identity mismatch|expected openapi-fetch.*observed chalk/i,
-  );
-  assert.equal(globalThis[sdkImportMarker], undefined);
-  assert.equal(globalThis[importMarker], undefined);
+test('the candidate profile refuses historical SDK identity without relabeling old evidence', async () => {
+  assert.throws(() => createE2BQualificationEvidence(input({
+    sdk: { ...input().sdk, version: '2.39.0' },
+  })), /exact e2b@2\.63\.0/);
+  const evidence = createE2BQualificationEvidence(input());
+  const ajv = new Ajv2020({ strict: false });
+  addFormats(ajv);
+  const schema = JSON.parse(await readFile(new URL('../schema/e2b-qualification-evidence.v2.json', import.meta.url), 'utf8'));
+  const validate = ajv.compile(schema);
+  assert.equal(validate(evidence), true, ajv.errorsText(validate.errors));
+  assert.equal(validate({ ...evidence, sdk: { ...evidence.sdk, version: '2.39.0' } }), false);
+  const oldProfile = { ...evidence, schema: 'agoragentic.risk-fork.e2b-qualification-evidence.v1' };
+  assert.equal(validate(oldProfile), false);
+  assert.throws(() => validateE2BQualificationEvidence(oldProfile), /schema|v2/i);
+  const historicalSchema = JSON.parse(await readFile(new URL('../schema/e2b-qualification-evidence.v1.json', import.meta.url), 'utf8'));
+  assert.equal(historicalSchema.properties.sdk.properties.version.const, '2.39.0');
+  assert.equal(ajv.compile(historicalSchema)(evidence), false);
 });
 
 test('every unknown or failed mandatory control keeps the adapter production-unqualified', () => {
@@ -640,7 +441,7 @@ test('every unknown or failed mandatory control keeps the adapter production-unq
   }
 });
 
-test('only independently signed exact e2b@2.39.0 bindings can satisfy qualification while activation stays default-off', () => {
+test('only independently signed exact e2b@2.63.0 bindings can satisfy qualification while activation stays default-off', () => {
   const qualified = qualifiedEvidence();
   const { evidence } = qualified;
   const base = {
@@ -686,7 +487,7 @@ test('only independently signed exact e2b@2.39.0 bindings can satisfy qualificat
       ...base,
       ...qualificationTrust(evidence, qualified.signed.verifier),
       SandboxClass: class Sandbox {},
-      sdkVersion: '2.39.0',
+      sdkVersion: '2.63.0',
     }),
     /qualified.*SDK|integrity.*verifier|inject/i,
   );
@@ -711,7 +512,7 @@ test('only independently signed exact e2b@2.39.0 bindings can satisfy qualificat
     () => createE2BQualificationEvidence(input({
       sdk: { package: 'e2b', version: '2.40.0', integrity_hash: hash('wrong-sdk') },
     })),
-    /2\.39\.0/,
+    /2\.63\.0/,
   );
 
   const trusted = qualificationTrust(evidence, qualified.signed.verifier);
@@ -822,7 +623,7 @@ test('a pinned independent observation exact-binds first-instruction IPv4/IPv6 a
     validateE2BQualificationEvidence(finalized, {}, verifier),
     finalized,
   );
-  const schemaPath = fileURLToPath(new URL('../schema/e2b-qualification-evidence.v1.json', import.meta.url));
+  const schemaPath = fileURLToPath(new URL('../schema/e2b-qualification-evidence.v2.json', import.meta.url));
   const schema = JSON.parse(await readFile(schemaPath, 'utf8'));
   const schemaValidate = new Ajv2020({ allErrors: true, strict: true });
   addFormats(schemaValidate);

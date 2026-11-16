@@ -2,7 +2,7 @@
 
 import { createHash } from 'node:crypto';
 import { constants as fsConstants } from 'node:fs';
-import { lstat, mkdir, open, readdir, realpath, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, open, readdir, realpath, rmdir, unlink } from 'node:fs/promises';
 import path from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import { fileURLToPath } from 'node:url';
@@ -24,6 +24,7 @@ const REVIEWED_SOURCE_CHECKOUT_GATEWAY_SHA256_ALLOWLIST = Object.freeze([
   'sha256:6a36c3ae1c755b7b0a4d857aad143bf190c8e2003591218480de585aedd579d4',
 ]);
 const FILE_STABILITY_WINDOW_MS = 5;
+let reviewCleanupStatus;
 
 function usage() {
   return [
@@ -236,38 +237,117 @@ async function writeReview(packet, output) {
     throw new TypeError('--output parent must be a regular directory');
   }
   await mkdir(output, { mode: 0o700 });
-
-  const writtenFiles = [];
-  for (const entry of packet.outputs) {
-    const target = path.join(output, entry.review_filename);
-    await writeFile(target, entry.content, { encoding: 'utf8', flag: 'wx', mode: 0o600 });
-    writtenFiles.push({
-      client: entry.client,
-      filename: entry.review_filename,
-      sha256: sha256Ref(Buffer.from(entry.content, 'utf8')),
-    });
+  // This is a local disabled-review write, not an atomic publication or a
+  // defense against a same-privilege host replacing paths concurrently.
+  // Never recursively delete: unknown entries/identities require inspection.
+  const created = [];
+  let directoryIdentity;
+  function sameIdentity(left, right) {
+    return left.dev === right.dev && left.ino === right.ino
+      && left.mode === right.mode && left.uid === right.uid && left.gid === right.gid;
   }
-  const manifest = {
-    schema: 'agoragentic.risk-fork.client-adoption-review-manifest.v1',
-    status: packet.status,
-    client: packet.client,
-    expected_tool_inventory: packet.expected_tool_inventory,
-    gateway: packet.gateway,
-    files: writtenFiles,
-    controls: {
-      ...packet.controls,
-      writes_performed: true,
-      review_packet_written: true,
-      active_client_paths_written: false,
-    },
-  };
-  const manifestPath = path.join(output, 'manifest.json');
-  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, {
-    encoding: 'utf8',
-    flag: 'wx',
-    mode: 0o600,
-  });
-  return { manifest, manifest_path: manifestPath };
+  async function directoryOwned() {
+    const current = await lstat(output, { bigint: true });
+    // Directory link counts can track file entries (for example on APFS),
+    // so they legitimately change as this operation writes/removes files.
+    return directoryIdentity !== undefined && current.isDirectory()
+      && !current.isSymbolicLink() && sameIdentity(current, directoryIdentity);
+  }
+  async function writeOwned(filename, content) {
+    const bytes = Buffer.from(content, 'utf8');
+    const target = path.join(output, filename);
+    const handle = await open(target, 'wx', 0o600);
+    try {
+      const identity = await handle.stat({ bigint: true });
+      created.push({ filename, target, identity, bytes });
+      await handle.writeFile(bytes);
+    } finally {
+      await handle.close();
+    }
+  }
+  async function fileOwned(entry) {
+    const flags = fsConstants.O_RDONLY | (fsConstants.O_NOFOLLOW ?? 0)
+      | (fsConstants.O_NONBLOCK ?? 0);
+    const handle = await open(entry.target, flags);
+    try {
+      const before = await handle.stat({ bigint: true });
+      if (!before.isFile() || before.nlink !== 1n
+        || !sameIdentity(before, entry.identity)
+        || before.size < 0n || before.size > BigInt(entry.bytes.length)) return false;
+      // A failed write can leave only a prefix. Changed bytes are not ours to
+      // remove, even when an editor retained the same file identity.
+      const bytes = Buffer.alloc(Number(before.size) + 1);
+      let offset = 0;
+      while (offset < bytes.length) {
+        const read = await handle.read(bytes, offset, bytes.length - offset, offset);
+        if (read.bytesRead === 0) break;
+        offset += read.bytesRead;
+      }
+      const after = await handle.stat({ bigint: true });
+      const current = await lstat(entry.target, { bigint: true });
+      return offset === Number(before.size)
+        && bytes.subarray(0, offset).equals(entry.bytes.subarray(0, offset))
+        && current.isFile() && !current.isSymbolicLink()
+        && [after, current].every((details) => sameIdentity(before, details)
+          && before.nlink === details.nlink && before.size === details.size && before.mtimeNs === details.mtimeNs
+          && before.ctimeNs === details.ctimeNs);
+    } finally {
+      await handle.close();
+    }
+  }
+  async function rollback() {
+    try {
+      if (!await directoryOwned()) return false;
+      const names = (await readdir(output)).sort();
+      if (!isDeepStrictEqual(names, created.map((entry) => entry.filename).sort())) return false;
+      // Inspect the whole inventory before removing any part of it.
+      for (const entry of created) if (!await fileOwned(entry)) return false;
+      for (const entry of created) {
+        if (!await directoryOwned() || !await fileOwned(entry)) return false;
+        await unlink(entry.target);
+      }
+      if (!await directoryOwned()) return false;
+      await rmdir(output); // Refuses any newly added entry; never recursive.
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  try {
+    directoryIdentity = await lstat(output, { bigint: true });
+    if (!directoryIdentity.isDirectory() || directoryIdentity.isSymbolicLink()) {
+      throw new TypeError('Review output directory changed during creation');
+    }
+    const writtenFiles = [];
+    for (const entry of packet.outputs) {
+      await writeOwned(entry.review_filename, entry.content);
+      writtenFiles.push({
+        client: entry.client,
+        filename: entry.review_filename,
+        sha256: sha256Ref(Buffer.from(entry.content, 'utf8')),
+      });
+    }
+    const manifest = {
+      schema: 'agoragentic.risk-fork.client-adoption-review-manifest.v1',
+      status: packet.status,
+      client: packet.client,
+      expected_tool_inventory: packet.expected_tool_inventory,
+      gateway: packet.gateway,
+      files: writtenFiles,
+      controls: {
+        ...packet.controls,
+        writes_performed: true,
+        review_packet_written: true,
+        active_client_paths_written: false,
+      },
+    };
+    const manifestPath = path.join(output, 'manifest.json');
+    await writeOwned('manifest.json', `${JSON.stringify(manifest, null, 2)}\n`);
+    return { manifest, manifest_path: manifestPath };
+  } catch (error) {
+    reviewCleanupStatus = await rollback() ? 'removed' : 'incomplete';
+    throw error;
+  }
 }
 
 async function verifyReview(manifestPath, gatewayBinding) {
@@ -406,6 +486,7 @@ try {
     schema: 'agoragentic.risk-fork.client-adoption-error.v1',
     status: 'refused',
     message: error instanceof Error ? error.message : String(error),
+    ...(reviewCleanupStatus === undefined ? {} : { review_cleanup_status: reviewCleanupStatus }),
     client_enabled: false,
     provider_calls: 0,
     network_used: false,
