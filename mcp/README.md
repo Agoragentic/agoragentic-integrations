@@ -209,16 +209,19 @@ Those checks do not prove hosted routing, provider containment, deployment, enab
 
 ### OAuth development dependency closure
 
-The source-checkout tooling pins `@modelcontextprotocol/client@2.3.0` and
-`@modelcontextprotocol/sdk@1.31.0`, retaining the fixes for
+The source-checkout tooling pins `@modelcontextprotocol/sdk@1.32.2` in both
+its development dependencies and override. Hosted bundle and Claude SDK
+qualification tooling retain their separately reviewed `1.32.0` pins. These
+versions retain the fixes for
 [GHSA-6qxp-vccf-f47h](https://github.com/advisories/GHSA-6qxp-vccf-f47h).
-The hosted bundle's tooling uses the same pins; Claude SDK qualification tooling
-overrides its transitive MCP SDK to the same reviewed `1.31.0` pin. Checkout tests
-reject vulnerable duplicate lock entries. The coordinated modern SDK inventory
-also pins `@modelcontextprotocol/server@2.3.0` and
-`@modelcontextprotocol/node@2.1.1`; both client and server use exactly
-`@modelcontextprotocol/core@2.3.0`. The hosted bundle's generated runtime,
-source inventory, and third-party notices must match that same reviewed closure.
+Checkout tests check every SDK lock entry for the exact reviewed version.
+
+The coordinated modern SDK inventory for MCP and the hosted bundle pins
+`@modelcontextprotocol/client@2.4.0`, `@modelcontextprotocol/server@2.4.0`, and
+`@modelcontextprotocol/node@2.1.2`; both client and server use exactly
+`@modelcontextprotocol/core@2.4.0`. The hosted bundle's generated runtime,
+source inventory, and third-party notices must match its reviewed dependency
+closure.
 
 This is a dependency-closure repair, not live OAuth or provider qualification.
 The package's SDK HTTP-client uses are synthetic, loopback test fixtures, not a

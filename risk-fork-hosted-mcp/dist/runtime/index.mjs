@@ -110,13 +110,13 @@ var require_package = __commonJS({
       devDependencies: {
         "@modelcontextprotocol/client": "2.4.0",
         "@modelcontextprotocol/node": "2.1.2",
-        "@modelcontextprotocol/sdk": "1.32.0",
+        "@modelcontextprotocol/sdk": "1.32.2",
         "@modelcontextprotocol/server": "2.4.0",
         esbuild: "0.28.2"
       },
       overrides: {
         "@hono/node-server": "2.1.8",
-        "@modelcontextprotocol/sdk": "1.32.0",
+        "@modelcontextprotocol/sdk": "1.32.2",
         "body-parser": "2.4.0",
         "fast-uri": "3.1.9",
         hono: "4.13.18",
@@ -76875,6 +76875,20 @@ function isRiskForkMcpHostAdapter(value) {
   return adapterRecords.has(value);
 }
 
+// risk-fork-hosted-mcp/.build/upstream/risk-fork/src/e2b-node-runtime.mjs
+function assertE2BNodeRuntime() {
+  const version = process.versions.node;
+  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(version);
+  const major = match ? Number(match[1]) : -1;
+  const minor = match ? Number(match[2]) : -1;
+  if (major > 22 || major === 22 && minor >= 19) return;
+  const error = new Error("E2B SDK 2.63.0 requires Node >=22.19.0; core Node 20 support does not authorize SDK use");
+  error.code = "E2B_NODE_RUNTIME_UNSUPPORTED";
+  error.production_qualified = false;
+  error.retryable = false;
+  throw error;
+}
+
 // risk-fork-hosted-mcp/.build/upstream/risk-fork/src/e2b-qualification.mjs
 import {
   KeyObject,
@@ -76979,7 +76993,8 @@ async function checkReadonlyCustody(config, runtimeFiles = []) {
 async function assertE2BRuntimeSdkReadonlyCustody(profile, runtimeFiles) {
   return checkReadonlyCustody(profile, runtimeFiles);
 }
-async function sdkProcessMain(checkCustody) {
+async function sdkProcessMain(checkCustody, assertRuntime) {
+  assertRuntime();
   const crypto2 = await import("node:crypto");
   const { pathToFileURL: pathToFileURL2 } = await import("node:url");
   const MAX_PROVIDER_TIMEOUT_MS2 = 24 * 60 * 60 * 1e3;
@@ -77391,6 +77406,7 @@ function isE2BRuntimeSdkProcessBoundary(value) {
   return BOUNDARIES.has(value);
 }
 function createE2BRuntimeSdkProcessBoundary(options = {}) {
+  assertE2BNodeRuntime();
   assertPlainObject(options, "SDK process options");
   assertAllowedKeys(options, ["runtimeArtifactPath", "runtimeArtifactHash", "packageDirectory", "nodeArtifactHash", "providerApiKey", "deadlineMs", "lifetimeMs"], "SDK process options");
   const absolute = (value, field) => {
@@ -77480,7 +77496,7 @@ function createE2BRuntimeSdkProcessBoundary(options = {}) {
       }
       if (retired || retainedProcesses >= MAX_PROCESSES) throw failure();
       retainedProcesses += 1;
-      const source = `(${sdkProcessMain.toString()})(${checkReadonlyCustody.toString()}).catch(() => process.exit(1));`;
+      const source = `(${sdkProcessMain.toString()})(${checkReadonlyCustody.toString()}, ${assertE2BNodeRuntime.toString()}).catch(() => process.exit(1));`;
       try {
         child = spawn(config.nodePath, ["--max-old-space-size=256", "--input-type=module", "--eval", source], {
           cwd: path3.dirname(config.runtimeArtifactPath),
@@ -77583,7 +77599,7 @@ function createE2BRuntimeSdkProcessBoundary(options = {}) {
       if (observed.pid !== child.pid || observed.nonce !== nonce || observed.custody?.readonly !== true || observed.custody.uid !== process.getuid() || observed.custody.gid !== process.getgid()) throw failure();
       assertPlainObject(observed.binding, "SDK binding");
       assertAllowedKeys(observed.binding, ["package", "version", "integrity_hash"], "SDK binding");
-      if (observed.binding.package !== "e2b" || observed.binding.version !== "2.39.0") throw failure();
+      if (observed.binding.package !== "e2b" || observed.binding.version !== "2.63.0") throw failure();
       requireSha256Ref(observed.binding.integrity_hash, "SDK integrity hash");
       pin = Object.freeze({ ...observed.binding });
       return pin;
@@ -77835,7 +77851,7 @@ function createE2BRuntimeSdkProcessBoundary(options = {}) {
 }
 
 // risk-fork-hosted-mcp/.build/upstream/risk-fork/src/e2b-qualification.mjs
-var E2B_QUALIFICATION_SCHEMA = "agoragentic.risk-fork.e2b-qualification-evidence.v1";
+var E2B_QUALIFICATION_SCHEMA = "agoragentic.risk-fork.e2b-qualification-evidence.v2";
 var E2B_QUALIFICATION_TRUST_SCHEMA = "agoragentic.risk-fork.e2b-qualification-trust.v1";
 var E2B_EXTERNAL_QUALIFICATION_OBSERVATION_SCHEMA = "agoragentic.risk-fork.e2b-external-qualification-observation.v1";
 var E2B_RUNTIME_SDK_INTEGRITY_SCHEMA = "agoragentic.risk-fork.e2b-runtime-sdk-dependency-closure.v2";
@@ -77858,6 +77874,7 @@ var MAX_RUNTIME_SDK_FILES = 8192;
 var MAX_RUNTIME_SDK_BYTES_PER_PACKAGE = 64 * 1024 * 1024;
 var MAX_RUNTIME_SDK_BYTES = 256 * 1024 * 1024;
 var MAX_RUNTIME_DEPENDENCIES_PER_PACKAGE = 256;
+var MAX_RUNTIME_DEPENDENCY_LOOKUP_PATHS = 128;
 var MIN_EXTERNAL_OBSERVATION_LIFETIME_MS = 1e3;
 var MAX_EXTERNAL_OBSERVATION_LIFETIME_MS = 24 * 60 * 60 * 1e3;
 var E2B_EXTERNAL_QUALIFICATION_AUDIENCE = "agoragentic.risk-fork.e2b-qualification";
@@ -78066,12 +78083,12 @@ function normalizeEvidence3(value, { includeComputedFields }) {
   const sdk = value.sdk;
   assertPlainObject(sdk, "E2B qualification evidence.sdk");
   assertAllowedKeys(sdk, ["package", "version", "integrity_hash"], "E2B qualification evidence.sdk");
-  if (sdk.package !== "e2b" || sdk.version !== "2.39.0") {
-    throw new TypeError("E2B qualification requires the exact e2b@2.39.0 SDK");
+  if (sdk.package !== "e2b" || sdk.version !== "2.63.0") {
+    throw new TypeError("E2B qualification requires the exact e2b@2.63.0 SDK");
   }
   const normalizedSdk = {
     package: "e2b",
-    version: "2.39.0",
+    version: "2.63.0",
     integrity_hash: requireSha256Ref(
       sdk.integrity_hash,
       "E2B qualification sdk.integrity_hash"
@@ -78915,12 +78932,12 @@ function requireEd25519Signature(value, field = "E2B qualification trust signatu
 function normalizeRuntimeSdkBinding(value, field = "E2B runtime SDK binding") {
   assertPlainObject(value, field);
   assertAllowedKeys(value, ["package", "version", "integrity_hash"], field);
-  if (value.package !== "e2b" || value.version !== "2.39.0") {
-    throw new TypeError(`${field} requires exact e2b@2.39.0`);
+  if (value.package !== "e2b" || value.version !== "2.63.0") {
+    throw new TypeError(`${field} requires exact e2b@2.63.0`);
   }
   return deepFreeze({
     package: "e2b",
-    version: "2.39.0",
+    version: "2.63.0",
     integrity_hash: requireSha256Ref(value.integrity_hash, `${field}.integrity_hash`)
   });
 }
@@ -79127,6 +79144,53 @@ async function locateDependencyPackage(fromRoot, requestedName, anchor) {
   }
   return null;
 }
+async function assertOptionalDependencyAbsent(fromRoot, requestedName) {
+  const resolver = createRequire(path4.join(fromRoot, "package.json"));
+  let resolved;
+  try {
+    resolved = resolver.resolve(requestedName);
+  } catch (error) {
+    if (error?.code !== "MODULE_NOT_FOUND") {
+      throw new Error(`E2B runtime absent optional dependency ${requestedName} cannot be established`);
+    }
+  }
+  if (resolved !== void 0) {
+    if (!path4.isAbsolute(resolved) || runtimeSdkCachedModule(resolved) !== void 0) {
+      throw new Error(`E2B runtime optional dependency ${requestedName} resolves outside its inspected closure`);
+    }
+    try {
+      await lstat(resolved);
+      throw new Error(`E2B runtime optional dependency ${requestedName} resolves outside its inspected closure`);
+    } catch (error) {
+      if (error?.code !== "ENOENT" && error?.code !== "ENOTDIR") throw error;
+    }
+  }
+  const lookupPaths = resolver.resolve.paths(requestedName);
+  if (!Array.isArray(lookupPaths) || lookupPaths.length > MAX_RUNTIME_DEPENDENCY_LOOKUP_PATHS) {
+    throw new Error(`E2B runtime absent optional dependency ${requestedName} has unsupported lookup paths`);
+  }
+  const cachedFiles = Object.getOwnPropertyNames(RUNTIME_SDK_COMMONJS_CACHE);
+  if (cachedFiles.length > MAX_RUNTIME_SDK_CACHE_PROVENANCE) {
+    throw new Error("E2B runtime SDK cache provenance capacity reached; restart required");
+  }
+  for (const directory of lookupPaths) {
+    const candidate = path4.join(directory, ...dependencyPathSegments(requestedName));
+    for (const cachedFile of cachedFiles) {
+      if (path4.isAbsolute(cachedFile) && (isContainedPath(candidate, cachedFile) || [".js", ".json", ".node"].some((suffix) => cachedFile === `${candidate}${suffix}`)) && runtimeSdkCachedModule(cachedFile) !== void 0) {
+        throw new Error(`E2B runtime optional dependency ${requestedName} has cached code outside its inspected closure`);
+      }
+    }
+    for (const suffix of ["", ".js", ".json", ".node"]) {
+      try {
+        await lstat(`${candidate}${suffix}`);
+      } catch (error) {
+        if (error?.code === "ENOENT" || error?.code === "ENOTDIR") continue;
+        throw error;
+      }
+      throw new Error(`E2B runtime optional dependency ${requestedName} exists outside its inspected closure`);
+    }
+  }
+}
 async function inspectRuntimePackageTree(root, anchor, state) {
   const location = canonicalClosureLocation(anchor, root, "E2B runtime package");
   const files = [];
@@ -79279,6 +79343,7 @@ async function inspectRuntimeSdkPackage(packageDirectory) {
             `E2B runtime dependency ${dependency.requested_name} is required but missing`
           );
         }
+        await assertOptionalDependencyAbsent(canonicalRoot, dependency.requested_name);
         edges.push({
           from_location: inspected.record.location,
           requested_name: dependency.requested_name,
@@ -79328,8 +79393,8 @@ async function inspectRuntimeSdkPackage(packageDirectory) {
     return inspected;
   }
   const sdk = await visit(root, "e2b");
-  if (sdk.record.version !== "2.39.0") {
-    throw new Error("E2B runtime SDK dependency closure requires exact e2b@2.39.0");
+  if (sdk.record.version !== "2.63.0") {
+    throw new Error("E2B runtime SDK dependency closure requires exact e2b@2.63.0");
   }
   if (sdk.manifest.main !== "dist/index.js" || !sdk.filePaths.has(sdk.manifest.main)) {
     throw new Error("E2B runtime SDK package entrypoint is not the reviewed dist/index.js");
@@ -79352,12 +79417,13 @@ async function inspectRuntimeSdkPackage(packageDirectory) {
   };
   const binding = deepFreeze({
     package: "e2b",
-    version: "2.39.0",
+    version: "2.63.0",
     integrity_hash: sha256Ref(closure)
   });
   return {
     binding,
     entry: path4.join(root, sdk.manifest.main),
+    hasAbsentOptionalDependencies: edges.some((edge) => edge.resolution === "absent_optional"),
     runtimeFiles: [...packagesByRoot.values()].flatMap((entry) => entry.record.files.map((file) => ({
       path: path4.join(entry.root, ...file.path.split("/")),
       hash: file.hash
@@ -79388,9 +79454,23 @@ function assertRuntimeSdkCacheProvenance(files) {
     }
   }
 }
+function assertOptionalSdkLoadCacheClosure(inspected) {
+  if (!inspected.hasAbsentOptionalDependencies) return;
+  const cachedFiles = Object.getOwnPropertyNames(RUNTIME_SDK_COMMONJS_CACHE);
+  if (cachedFiles.length > MAX_RUNTIME_SDK_CACHE_PROVENANCE) {
+    throw new Error("E2B runtime SDK cache provenance capacity reached; restart required");
+  }
+  const allowedFiles = new Set(inspected.runtimeFiles.map((file) => file.path));
+  for (const file of cachedFiles) {
+    if (runtimeSdkCachedModule(file) !== void 0 && !allowedFiles.has(file)) {
+      throw new Error("E2B runtime SDK absent optional dependency requires a fresh process without unrelated cached modules");
+    }
+  }
+}
 async function loadRuntimeSdkWithCacheFence(expected, inspect) {
   const before = await inspect();
   assertRuntimeSdkBindingMatches(before.binding, expected);
+  assertOptionalSdkLoadCacheClosure(before);
   let loaded = RUNTIME_SDK_LOADED_ENTRIES.get(before.entry);
   if (loaded && (loaded.state !== "verified" || !safeEqual(loaded.hash, before.binding.integrity_hash))) {
     throw new Error("E2B runtime SDK loaded binding changed or failed; restart required");
@@ -79407,6 +79487,7 @@ async function loadRuntimeSdkWithCacheFence(expected, inspect) {
     const module = await import(pathToFileURL(before.entry).href);
     const after = await inspect();
     assertRuntimeSdkBindingMatches(after.binding, expected);
+    assertOptionalSdkLoadCacheClosure(after);
     if (!safeEqual(before.binding.integrity_hash, after.binding.integrity_hash)) {
       throw new Error("E2B runtime SDK package changed while it was loaded");
     }
@@ -79444,6 +79525,7 @@ function createE2BRuntimeSdkIntegrityVerifier(options = {}) {
         return normalizeRuntimeSdkBinding(await boundary.inspect());
       },
       async load(value) {
+        assertE2BNodeRuntime();
         return boundary.load(normalizeRuntimeSdkBinding(value));
       }
     });
@@ -79484,6 +79566,7 @@ function createE2BRuntimeSdkIntegrityVerifier(options = {}) {
       return inspected.binding;
     },
     async load(value) {
+      assertE2BNodeRuntime();
       const expected = normalizeRuntimeSdkBinding(value);
       const pending = runtimeSdkLoadTail.then(() => loadRuntimeSdkWithCacheFence(
         expected,
@@ -79503,6 +79586,7 @@ function isE2BRuntimeSdkProcessIntegrityVerifier(value) {
   return Boolean(value && RUNTIME_SDK_PROCESS_VERIFIERS.has(value));
 }
 async function loadVerifiedE2BRuntimeSdk(value, verifier) {
+  assertE2BNodeRuntime();
   if (!isE2BRuntimeSdkIntegrityVerifier(verifier)) {
     throw new TypeError(
       "E2B runtime SDK integrity requires a trusted verifier created by createE2BRuntimeSdkIntegrityVerifier"
@@ -82328,9 +82412,11 @@ var SECRET_VALUE_PATTERNS = Object.freeze([
 ]);
 var DANGEROUS_JSON_KEYS = /* @__PURE__ */ new Set(["__proto__", "constructor", "prototype"]);
 async function defaultSdkLoader() {
+  assertE2BNodeRuntime();
   return import("e2b");
 }
 async function defaultSdkVersionLoader() {
+  assertE2BNodeRuntime();
   const entry = fileURLToPath2(import.meta.resolve("e2b"));
   let directory = path7.dirname(entry);
   for (let depth = 0; depth < 8; depth += 1) {
@@ -83544,6 +83630,7 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
     return isE2BRuntimeSdkProcessSandboxClass(Sandbox) && isE2BRuntimeSdkProcessPreEntryFailure(error, Sandbox);
   }
   async #sandboxClass(operation = "providerIo") {
+    if (!this.#offlineConformance) assertE2BNodeRuntime();
     this.#requireForkRuntimeEnabled(operation);
     if (this.#qualificationState.evidence && !this.#sdkIntegrityVerified) {
       if (!isE2BRuntimeSdkProcessIntegrityVerifier(this.#sdkIntegrityVerifier)) {
@@ -83560,8 +83647,8 @@ var E2BRiskForkAdapter = class extends RiskForkProvider {
     }
     if (!this.#sdkVersionVerified && (!this.#SandboxClass || this.qualificationEligible)) {
       const version = this.#sdkVersion ?? await this.#sdkVersionLoader();
-      if (version !== "2.39.0") {
-        throw new Error(`E2B clean-template profile requires exact e2b@2.39.0; observed ${String(version)}`);
+      if (version !== "2.63.0") {
+        throw new Error(`E2B clean-template profile requires exact e2b@2.63.0; observed ${String(version)}`);
       }
       this.#sdkVersionVerified = true;
     }
@@ -85899,14 +85986,14 @@ function createE2BAuthorityFreeSourceVerifier(options = {}) {
 }
 
 // risk-fork-hosted-mcp/src/index.mjs
-var REVIEWED_SOURCE_INTEGRITY = true ? "sha256:7ba4152681d57bb6add26fd8b8070008746d64a4c42ccc72d80434068e60f2c2" : null;
+var REVIEWED_SOURCE_INTEGRITY = true ? "sha256:ac4af2e42a66c03233ea0a0f8c3ba6a1052b934c75a6455796132e05a81d3f9c" : null;
 var HOSTED_MCP_BUNDLE_METADATA = Object.freeze({
   package_name: "@agoragentic/risk-fork-hosted-mcp",
   package_version: "0.1.0-alpha.0",
   mcp_source_version: "2.0.0",
   risk_fork_source_version: "0.1.0-alpha.1",
   reviewed_source_integrity: REVIEWED_SOURCE_INTEGRITY,
-  optional_e2b_peer_version: "2.39.0",
+  optional_e2b_peer_version: "2.63.0",
   publication_status: "private_unpublished",
   outbound_mcp_transport_qualified: false,
   managed_postgres_qualified: false,

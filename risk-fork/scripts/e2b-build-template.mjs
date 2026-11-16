@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { assertE2BNodeRuntime } from '../src/e2b-node-runtime.mjs';
 import { constants } from 'node:fs';
 import {
   lstat,
@@ -170,7 +171,7 @@ async function loadTemplateBuildSdk(gate) {
   const verifier = createE2BRuntimeSdkIntegrityVerifier();
   const loaded = await loadVerifiedE2BRuntimeSdk({
     package: 'e2b',
-    version: '2.39.0',
+    version: '2.63.0',
     integrity_hash: gate.sdkIntegrityHash,
   }, verifier);
   return Object.freeze({
@@ -339,7 +340,7 @@ export async function persistE2BTemplateBuildAttempt(directory, intent) {
   }
   if (intent.provider_outcome !== 'unknown'
     || intent.sdk.package !== 'e2b'
-    || intent.sdk.version !== '2.39.0'
+    || intent.sdk.version !== '2.63.0'
     || intent.requested_cpu_count !== 1
     || intent.requested_memory_mb !== 512
     || intent.raw_credentials_included !== false
@@ -461,6 +462,7 @@ function createTemplateBuildAttemptIntent({ gate, sdk, hashes, provenanceHash, c
 }
 
 export async function runE2BTemplateBuild(options = {}) {
+  assertE2BNodeRuntime();
   const gate = assertE2BTemplateBuildGate(options.env ?? process.env);
   rejectEvidenceProducingTestSeams(options);
   assertE2BEvidencePlatformSecurity();
@@ -470,7 +472,7 @@ export async function runE2BTemplateBuild(options = {}) {
   if (typeof Template !== 'function'
     || typeof Template.build !== 'function'
     || typeof waitForFile !== 'function') {
-    throw new TypeError('Installed e2b@2.39.0 does not expose Template.build and waitForFile');
+    throw new TypeError('Installed e2b@2.63.0 does not expose Template.build and waitForFile');
   }
   const hashes = await runtimeHashes();
   const provenanceHash = sha256Ref({

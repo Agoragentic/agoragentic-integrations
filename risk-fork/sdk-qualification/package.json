@@ -1,0 +1,16 @@
+{
+  "name": "risk-fork-e2b-sdk-qualification",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Provider-free qualification of the optional exact E2B SDK; separate from the Node 20 core",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "devDependencies": {
+    "e2b": "2.63.0"
+  }
+}
