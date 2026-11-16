@@ -109,6 +109,23 @@
       ]
     },
     {
+      "id": "pdf-text-layer-control",
+      "file": "text.pdf",
+      "format": "pdf",
+      "expected_canonical_format": "pdf",
+      "expect_conversion": true,
+      "expected_markdown_tokens": ["Synthetic text PDF control", "Text evidence marker 1269"],
+      "expected_risk": "medium",
+      "expected_receipt_status": "incomplete",
+      "expected_coverage_complete": true,
+      "expected_blockers": ["document_structure_unavailable_for_pdf"],
+      "expected_limitations": [
+        "scanned_or_image_only_pdf_requires_ocr_fallback",
+        "pdf_document_model_and_embedded_assets_are_not_available",
+        "reading_order_may_be_ambiguous_in_complex_layouts"
+      ]
+    },
+    {
       "id": "pdf-image-only-ocr-required",
       "file": "image-only.pdf",
       "format": "pdf",

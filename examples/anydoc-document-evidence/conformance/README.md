@@ -26,6 +26,7 @@ The adapter-level network guard blocks Node built-in and global network APIs. It
 | XLSM alias | advertised macro-format alias normalizes to canonical `xlsx` |
 | DOCX nested table | text recall versus recoverable table structure |
 | PPTX untitled slides | presentation container boundaries and layout |
+| Text PDF control | both text markers retained without OCR, complete text coverage, and a receipt blocked on unavailable document structure |
 | Image-only PDF | explicit OCR-required failure |
 
 The Python generator reopens and verifies the source-side facts before writing `generated/fixture-manifest.json`. The Node harness checks every fixture hash, the full generator dependency inventory, and the hash-locked requirements file against that manifest before invoking AnyDoc.

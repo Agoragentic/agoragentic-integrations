@@ -23,6 +23,7 @@ ROOT = Path(__file__).resolve().parent
 GENERATED = ROOT / "generated"
 MANIFEST = GENERATED / "fixture-manifest.json"
 REQUIREMENTS_LOCK = ROOT / "requirements.txt"
+TEXT_PDF_LINES = ("Synthetic text PDF control", "Text evidence marker 1269")
 GENERATOR_DISTRIBUTIONS = (
     "charset-normalizer",
     "et-xmlfile",
@@ -120,6 +121,15 @@ def write_pptx() -> None:
     presentation.save(GENERATED / "untitled-slides.pptx")
 
 
+def write_text_pdf() -> None:
+    path = GENERATED / "text.pdf"
+    pdf = canvas.Canvas(str(path), pagesize=(360, 180), pageCompression=0, invariant=1)
+    for y, line in zip((132, 110), TEXT_PDF_LINES, strict=True):
+        pdf.drawString(36, y, line)
+    pdf.showPage()
+    pdf.save()
+
+
 def write_image_only_pdf() -> None:
     image = Image.new("RGB", (300, 120), "white")
     draw = ImageDraw.Draw(image)
@@ -175,6 +185,11 @@ def verify_sources() -> dict[str, list[str]]:
     assert "Second slide, no title placeholder." in slide_text[1]
     assert "Third slide, also untitled." in slide_text[2]
 
+    text_pdf = (GENERATED / "text.pdf").read_bytes()
+    assert text_pdf.startswith(b"%PDF-") and b"/Subtype /Image" not in text_pdf
+    for line in TEXT_PDF_LINES:
+        assert f"({line}) Tj".encode("ascii") in text_pdf
+
     pdf_bytes = (GENERATED / "image-only.pdf").read_bytes()
     assert pdf_bytes.startswith(b"%PDF-") and b"/Subtype /Image" in pdf_bytes
 
@@ -191,6 +206,7 @@ def verify_sources() -> dict[str, list[str]]:
         "semantic-risks.xlsm": ["byte_identical_alias_fixture_verified"],
         "nested-table.docx": ["nested_table_cells_verified"],
         "untitled-slides.pptx": ["untitled_slide_structure_and_text_verified"],
+        "text.pdf": ["pdf_contains_both_text_showing_operators", "pdf_contains_no_image_objects"],
         "image-only.pdf": ["pdf_contains_embedded_image_object"],
     }
 
@@ -229,6 +245,7 @@ def main() -> None:
     write_xlsx()
     write_docx()
     write_pptx()
+    write_text_pdf()
     write_image_only_pdf()
     facts = verify_sources()
     write_manifest(facts)
