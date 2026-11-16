@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://agoragentic.com/schema/risk-fork-e2b-qualification-evidence.v1.json",
+  "$id": "https://agoragentic.com/schema/risk-fork-e2b-qualification-evidence.v2.json",
   "title": "Agoragentic Risk Fork E2B Qualification Evidence V1",
   "description": "Closed, sanitized evidence for a single explicitly authorized E2B containment qualification. This record does not grant deployment, spend, or execution authority.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema", "status", "provider", "sdk", "template", "runtime", "run", "limits", "observations", "controls", "cleanup", "evidence_refs", "external_observation_receipt", "authority_flags", "evidence_hash"],
   "properties": {
-    "schema": { "const": "agoragentic.risk-fork.e2b-qualification-evidence.v1" },
+    "schema": { "const": "agoragentic.risk-fork.e2b-qualification-evidence.v2" },
     "status": { "$ref": "#/$defs/status" },
     "provider": {
       "type": "object",
@@ -25,7 +25,7 @@
       "required": ["package", "version", "integrity_hash"],
       "properties": {
         "package": { "const": "e2b" },
-        "version": { "const": "2.39.0" },
+        "version": { "const": "2.63.0" },
         "integrity_hash": { "$ref": "#/$defs/hash" }
       }
     },

@@ -1,3 +1,4 @@
+import { createVerifierCapacity } from './verifier-capacity.mjs';
 import { isProxy } from 'node:util/types';
 import {
   assertRiskForkProvider,
@@ -199,7 +200,16 @@ function publicBinding(registration) {
   });
 }
 
-export function createManagedProviderRegistry(registrations = []) {
+export function createManagedProviderRegistry(registrations = [], options = {}) {
+  assertPlainRecord(options, 'provider registry options');
+  assertAllowedKeys(options, ['verification_timeout_ms', 'verification_concurrency'], 'provider registry options');
+  const limits = { timeoutMs: options.verification_timeout_ms === undefined ? 10_000 : options.verification_timeout_ms,
+    concurrency: options.verification_concurrency === undefined ? 8 : options.verification_concurrency };
+  // Independent global-per-registry pools reserve cleanup/recovery capacity
+  // even when all resource verification slots are occupied by hung callbacks.
+  const verifyResource = createVerifierCapacity(limits);
+  const verifyCleanup = createVerifierCapacity(limits);
+  const verifyRecovery = createVerifierCapacity(limits);
   assertDataArray(registrations, 'provider registrations', { maxLength: 1_000 });
   const entries = new Map();
   for (const value of registrations) {
@@ -295,12 +305,16 @@ export function createManagedProviderRegistry(registrations = []) {
       );
       let verified = false;
       try {
-        verified = await registration.verify_resource_binding(deepFreeze({
+        const payload = deepFreeze({
           tenant_id: tenantId,
           resources,
           context,
           binding: publicBinding(registration),
-        }));
+        });
+        verified = await verifyResource(() => {
+          registration.assert_provider_stable();
+          return registration.verify_resource_binding(payload);
+        });
       } catch {
         verified = false;
       }
@@ -341,13 +355,17 @@ export function createManagedProviderRegistry(registrations = []) {
       );
       let verified = false;
       try {
-        verified = await registration.verify_cleanup_evidence(deepFreeze({
+        const payload = deepFreeze({
           tenant_id: tenantId,
           evidence,
           request,
           context,
           binding: publicBinding(registration),
-        }));
+        });
+        verified = await verifyCleanup(() => {
+          registration.assert_provider_stable();
+          return registration.verify_cleanup_evidence(payload);
+        });
       } catch {
         verified = false;
       }
@@ -386,12 +404,16 @@ export function createManagedProviderRegistry(registrations = []) {
       );
       let verified = false;
       try {
-        verified = await registration.verify_recovery_absence(deepFreeze({
+        const payload = deepFreeze({
           tenant_id: tenantId,
           evidence,
           context,
           binding: publicBinding(registration),
-        }));
+        });
+        verified = await verifyRecovery(() => {
+          registration.assert_provider_stable();
+          return registration.verify_recovery_absence(payload);
+        });
       } catch {
         verified = false;
       }

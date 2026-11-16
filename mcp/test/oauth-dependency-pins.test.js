@@ -11,23 +11,28 @@ const sdkPins = Object.freeze({
     'risk-fork-hosted-mcp': '1.32.0',
     'claude-agent-sdk': '1.32.0',
 });
-const clientPin = '2.3.0';
+const clientPins = Object.freeze({
+    mcp: '2.4.0',
+    'risk-fork-hosted-mcp': '2.4.0',
+    'claude-agent-sdk': '2.3.0',
+});
 const modernPins = Object.freeze({
-    '@modelcontextprotocol/client': clientPin,
-    '@modelcontextprotocol/node': '2.1.1',
-    '@modelcontextprotocol/server': '2.3.0',
-    '@modelcontextprotocol/core': '2.3.0',
+    '@modelcontextprotocol/client': '2.4.0',
+    '@modelcontextprotocol/node': '2.1.2',
+    '@modelcontextprotocol/server': '2.4.0',
+    '@modelcontextprotocol/core': '2.4.0',
 });
 const load = (directory, name) => JSON.parse(readFileSync(
     path.join(repositoryRoot, directory, name), 'utf8',
 ));
 
 // These are source-checkout tooling contracts, not a live OAuth qualification.
-// The coordinated roots use SDK 1.32.0 under separately reviewed exact contracts.
+// The coordinated roots retain SDK 1.32.0 and closed exact-version contracts.
 // Scan every
 // nested lock entry so a second vulnerable copy cannot hide behind a fixed root.
 for (const directory of ['mcp', 'risk-fork-hosted-mcp', 'claude-agent-sdk']) {
-    test(`${directory} locks only the reviewed patched MCP OAuth dependencies`, () => {
+    test(`${directory} locks only the pinned MCP OAuth dependencies`, () => {
+        const clientPin = clientPins[directory];
         const manifest = load(directory, 'package.json');
         const lock = load(directory, 'package-lock.json');
         assert.equal(lock.lockfileVersion, 3);
@@ -78,6 +83,10 @@ for (const directory of ['mcp', 'risk-fork-hosted-mcp']) {
                 assert.equal(entry.dev, true, 'qualification tooling adds no runtime dependency');
                 if (name === '@modelcontextprotocol/client' || name === '@modelcontextprotocol/server') {
                     assert.equal(entry.dependencies['@modelcontextprotocol/core'], modernPins['@modelcontextprotocol/core']);
+                }
+                if (name === '@modelcontextprotocol/node') {
+                    assert.equal(entry.peerDependencies['@modelcontextprotocol/server'], '^2.4.0');
+                    assert.equal(entry.dependencies['@hono/node-server'], '^1.19.9 || ^2.1.3');
                 }
             }
         }

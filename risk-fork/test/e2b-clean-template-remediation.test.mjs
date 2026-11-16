@@ -117,7 +117,7 @@ function createQualificationEvidenceForSdk(integrityHash) {
     },
     sdk: {
       package: 'e2b',
-      version: '2.39.0',
+      version: '2.63.0',
       integrity_hash: integrityHash,
     },
     template: {
@@ -631,7 +631,7 @@ async function fixture(t, mockOptions = {}) {
     globalThis[mockSdkGlobal] = mock.Sandbox;
     await writeFile(path.join(sdkDirectory, 'package.json'), JSON.stringify({
       name: 'e2b',
-      version: '2.39.0',
+      version: '2.63.0',
       main: 'dist/index.js',
     }));
     await writeFile(

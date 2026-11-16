@@ -6,6 +6,7 @@ import { lstat, readFile, realpath, readdir, statfs } from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
+import { createBoundedWorkerChannel } from './lib/bounded-worker-channel.mjs';
 
 const exec = promisify(execFile);
 const IMAGE = 'sha256:be23f54a88d34e8824c741b19b91064094f92c1c97b194144bfc8b50d67258e2';
@@ -57,6 +58,13 @@ export function parseEvents(text) {
 export function cleanupStatus({ bound, readonly, killed, empty, removed, absent, uncertain }) {
   return bound === true && readonly === true && killed === true && empty === true
     && removed === true && absent === true && uncertain === false ? 'verified' : 'unknown';
+}
+
+// Synchronous final boundary after host observations. No await may separate the
+// channel check from the caller's workload-completed assignment.
+export function completeWorkerObservation(channel) {
+  channel.assertOpen();
+  return true;
 }
 
 export function workloadStatus({ completed, uncertain, cleanup }) {
@@ -207,32 +215,7 @@ function attach(id) {
   const child = spawn(DOCKER, [...DOCKER_ARGS, 'start', '--attach', '--interactive', id], {
     env: ENV, shell: false, stdio: ['pipe', 'pipe', 'pipe'],
   });
-  const frames = []; const waiters = []; let tail = ''; let bytes = 0; let failed;
-  const reject = () => { failed = new Error('bounded fixture channel unavailable'); while (waiters.length) waiters.shift().reject(failed); };
-  child.once('error', reject); child.once('close', reject); child.stdin.on('error', reject);
-  child.stderr.on('data', (chunk) => { bytes += chunk.length; if (bytes > 16_384) reject(); });
-  child.stdout.on('data', (chunk) => {
-    bytes += chunk.length;
-    if (bytes > 16_384) return reject();
-    tail += chunk.toString('utf8');
-    try {
-      while (tail.includes('\n')) {
-        const end = tail.indexOf('\n'); const frame = JSON.parse(tail.slice(0, end)); tail = tail.slice(end + 1);
-        if (waiters.length) waiters.shift().resolve(frame); else { assert.ok(frames.length < 4); frames.push(frame); }
-      }
-    } catch { reject(); }
-  });
-  return { child, send(value) { child.stdin.write(`${JSON.stringify(value)}\n`); },
-    next() {
-      if (failed) return Promise.reject(failed);
-      if (frames.length) return Promise.resolve(frames.shift());
-      return new Promise((resolve, rejectFrame) => {
-        const entry = { resolve, reject: rejectFrame }; waiters.push(entry);
-        const timer = setTimeout(() => { const index = waiters.indexOf(entry); if (index >= 0) waiters.splice(index, 1); rejectFrame(new Error('fixture deadline')); }, 10_000);
-        entry.resolve = (value) => { clearTimeout(timer); resolve(value); };
-        entry.reject = (error) => { clearTimeout(timer); rejectFrame(error); };
-      });
-    } };
+  return { child, ...createBoundedWorkerChannel(child) };
 }
 
 export async function runSdkTreeLab(sourceRoot, fixtureRoot, scenario = 'detached') {
@@ -280,7 +263,7 @@ export async function runSdkTreeLab(sourceRoot, fixtureRoot, scenario = 'detache
     metrics.process_incarnations_observed = 1;
     assert.equal(interrupted, false);
     if (scenario === 'cancel_before_handoff') {
-      workloadOk = true;
+      workloadOk = completeWorkerObservation(channel);
       metrics.cancel_before_sdk_import = 'verified';
     } else {
     channel.send({ start: true }); // No SDK import/effect before host scope observation.
@@ -299,7 +282,8 @@ export async function runSdkTreeLab(sourceRoot, fixtureRoot, scenario = 'detache
     assert.deepEqual(await channel.next(), { phase: 'sdk_root_closed', tree_cleanup_verified: false });
     assert.equal(await incarnationGone(worker[0]), true); metrics.sdk_root_exit_observed = 'verified';
     assert.equal(await incarnationGone(descendant[0]), false); metrics.detached_survived_sdk_exit = 'verified';
-    assert.ok((await observeScope(scope)).pids.includes(descendant[0].pid)); workloadOk = true;
+    assert.ok((await observeScope(scope)).pids.includes(descendant[0].pid));
+    workloadOk = completeWorkerObservation(channel);
     }
   } catch { uncertain = true; }
   finally {
@@ -337,7 +321,7 @@ export async function runSdkTreeLab(sourceRoot, fixtureRoot, scenario = 'detache
         assert.equal(all.split('\n').includes(id), false); metrics.container_absent_after_remove = 'verified';
       } catch { uncertain = true; }
     } else uncertain = true; // Lost create result is unresolved, never wildcard cleanup.
-    if (channel) { channel.child.stdin.destroy(); channel.child.kill('SIGKILL'); }
+    if (channel) { channel.close(); channel.child.stdin.destroy(); channel.child.kill('SIGKILL'); }
     clearTimeout(watchdog); process.removeListener('SIGTERM', interrupt); process.removeListener('SIGINT', interrupt);
     if (interrupted) uncertain = true;
     metrics.teardown_duration_ms = Math.ceil(performance.now() - teardown);

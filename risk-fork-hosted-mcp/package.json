@@ -21,7 +21,7 @@
     "integrity-manifest.json",
     "migrations/001_distributed_authority.pg.sql",
     "ops/postgres/",
-    "schema/e2b-qualification-evidence.v1.json",
+    "schema/e2b-qualification-evidence.v2.json",
     "scripts/verify-integrity.mjs",
     "THIRD_PARTY_NOTICES.txt",
     "README.md",
@@ -40,17 +40,21 @@
     "prepublishOnly": "node -e \"throw new Error('RISK_FORK_HOSTED_MCP_PUBLISH_DISABLED')\""
   },
   "devDependencies": {
-    "@modelcontextprotocol/client": "2.3.0",
-    "@modelcontextprotocol/node": "2.1.1",
+    "@modelcontextprotocol/client": "2.4.0",
+    "@modelcontextprotocol/node": "2.1.2",
     "@modelcontextprotocol/sdk": "1.32.0",
-    "@modelcontextprotocol/server": "2.3.0",
+    "@modelcontextprotocol/server": "2.4.0",
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",
     "esbuild": "0.28.1",
     "pg": "8.16.3"
   },
+  "overrides": {
+    "@hono/node-server": "2.1.8",
+    "hono": "4.13.18"
+  },
   "peerDependencies": {
-    "e2b": "2.39.0"
+    "e2b": "2.63.0"
   },
   "peerDependenciesMeta": {
     "e2b": {
