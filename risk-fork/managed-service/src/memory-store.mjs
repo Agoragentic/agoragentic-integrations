@@ -710,7 +710,8 @@ export class MemoryManagedServiceStore {
     const claimantKeyId = requireOpaqueRef(claimantKeyIdValue, 'claimant_key_id');
     const now = requireIso(nowValue, 'claimant credential time');
     const claimantCredential = requiredScope === 'invocations:write'
-      ? this.#credentials.get(requireSha256(expectedKeyHash, 'admitting credential hash'))
+      || requiredScope === 'invocations:cancel'
+      ? this.#credentials.get(requireSha256(expectedKeyHash, 'claimant credential hash'))
       : [...this.#credentials.values()].find((credential) => credential.key_id === claimantKeyId);
     if (!claimantCredential
       || claimantCredential.key_id !== claimantKeyId
@@ -1147,12 +1148,13 @@ export class MemoryManagedServiceStore {
     return this.#exclusive(async () => {
       assertPlainRecord(input, 'stored cancellation request');
       assertAllowedKeys(input, ['tenant_id', 'invocation_ref', 'claimant_key_id',
-        'cancel_request_hash', 'cancel_reason_hash', 'now', 'expected_request_hash',
+        'cancel_request_hash', 'cancel_reason_hash', 'now', 'expected_key_hash', 'expected_request_hash',
         'expected_operation_hash', 'expected_provider_binding_hash', 'expected_provider_recovery_key'], 'stored cancellation request');
       const tenantId = requireTenantId(input.tenant_id);
       const ref = requireInvocationRef(input.invocation_ref);
       const now = requireIso(input.now, 'cancellation time');
-      this.#requireActiveClaimant(tenantId, input.claimant_key_id, now, 'invocations:cancel');
+      this.#requireActiveClaimant(tenantId, input.claimant_key_id, now,
+        'invocations:cancel', input.expected_key_hash);
       const record = this.#invocations.get(invocationKey(tenantId, ref));
       if (!record) throw managedError('Invocation was not found', 'INVOCATION_NOT_FOUND', 404);
       const plan = planCancellation(record, input, now);

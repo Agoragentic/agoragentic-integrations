@@ -443,8 +443,9 @@ export class PostgresManagedServiceStore {
       && !/^worker:(execution|cleanup|recovery):(claim|write)$/.test(requiredScope)) {
       throw new TypeError('claimant scope must be purpose-specific');
     }
-    const admissionHash = requiredScope === 'invocations:write'
-      ? requireSha256(expectedKeyHash, 'admitting credential hash') : null;
+    const claimantHash = requiredScope === 'invocations:write'
+      || requiredScope === 'invocations:cancel'
+      ? requireSha256(expectedKeyHash, 'claimant credential hash') : null;
     // Hold the credential row through the enclosing mutation transaction.
     // Revocation/scope edits must serialize with the final authority decision.
     // Lock by identity first: WHERE predicates can run before a row-lock wait,
@@ -464,7 +465,7 @@ export class PostgresManagedServiceStore {
             AND claimant.expires_at > clock_timestamp()
             AND claimant.scopes ? $3
        ) AS active`,
-      [tenantId, claimantKeyId, requiredScope, admissionHash],
+      [tenantId, claimantKeyId, requiredScope, claimantHash],
     );
     return result.rowCount === 1 && result.rows[0]?.active === true;
   }
@@ -1502,18 +1503,20 @@ export class PostgresManagedServiceStore {
   async requestCancellation(input) {
     assertPlainRecord(input, 'stored cancellation request');
     assertAllowedKeys(input, ['tenant_id', 'invocation_ref', 'claimant_key_id',
-      'cancel_request_hash', 'cancel_reason_hash', 'now', 'expected_request_hash',
+      'cancel_request_hash', 'cancel_reason_hash', 'now', 'expected_key_hash', 'expected_request_hash',
       'expected_operation_hash', 'expected_provider_binding_hash', 'expected_provider_recovery_key'], 'stored cancellation request');
     return this.#withTransaction(async (client) => {
       const tenantId = requireTenantId(input.tenant_id);
       const ref = requireInvocationRef(input.invocation_ref);
       const claimant = requireOpaqueRef(input.claimant_key_id, 'claimant_key_id');
+      const expectedKeyHash = requireSha256(input.expected_key_hash, 'cancellation credential hash');
       // Same lock order and persisted credential boundary as worker mutations.
       // Tenant suspension does not prohibit cancellation or historical cleanup.
       await this.#lockTenantStatus(client, tenantId);
       const row = await this.#selectInvocation(client, tenantId, ref, true);
       if (!row) throw managedError('Invocation was not found', 'INVOCATION_NOT_FOUND', 404);
-      await this.#assertClaimantCredentialActive(client, tenantId, claimant, 'invocations:cancel');
+      await this.#assertClaimantCredentialActive(client, tenantId, claimant,
+        'invocations:cancel', expectedKeyHash);
       const now = await this.#databaseNow(client);
       const plan = planCancellation(normalizeInvocationRow(row), input, now);
       if (plan === null) return normalizeInvocationRow(row);
@@ -1543,11 +1546,12 @@ export class PostgresManagedServiceStore {
             AND target.admitted_key_id = $3 AND target.cancel_requested_at IS NULL
             AND EXISTS (SELECT 1 FROM ${this.#schema}.managed_api_keys AS claimant
               WHERE claimant.tenant_id = $1 AND claimant.key_id = $3
+                AND claimant.key_hash = $10
                 AND claimant.revoked_at IS NULL AND claimant.not_before <= cancel_clock.now
                 AND claimant.expires_at > cancel_clock.now AND claimant.scopes ? 'invocations:cancel')
           RETURNING *`,
         [tenantId, ref, claimant, plan.cancel_request_hash, plan.cancel_reason_hash, plan.state,
-          plan.execution_outcome, plan.actual_cost_micros, plan.revoke_execution],
+          plan.execution_outcome, plan.actual_cost_micros, plan.revoke_execution, expectedKeyHash],
       );
       if (updated.rowCount !== 1) {
         throw managedError('Cancellation credential changed before mutation', 'AUTHENTICATION_FAILED', 401);

@@ -423,13 +423,16 @@ export function createManagedRiskForkControlPlane(options = {}) {
     async requestCancellation(principalValue, input = {}) {
       enabled();
       const principal = await normalizePrincipal(principalValue, 'invocations:cancel', requirePrincipal);
+      const binding = getManagedAdmissionBinding(principalValue, requirePrincipal, store);
       assertPlainRecord(input, 'cancellation request');
       assertAllowedKeys(input, ['invocation_ref', 'idempotency_key', 'reason_hash'], 'cancellation request');
       const invocation = await ownedInvocation(principal, input.invocation_ref);
       const request = cancellationRequest(invocation, principal.key_id, input);
       // No provider eligibility requirement: disabling execution must not stop
       // cancellation or identity-bound cleanup of the historical binding.
-      return store.requestCancellation({ ...request, now: requireIso(clock(), 'clock result') });
+      return store.requestCancellation({
+        ...request, expected_key_hash: binding.key_hash, now: requireIso(clock(), 'clock result'),
+      });
     },
 
     async observeExecutionCancellation(principalValue, input = {}) {
