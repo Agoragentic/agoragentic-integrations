@@ -85986,7 +85986,7 @@ function createE2BAuthorityFreeSourceVerifier(options = {}) {
 }
 
 // risk-fork-hosted-mcp/src/index.mjs
-var REVIEWED_SOURCE_INTEGRITY = true ? "sha256:ac4af2e42a66c03233ea0a0f8c3ba6a1052b934c75a6455796132e05a81d3f9c" : null;
+var REVIEWED_SOURCE_INTEGRITY = true ? "sha256:152b66dcfb8e191fa5d33b9055f94475f9ca7a50257442af6f3d25c103faab50" : null;
 var HOSTED_MCP_BUNDLE_METADATA = Object.freeze({
   package_name: "@agoragentic/risk-fork-hosted-mcp",
   package_version: "0.1.0-alpha.0",
