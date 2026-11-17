@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { assertEnvelopeV2Shape, isSupportedEnvelopeSchema, promoteEnvelopeClone } from './envelope-profiles.mjs';
 
 import {
   computeEnvelopeHash,
@@ -594,8 +595,11 @@ function notCheckedVerification(actionReference) {
 
 export function bindExternalVerification(assuranceEnvelope, verification, options = {}) {
   if (!isObject(assuranceEnvelope)
-    || assuranceEnvelope.schema !== 'agoragentic.transaction-assurance-envelope.v1') {
-    throw new TypeError('assuranceEnvelope must use agoragentic.transaction-assurance-envelope.v1');
+    || !isSupportedEnvelopeSchema(assuranceEnvelope.schema)) {
+    throw new TypeError('assuranceEnvelope must use a supported transaction-assurance envelope schema');
+  }
+  if (assuranceEnvelope.evidence?.envelope_hash !== computeEnvelopeHash(assuranceEnvelope)) {
+    throw new TypeError('assurance envelope hash mismatch');
   }
   const suppliedActionReference = options.actionReference;
   const actionReference = actionReferenceForBinding(suppliedActionReference);
@@ -627,7 +631,7 @@ export function bindExternalVerification(assuranceEnvelope, verification, option
     throw new TypeError('checked external verification requires a recomputed matching action reference');
   }
 
-  const result = structuredClone(assuranceEnvelope);
+  const result = promoteEnvelopeClone(assuranceEnvelope);
   if (result.external_action_refs !== undefined && !Array.isArray(result.external_action_refs)) {
     throw new TypeError('assuranceEnvelope.external_action_refs must be an array');
   }
@@ -664,8 +668,10 @@ export function bindExternalVerification(assuranceEnvelope, verification, option
     },
   };
   result.evidence = isObject(result.evidence) ? result.evidence : {};
+  result.evidence.complete_chain_verified = false;
   result.evidence.envelope_hash = null;
   result.evidence.envelope_hash = computeEnvelopeHash(result);
+  assertEnvelopeV2Shape(result);
 
   const envelopeBinding = trustedEnvelopeBinding(assuranceEnvelope);
   if (envelopeBinding) bindTrustedEnvelope(result, envelopeBinding);
