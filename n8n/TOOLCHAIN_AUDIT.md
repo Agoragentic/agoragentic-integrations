@@ -7,10 +7,36 @@ peer ranges, clean install, tests, lint, build, dependency audits, and package
 contents. Historical CLI compatibility and Creator Portal acceptance were not
 revalidated.
 
-## Current parser consumer candidate - 2026-11-13
+## Published parser candidate — 2026-11-16
 
-The development-only [parser consumer fixture](fixtures/lint-parser/README.md)
-carries upstream's minimatch range fix in the verified published TypeScript
+The direct TypeScript ESLint stack uses official registry release 8.73.0.
+The parser's lockfile integrity is
+`sha512-InjlBkSdWceIwIBWSwS3ENUp+i0O02PGX3Zv2wnihWJC1WDVGvG7mTHuf8b57uAaITj94d6tRPDH+sUEtXdRQQ==`.
+Its published `^11.0.1` minimatch range resolves to 11.0.8. This replaces the
+temporary 8.72.2 parser fixture. The install gate checks registry resolution,
+lock integrity metadata, all four consumer paths, and patched minimatch.
+The project-service and safety diagnostics tests remain in the normal check.
+
+ESLint 9.29.0, the community plugin 0.32.0 and TypeScript 5.9.2 remain pinned.
+The optional native TypeScript peer introduced by 8.73.0 is absent from the
+resolved graph. The Zod fixture, consumer Node floor, package version and
+publication workflow retain their existing contracts.
+
+On Windows with Node 24.22.1 and npm 11.19.1, a strict-peer lock generation
+and clean install succeeded. The full check reproduced 300 Zod fixture
+source files and 1,193 artifacts, passed strict consumer validation, and
+passed 78 tests with two Windows symlink-permission skips. Production and
+development audits reported zero vulnerabilities. The three effective lint
+configurations and 11 diagnostic cases matched the hardened 8.72.2 baseline.
+All 11 compiled code, declaration, map and static-asset files were
+byte-identical. The generated package metadata differed only in development
+dependencies, and the package dry run contained no fixture or dependency
+directory. No installed n8n host or native provider was qualified.
+
+## Historical parser consumer candidate - 2026-11-13
+
+The former development-only parser consumer fixture
+carried upstream's minimatch range fix in the verified published TypeScript
 ESLint 8.72.2 artifact. Its 90 code/declaration/license files remain unchanged.
 Only consumer metadata changes: a transparent local build-metadata version,
 private status, the patched dependency range, and omission of unused upstream

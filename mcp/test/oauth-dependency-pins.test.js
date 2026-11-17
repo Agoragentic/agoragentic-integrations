@@ -7,7 +7,7 @@ const test = require('node:test');
 
 const repositoryRoot = path.resolve(__dirname, '..', '..');
 const sdkPins = Object.freeze({
-    mcp: '1.32.0',
+    mcp: '1.32.2',
     'risk-fork-hosted-mcp': '1.32.0',
     'claude-agent-sdk': '1.32.0',
 });
@@ -27,9 +27,8 @@ const load = (directory, name) => JSON.parse(readFileSync(
 ));
 
 // These are source-checkout tooling contracts, not a live OAuth qualification.
-// The coordinated roots retain SDK 1.32.0 and closed exact-version contracts.
-// Scan every
-// nested lock entry so a second vulnerable copy cannot hide behind a fixed root.
+// Each root uses a separately reviewed exact SDK version.
+// Scan every nested lock entry so a second vulnerable copy cannot hide behind a fixed root.
 for (const directory of ['mcp', 'risk-fork-hosted-mcp', 'claude-agent-sdk']) {
     test(`${directory} locks only the pinned MCP OAuth dependencies`, () => {
         const clientPin = clientPins[directory];
@@ -37,6 +36,9 @@ for (const directory of ['mcp', 'risk-fork-hosted-mcp', 'claude-agent-sdk']) {
         const lock = load(directory, 'package-lock.json');
         assert.equal(lock.lockfileVersion, 3);
         assert.equal(manifest.private, true, 'qualification tooling stays unpublished');
+        if (directory === 'mcp') {
+            assert.equal(manifest.overrides?.['@modelcontextprotocol/sdk'], sdkPins[directory]);
+        }
         if (directory === 'claude-agent-sdk') {
             assert.equal(manifest.overrides?.['@modelcontextprotocol/sdk'], sdkPins[directory]);
         } else {

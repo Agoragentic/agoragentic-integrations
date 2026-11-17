@@ -8,8 +8,8 @@ const path = require('node:path');
 const test = require('node:test');
 
 const root = path.join(__dirname, '..');
-const source = path.join(root, 'fixtures/lint-parser');
 const verifier = () => import('../scripts/verify-lint-parser.mjs');
+const readJson = name => JSON.parse(fs.readFileSync(path.join(root, name)));
 
 test('parser file reads bind metadata and bytes to one descriptor and refuse replacements', async t => {
 	const { readPlainFile } = await verifier();
@@ -86,55 +86,36 @@ test('parser file reads reject non-files and symlinks', async t => {
 	}
 });
 
-test('lint parser preserves upstream artifacts and all installed consumer bindings', async () => {
-	const { verifyFixture, verifyInstalled } = await verifier();
-	assert.equal(verifyFixture().unchanged_artifact_files, 90);
-	assert.deepEqual(verifyInstalled(), { consumers: 4, minimatch: '11.0.8' });
-	const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json')));
+test('the locked upstream parser is used by every installed lint consumer', async () => {
+	const { verifyInstalled } = await verifier();
+	assert.deepEqual(verifyInstalled(), { parser: '8.73.0', consumers: 4, minimatch: '11.0.8' });
+	const pkg = readJson('package.json');
 	assert.match(pkg.scripts.check, /^npm run check:lint-parser && npm run check:fixture &&/);
 	assert.equal(pkg.files.includes('fixtures'), false);
 });
 
-test('lint parser rejects changed, missing and extra artifacts and manifest substitutions', async t => {
-	const { verifyFixture } = await verifier();
+test('lint parser rejects unsafe dependency resolutions', async t => {
+	const { verifyParserLock } = await verifier();
+	const parser = 'node_modules/@typescript-eslint/typescript-estree';
 	const mutations = {
-		'changed artifact': directory => fs.appendFileSync(path.join(directory, 'package/dist/index.js'), '\n// tampered\n'),
-		'missing artifact': directory => fs.unlinkSync(path.join(directory, 'package/LICENSE')),
-		'extra artifact': directory => fs.writeFileSync(path.join(directory, 'package/unreviewed.js'), 'export {};\n'),
-		'changed dependency': directory => {
-			const file = path.join(directory, 'package/package.json');
-			const pkg = JSON.parse(fs.readFileSync(file));
-			pkg.dependencies.minimatch = '^10.2.2';
-			fs.writeFileSync(file, JSON.stringify(pkg));
-		},
-		'added install script': directory => {
-			const file = path.join(directory, 'package/package.json');
-			const pkg = JSON.parse(fs.readFileSync(file));
-			pkg.scripts = { install: 'echo forbidden' };
-			fs.writeFileSync(file, JSON.stringify(pkg));
-		},
-		'false upstream attribution': directory => {
-			const file = path.join(directory, 'manifest.json');
-			const manifest = JSON.parse(fs.readFileSync(file));
-			manifest.upstream_fix_commit = '0'.repeat(40);
-			fs.writeFileSync(file, JSON.stringify(manifest));
-		},
+		'linked parser': (_pkg, lock) => { lock.packages[parser].link = true; },
+		'missing integrity': (_pkg, lock) => { delete lock.packages[parser].integrity; },
+		'replaced archive origin': (_pkg, lock) => { lock.packages[parser].resolved = 'file:parser.tgz'; },
+		'nested parser': (_pkg, lock) => { lock.packages[`node_modules/private-lint/${parser}`] = lock.packages[parser]; },
+		'affected minimatch': (_pkg, lock) => { lock.packages['node_modules/minimatch'].version = '10.2.6'; },
+		'added override': pkg => { pkg.overrides = { minimatch: '11.0.8' }; },
 	};
 	for (const [name, mutate] of Object.entries(mutations)) {
 		await t.test(name, () => {
-			const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'n8n-lint-parser-'));
-			try {
-				fs.cpSync(source, directory, { recursive: true, filter: file => path.basename(file) !== 'node_modules' });
-				mutate(directory);
-				assert.throws(() => verifyFixture(directory));
-			} finally {
-				fs.rmSync(directory, { recursive: true, force: true });
-			}
+			const pkg = readJson('package.json');
+			const lock = readJson('package-lock.json');
+			mutate(pkg, lock);
+			assert.throws(() => verifyParserLock(pkg, lock), { code: 'ERR_ASSERTION' });
 		});
 	}
 });
 
-test('the patched parser retains n8n safety lint and TypeScript diagnostics', async () => {
+test('the upstream parser retains n8n safety lint and TypeScript diagnostics', async () => {
 	const { ESLint } = await import('eslint');
 	const eslint = new ESLint({ cwd: root });
 	const filePath = path.join(root, 'nodes/Agoragentic/Agoragentic.node.ts');
