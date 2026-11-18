@@ -11,6 +11,6 @@
     "test": "node --test test/*.test.mjs"
   },
   "devDependencies": {
-    "e2b": "2.63.0"
+    "e2b": "2.64.0"
   }
 }
