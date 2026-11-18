@@ -8,7 +8,7 @@ import {
 } from '../../src/provider.mjs';
 import { verifyManagedAuditChain, verifyManagedAuditWindow } from './audit.mjs';
 import { normalizeAuditPageRequest, normalizeAuditWindowRequest, verifyAuditInvocationPage } from './audit-read.mjs';
-import { assertManagedPrincipalVerifier } from './auth.mjs';
+import { assertManagedPrincipalVerifier, getManagedAdmissionBinding } from './auth.mjs';
 import { normalizeManagedBacklogSnapshot } from './backlog-snapshot.mjs';
 import { cancellationRequest } from './cancellation.mjs';
 import {
@@ -326,6 +326,7 @@ export function createManagedRiskForkControlPlane(options = {}) {
     async admitInvocation(principalValue, input = {}) {
       enabled();
       const principal = await normalizePrincipal(principalValue, 'invocations:write', requirePrincipal);
+      const binding = getManagedAdmissionBinding(principalValue, requirePrincipal, store);
       assertPlainRecord(input, 'invocation request');
       assertAllowedKeys(input, [
         'idempotency_key',
@@ -367,9 +368,13 @@ export function createManagedRiskForkControlPlane(options = {}) {
       });
       const replay = await store.findIdempotentInvocation({
         tenant_id: principal.tenant_id,
+        key_id: principal.key_id,
+        key_hash: binding.key_hash,
+        principal_window: binding.principal_window,
         idempotency_hash: idempotencyHash,
         request_hash: requestHash,
-      });
+      }, { clock });
+      await requirePrincipal(principalValue, 'invocations:write');
       if (replay !== null) return replay;
 
       if (Buffer.byteLength(idempotency, 'utf8') > config.limits.max_idempotency_key_bytes) {
@@ -396,6 +401,8 @@ export function createManagedRiskForkControlPlane(options = {}) {
       return store.admitInvocation({
         tenant_id: principal.tenant_id,
         key_id: principal.key_id,
+        key_hash: binding.key_hash,
+        principal_window: binding.principal_window,
         invocation_ref: invocationReference,
         idempotency_hash: idempotencyHash,
         request_hash: requestHash,
@@ -410,19 +417,22 @@ export function createManagedRiskForkControlPlane(options = {}) {
         estimated_cost_micros: estimatedCostMicros,
         now,
         limits: config.limits,
-      });
+      }, { clock });
     },
 
     async requestCancellation(principalValue, input = {}) {
       enabled();
       const principal = await normalizePrincipal(principalValue, 'invocations:cancel', requirePrincipal);
+      const binding = getManagedAdmissionBinding(principalValue, requirePrincipal, store);
       assertPlainRecord(input, 'cancellation request');
       assertAllowedKeys(input, ['invocation_ref', 'idempotency_key', 'reason_hash'], 'cancellation request');
       const invocation = await ownedInvocation(principal, input.invocation_ref);
       const request = cancellationRequest(invocation, principal.key_id, input);
       // No provider eligibility requirement: disabling execution must not stop
       // cancellation or identity-bound cleanup of the historical binding.
-      return store.requestCancellation({ ...request, now: requireIso(clock(), 'clock result') });
+      return store.requestCancellation({
+        ...request, expected_key_hash: binding.key_hash, now: requireIso(clock(), 'clock result'),
+      });
     },
 
     async observeExecutionCancellation(principalValue, input = {}) {

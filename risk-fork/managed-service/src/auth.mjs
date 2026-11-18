@@ -15,6 +15,20 @@ import {
 const TOKEN_PATTERN = /^[A-Za-z0-9._~-]{32,512}$/;
 const managedPrincipalVerifiers = new WeakMap();
 
+// An additional restriction from an already authenticated OAuth principal, not
+// a permission grant. Stores must still check the persisted credential.
+export function assertManagedPrincipalWindow(window, nowValue) {
+  if (window == null) return;
+  assertPlainRecord(window, 'principal window');
+  assertAllowedKeys(window, ['not_before', 'expires_at'], 'principal window');
+  const notBefore = requireIso(window.not_before, 'principal window.not_before');
+  const expiresAt = requireIso(window.expires_at, 'principal window.expires_at');
+  const now = requireIso(nowValue, 'principal window time');
+  if (Date.parse(now) < Date.parse(notBefore) || Date.parse(now) >= Date.parse(expiresAt)) {
+    throw managedError('Authenticated principal has expired or is not yet active', 'AUTHENTICATION_FAILED', 401);
+  }
+}
+
 export function hashManagedApiKey(token) {
   const normalized = requireString(token, 'API key', { minBytes: 32, maxBytes: 512 });
   if (!TOKEN_PATTERN.test(normalized)) throw new TypeError('API key format is invalid');
@@ -116,7 +130,7 @@ export function createManagedAuthenticator({ store, clock = () => new Date() } =
     return value;
   }
 
-  managedPrincipalVerifiers.set(requireCurrentRecord, store);
+  managedPrincipalVerifiers.set(requireCurrentRecord, { store, issuedPrincipals });
   return Object.freeze({
     async authenticate(authorization, requiredScope) {
       if (!MANAGED_SCOPES.includes(requiredScope)) {
@@ -266,15 +280,33 @@ export function createTrustedOAuthAuthenticator({
     }
     return value;
   };
-  managedPrincipalVerifiers.set(verifier, store);
+  managedPrincipalVerifiers.set(verifier, { store, issuedPrincipals });
   return Object.freeze({ authenticate, requirePrincipal: verifier });
 }
 
 export function assertManagedPrincipalVerifier(value, expectedStore) {
-  if (typeof value !== 'function' || managedPrincipalVerifiers.get(value) !== expectedStore) {
+  if (typeof value !== 'function' || managedPrincipalVerifiers.get(value)?.store !== expectedStore) {
     throw new TypeError(
       'requirePrincipal must come from createManagedAuthenticator or createTrustedOAuthAuthenticator for the same store',
     );
   }
   return value;
+}
+
+// Internal host-to-store binding. The hash is retained privately at issuance;
+// neither request fields nor properties on a caller's principal can supply it.
+// Do not copy this binding into public principals, invocation records or audit.
+export function getManagedAdmissionBinding(principal, verifier, expectedStore) {
+  assertManagedPrincipalVerifier(verifier, expectedStore);
+  const keyHash = managedPrincipalVerifiers.get(verifier).issuedPrincipals.get(principal);
+  if (!keyHash) {
+    throw managedError('Authenticated principal is required', 'AUTHENTICATION_REQUIRED', 401);
+  }
+  return deepFreeze({
+    key_hash: keyHash,
+    principal_window: principal.expires_at === undefined ? null : {
+      not_before: principal.not_before,
+      expires_at: principal.expires_at,
+    },
+  });
 }
