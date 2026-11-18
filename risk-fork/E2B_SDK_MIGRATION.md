@@ -1,7 +1,7 @@
-# E2B 2.63.0 source migration
+# E2B 2.64.0 source migration
 
 Core Risk Fork and the hosted bundle continue to support Node >=20. The optional
-E2B adapter now requires Node >=22.19.0 and exact `e2b@2.63.0`, matching upstream's
+E2B adapter now requires Node >=22.19.0 and exact `e2b@2.64.0`, matching upstream's
 runtime requirement. Node 20 and Node 22.0–22.18 cannot load the SDK, construct its
 process boundary, or enter build/live harnesses. Runtime checks precede option
 reads and SDK imports, including inside the separately spawned SDK process.
@@ -23,8 +23,8 @@ core production runtime remains Node >=20 and does not install Undici.
 
 ## Evidence and historical cleanup
 
-Current evidence uses `agoragentic.risk-fork.e2b-qualification-evidence.v2`, bound
-to SDK 2.63.0. The unchanged v1 JSON schema remains in the core package for
+Current evidence uses `agoragentic.risk-fork.e2b-qualification-evidence.v3`, bound
+to SDK 2.64.0. The unchanged v1 JSON schema remains in the core package for
 historical inspection. The current verifier rejects v1 evidence even if its SDK
 field is rewritten; existing signatures and hashes cannot be migrated by editing
 fields. Observer and trust envelopes retain their versions because they already
@@ -49,7 +49,9 @@ authority and lifecycle bindings. This is wire-contract evidence, not a live
 provider containment test.
 
 The historical hackathon fake SDK and August canary records remain labelled
-2.39.0. They are not renamed or used as evidence for 2.63.0. Current metadata,
+2.39.0. They are not renamed or used as evidence for 2.64.0. The prior 2.63.0
+qualification records and exact byte bindings remain historical evidence and are
+not relabeled or rewritten. Current metadata,
 schema, exact-binding tests and SDK tests are separate. Core tests run on Node
 20/22/24; SDK tests run on Linux at the minimum Node 22.19.0 and current Node
 22/24, plus Windows/macOS on Node 22 to retain the previous platform coverage.
@@ -58,6 +60,6 @@ detached pinned signatures, dependency closure, read-only custody, cancellation,
 cleanup and cost gates remain mandatory. No production qualification, package
 publication, deployment or live-provider authorization is established here.
 
-Upstream references: [SDK 2.63.0 metadata](https://registry.npmjs.org/e2b/2.63.0),
+Upstream references: [SDK 2.64.0 metadata](https://registry.npmjs.org/e2b/2.64.0),
 [SDK changelog](https://github.com/e2b-dev/E2B/blob/main/packages/js-sdk/CHANGELOG.md),
 [glob migration](https://github.com/e2b-dev/E2B/pull/2069).

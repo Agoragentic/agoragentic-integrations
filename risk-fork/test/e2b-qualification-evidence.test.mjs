@@ -25,13 +25,20 @@ import {
   E2B_QUALIFICATION_CONTROLS,
   E2B_QUALIFICATION_FAILURE_CLASSES,
   E2B_QUALIFICATION_FAILURE_STAGES,
+  E2B_HISTORICAL_QUALIFICATION_SCHEMA_V2,
   applyE2BExternalQualificationObservation,
   createE2BExternalQualificationObservationVerifier,
   createE2BQualificationEvidence,
   createE2BQualificationTrustVerifier,
+  createHistoricalE2BQualificationTrustVerifierV2,
+  createHistoricalE2BExternalQualificationObservationVerifierV2,
   isE2BQualificationEvidenceCanonical,
   sha256BytesRef,
   validateE2BQualificationEvidence,
+  validateHistoricalE2BQualificationEvidenceV2,
+  applyHistoricalE2BExternalQualificationObservationV2,
+  verifyHistoricalE2BCleanupQualificationProvenanceV2,
+  verifyE2BCleanupQualificationProvenance,
 } from '../src/e2b-qualification.mjs';
 import { canonicalize } from '../src/canonical.mjs';
 import { hash } from './helpers.mjs';
@@ -66,8 +73,8 @@ function input(overrides = {}) {
     },
     sdk: {
       package: 'e2b',
-      version: '2.63.0',
-      integrity_hash: hash('e2b@2.63.0-integrity'),
+      version: '2.64.0',
+      integrity_hash: hash('e2b@2.64.0-integrity'),
     },
     template: {
       template_id_hash: hash(TEMPLATE_ID),
@@ -154,9 +161,10 @@ function signedExternalObservation(
   overrides = {},
   keyPair = null,
   verifierOptions = {},
+  verifierFactory = createE2BExternalQualificationObservationVerifier,
 ) {
   const { privateKey, publicKey } = keyPair ?? generateKeyPairSync('ed25519');
-  const verifier = createE2BExternalQualificationObservationVerifier({
+  const verifier = verifierFactory({
     publicKey,
     publicKeyHash: sha256BytesRef(publicKey.export({ type: 'spki', format: 'der' })),
     clock: verifierOptions.clock ?? (() => new Date(OBSERVER_NOW)),
@@ -276,7 +284,7 @@ test('qualification evidence is closed, hash-bound, schema-valid, and exact-prof
     runnerArtifactHash: RUNNER_HASH,
   }), evidence);
 
-  const schemaPath = fileURLToPath(new URL('../schema/e2b-qualification-evidence.v2.json', import.meta.url));
+  const schemaPath = fileURLToPath(new URL('../schema/e2b-qualification-evidence.v3.json', import.meta.url));
   const schema = JSON.parse(await readFile(schemaPath, 'utf8'));
   const ajv = new Ajv2020({ allErrors: true, strict: true });
   addFormats(ajv);
@@ -338,11 +346,11 @@ test('qualification evidence is closed, hash-bound, schema-valid, and exact-prof
 test('the candidate profile refuses historical SDK identity without relabeling old evidence', async () => {
   assert.throws(() => createE2BQualificationEvidence(input({
     sdk: { ...input().sdk, version: '2.39.0' },
-  })), /exact e2b@2\.63\.0/);
+  })), /exact e2b@2\.64\.0/);
   const evidence = createE2BQualificationEvidence(input());
   const ajv = new Ajv2020({ strict: false });
   addFormats(ajv);
-  const schema = JSON.parse(await readFile(new URL('../schema/e2b-qualification-evidence.v2.json', import.meta.url), 'utf8'));
+  const schema = JSON.parse(await readFile(new URL('../schema/e2b-qualification-evidence.v3.json', import.meta.url), 'utf8'));
   const validate = ajv.compile(schema);
   assert.equal(validate(evidence), true, ajv.errorsText(validate.errors));
   assert.equal(validate({ ...evidence, sdk: { ...evidence.sdk, version: '2.39.0' } }), false);
@@ -352,6 +360,61 @@ test('the candidate profile refuses historical SDK identity without relabeling o
   const historicalSchema = JSON.parse(await readFile(new URL('../schema/e2b-qualification-evidence.v1.json', import.meta.url), 'utf8'));
   assert.equal(historicalSchema.properties.sdk.properties.version.const, '2.39.0');
   assert.equal(ajv.compile(historicalSchema)(evidence), false);
+});
+
+test('historical v2 evidence has genuine signed observation and cleanup provenance, isolated from v3', () => {
+  const historicalProvisional = rehashEvidence({
+    ...createE2BQualificationEvidence(input()),
+    schema: E2B_HISTORICAL_QUALIFICATION_SCHEMA_V2,
+    sdk: { ...input().sdk, version: '2.63.0', integrity_hash: hash('e2b@2.63.0-integrity') },
+  });
+  const signed = signedExternalObservation(
+    historicalProvisional,
+    {},
+    null,
+    {},
+    createHistoricalE2BExternalQualificationObservationVerifierV2,
+  );
+  const historical = applyHistoricalE2BExternalQualificationObservationV2(
+    historicalProvisional, signed.observation, signed.verifier,
+  );
+  assert.equal(historical.schema, E2B_HISTORICAL_QUALIFICATION_SCHEMA_V2);
+  assert.equal(historical.sdk.version, '2.63.0');
+  assert.deepEqual(
+    validateHistoricalE2BQualificationEvidenceV2(historical, {}, signed.verifier),
+    historical,
+  );
+  assert.throws(() => validateE2BQualificationEvidence(historical), /schema|2\.64\.0/);
+
+  const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+  const verifier = createHistoricalE2BQualificationTrustVerifierV2({
+    publicKey,
+    publicKeyHash: sha256BytesRef(publicKey.export({ type: 'spki', format: 'der' })),
+  });
+  const payload = verifier.createPayload(historical, {}, signed.verifier);
+  const trust = {
+    ...payload,
+    signature: sign(null, Buffer.from(canonicalize(payload), 'utf8'), privateKey)
+      .toString('base64url'),
+  };
+  const cleanup = verifyHistoricalE2BCleanupQualificationProvenanceV2(
+    historical, trust, verifier, {}, signed.verifier,
+  );
+  assert.equal(cleanup.cleanup_only, true);
+  assert.equal(cleanup.grants_new_effects, false);
+  assert.throws(
+    () => verifyE2BCleanupQualificationProvenance(
+      historical, trust, verifier, {}, signed.verifier,
+    ),
+    /trusted qualification trust verifier|profile/i,
+  );
+  assert.throws(
+    () => verifyHistoricalE2BCleanupQualificationProvenanceV2(
+      rehashEvidence({ ...historical, sdk: { ...historical.sdk, version: '2.64.0' } }),
+      trust, verifier, {}, signed.verifier,
+    ),
+    /2\.63\.0|hash|schema/i,
+  );
 });
 
 test('every unknown or failed mandatory control keeps the adapter production-unqualified', () => {
@@ -441,7 +504,7 @@ test('every unknown or failed mandatory control keeps the adapter production-unq
   }
 });
 
-test('only independently signed exact e2b@2.63.0 bindings can satisfy qualification while activation stays default-off', () => {
+test('only independently signed exact e2b@2.64.0 bindings can satisfy qualification while activation stays default-off', () => {
   const qualified = qualifiedEvidence();
   const { evidence } = qualified;
   const base = {
@@ -487,7 +550,7 @@ test('only independently signed exact e2b@2.63.0 bindings can satisfy qualificat
       ...base,
       ...qualificationTrust(evidence, qualified.signed.verifier),
       SandboxClass: class Sandbox {},
-      sdkVersion: '2.63.0',
+      sdkVersion: '2.64.0',
     }),
     /qualified.*SDK|integrity.*verifier|inject/i,
   );
@@ -512,7 +575,7 @@ test('only independently signed exact e2b@2.63.0 bindings can satisfy qualificat
     () => createE2BQualificationEvidence(input({
       sdk: { package: 'e2b', version: '2.40.0', integrity_hash: hash('wrong-sdk') },
     })),
-    /2\.63\.0/,
+    /2\.64\.0/,
   );
 
   const trusted = qualificationTrust(evidence, qualified.signed.verifier);
@@ -623,7 +686,7 @@ test('a pinned independent observation exact-binds first-instruction IPv4/IPv6 a
     validateE2BQualificationEvidence(finalized, {}, verifier),
     finalized,
   );
-  const schemaPath = fileURLToPath(new URL('../schema/e2b-qualification-evidence.v2.json', import.meta.url));
+  const schemaPath = fileURLToPath(new URL('../schema/e2b-qualification-evidence.v3.json', import.meta.url));
   const schema = JSON.parse(await readFile(schemaPath, 'utf8'));
   const schemaValidate = new Ajv2020({ allErrors: true, strict: true });
   addFormats(schemaValidate);

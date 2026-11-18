@@ -171,7 +171,7 @@ async function loadTemplateBuildSdk(gate) {
   const verifier = createE2BRuntimeSdkIntegrityVerifier();
   const loaded = await loadVerifiedE2BRuntimeSdk({
     package: 'e2b',
-    version: '2.63.0',
+    version: '2.64.0',
     integrity_hash: gate.sdkIntegrityHash,
   }, verifier);
   return Object.freeze({
@@ -340,7 +340,7 @@ export async function persistE2BTemplateBuildAttempt(directory, intent) {
   }
   if (intent.provider_outcome !== 'unknown'
     || intent.sdk.package !== 'e2b'
-    || intent.sdk.version !== '2.63.0'
+    || intent.sdk.version !== '2.64.0'
     || intent.requested_cpu_count !== 1
     || intent.requested_memory_mb !== 512
     || intent.raw_credentials_included !== false
@@ -472,7 +472,7 @@ export async function runE2BTemplateBuild(options = {}) {
   if (typeof Template !== 'function'
     || typeof Template.build !== 'function'
     || typeof waitForFile !== 'function') {
-    throw new TypeError('Installed e2b@2.63.0 does not expose Template.build and waitForFile');
+    throw new TypeError('Installed e2b@2.64.0 does not expose Template.build and waitForFile');
   }
   const hashes = await runtimeHashes();
   const provenanceHash = sha256Ref({

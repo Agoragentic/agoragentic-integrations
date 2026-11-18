@@ -8,8 +8,8 @@
   "source_attestation": {
     "schema": "agoragentic.risk-fork-hosted-mcp.reviewed-sources.v2",
     "normalization": "utf8_crlf_to_lf_lone_cr_preserved",
-    "files": 72,
-    "sha256": "sha256:ac4af2e42a66c03233ea0a0f8c3ba6a1052b934c75a6455796132e05a81d3f9c"
+    "files": 73,
+    "sha256": "sha256:2e82ce67f61cf70208e5dcb2043bc9506961203b5174c967764da562bbe1aa0d"
   },
   "reviewed_sources": [
     {
@@ -90,12 +90,17 @@
     {
       "path": "risk-fork/package.json",
       "bytes": 6120,
-      "sha256": "sha256:e01d3647a59535fdb7d7be330f6298f501031e833d05147fe7d09eb2b4dd8e35"
+      "sha256": "sha256:4c0521823a8b61035a22883a74c1d0b2b9b30cd41be7ef1ce2ba2f26350bedc7"
     },
     {
       "path": "risk-fork/schema/e2b-qualification-evidence.v2.json",
       "bytes": 22323,
       "sha256": "sha256:37f018d1ad7f0226fb49da7d429a461feb25d1107eed487040d1f7280c92c332"
+    },
+    {
+      "path": "risk-fork/schema/e2b-qualification-evidence.v3.json",
+      "bytes": 22323,
+      "sha256": "sha256:8d3c3e1ba6f0f632413a5e7f5270e54c92fc6f8a9b7d082a5acbb276f410f391"
     },
     {
       "path": "risk-fork/src/adapters/e2b-cleanup-journal.mjs",
@@ -115,7 +120,7 @@
     {
       "path": "risk-fork/src/adapters/e2b.mjs",
       "bytes": 130293,
-      "sha256": "sha256:7582451bc406b8dddd27bf010d6cd7dab3bc21cb416c5b7728c97521e2e3e815"
+      "sha256": "sha256:bf189392da75eece16697aba85fb33b387f4844e0ddd8a7672b19a22d8e33aed"
     },
     {
       "path": "risk-fork/src/adapters/local-reference.mjs",
@@ -195,17 +200,17 @@
     {
       "path": "risk-fork/src/e2b-node-runtime.mjs",
       "bytes": 771,
-      "sha256": "sha256:f1699ddeacdd9b59f1cf95bd7eea9d265d36ac23437ae9ddaf9c502d9f92a61b"
+      "sha256": "sha256:3027d0121c25939559f0fafb26aaefbb53697cc4fad8f8c7ecbfc92c8f62db3a"
     },
     {
       "path": "risk-fork/src/e2b-qualification.mjs",
-      "bytes": 95900,
-      "sha256": "sha256:8421bef10333babf90abf9cfae9e5921c631d848026b716a11adb067cff9f45c"
+      "bytes": 100204,
+      "sha256": "sha256:92eb084204009c8c9aa0505f5eac04f54f07924875f026905ff8aee4544d1bb8"
     },
     {
       "path": "risk-fork/src/e2b-sdk-process.mjs",
       "bytes": 40861,
-      "sha256": "sha256:8eafad84fa3f3db265d2e646f54947b914db1b4e4fe9ad9b6a96b52511f5c8eb"
+      "sha256": "sha256:ecd15cf1e6fdf89f4ba5588642fb2fc8b055ba1374728722eca488a81deeacbb"
     },
     {
       "path": "risk-fork/src/framework-tool-adapter.mjs",
@@ -234,8 +239,8 @@
     },
     {
       "path": "risk-fork/src/index.mjs",
-      "bytes": 6259,
-      "sha256": "sha256:9daa3656865336f28915102a018c54911b30ab528fb6548a55a1fe5703b7475f"
+      "bytes": 6576,
+      "sha256": "sha256:fa6d5e763a7098b3eb2fad9acafe7363aaa12b9904452f882691b8b2d9e20f0d"
     },
     {
       "path": "risk-fork/src/interception.mjs",
@@ -392,7 +397,7 @@
       "reviewed UTF-8 source CRLF pairs normalized to LF while lone CR bytes remain distinct",
       "canonical upstream project sources verified against the reviewed SHA-256 digest inventory",
       "pg-native optional adapter disabled; reviewed pg JavaScript driver bundled",
-      "e2b is retained only as the exact optional peer e2b@2.63.0"
+      "e2b is retained only as the exact optional peer e2b@2.64.0"
     ],
     "external_imports": [
       "crypto",
@@ -424,7 +429,7 @@
   "optional_peer_dependencies": [
     {
       "name": "e2b",
-      "version": "2.63.0",
+      "version": "2.64.0",
       "optional": true
     }
   ],
@@ -434,6 +439,7 @@
     "E2B_EXTERNAL_PROVIDER_CONTROLS",
     "E2B_EXTERNAL_QUALIFICATION_EVIDENCE_REFS",
     "E2B_EXTERNAL_QUALIFICATION_OBSERVATION_SCHEMA",
+    "E2B_HISTORICAL_QUALIFICATION_SCHEMA_V2",
     "E2B_INDEPENDENT_SOURCE_ATTESTATION_SCHEMA",
     "E2B_QUALIFICATION_CONTROLS",
     "E2B_QUALIFICATION_SCHEMA",
@@ -479,6 +485,7 @@
     "acquirePostgresAuthorityClient",
     "adaptSkillSpectorReport",
     "applyE2BExternalQualificationObservation",
+    "applyHistoricalE2BExternalQualificationObservationV2",
     "assertHostCanEnforce",
     "assertPreparedForCleanCommit",
     "assertRiskForkProvider",
@@ -498,6 +505,8 @@
     "createE2BQualificationTrustVerifier",
     "createE2BRuntimeSdkIntegrityVerifier",
     "createForkIdentity",
+    "createHistoricalE2BExternalQualificationObservationVerifierV2",
+    "createHistoricalE2BQualificationTrustVerifierV2",
     "createMcpEnforcementBoundary",
     "createMcpInterceptionPlan",
     "createMcpPortableHandlePreEffectBoundary",
@@ -544,11 +553,13 @@
     "sha256FileRef",
     "validateCommitCandidate",
     "validateE2BQualificationEvidence",
+    "validateHistoricalE2BQualificationEvidenceV2",
     "verifyCleanupVerificationEvidence",
     "verifyCommitArtifact",
     "verifyE2BExternalQualificationObservation",
     "verifyE2BQualificationTrust",
     "verifyExecutionBinding",
+    "verifyHistoricalE2BCleanupQualificationProvenanceV2",
     "verifyPostgresAuthorityClientTransport",
     "verifyPostgresDistributedAuthoritySchema",
     "verifyRiskDecision",
@@ -2306,8 +2317,8 @@
     {
       "path": "risk-fork-hosted-mcp/src/index.mjs",
       "source": "package_source",
-      "bytes": 5854,
-      "sha256": "sha256:5edd56c1592a5872d55c8d8c86b9f3ed02adb743c9c52ed0c41adb56488058d9"
+      "bytes": 6171,
+      "sha256": "sha256:daaaeef50c5a19c58e98b598041e1c6fec6b4bf2ae5696eefa8b7274437f501d"
     },
     {
       "path": "risk-fork-hosted-mcp/src/pg-native-disabled.js",
@@ -2388,6 +2399,12 @@
       "sha256": "sha256:37f018d1ad7f0226fb49da7d429a461feb25d1107eed487040d1f7280c92c332"
     },
     {
+      "path": "risk-fork/schema/e2b-qualification-evidence.v3.json",
+      "source": "reviewed_source",
+      "bytes": 22323,
+      "sha256": "sha256:8d3c3e1ba6f0f632413a5e7f5270e54c92fc6f8a9b7d082a5acbb276f410f391"
+    },
+    {
       "path": "risk-fork/src/adapters/e2b-cleanup-journal.mjs",
       "source": "reviewed_source",
       "bytes": 13154,
@@ -2409,7 +2426,7 @@
       "path": "risk-fork/src/adapters/e2b.mjs",
       "source": "reviewed_source",
       "bytes": 130293,
-      "sha256": "sha256:7582451bc406b8dddd27bf010d6cd7dab3bc21cb416c5b7728c97521e2e3e815"
+      "sha256": "sha256:bf189392da75eece16697aba85fb33b387f4844e0ddd8a7672b19a22d8e33aed"
     },
     {
       "path": "risk-fork/src/adapters/postgres-authority-migrator.mjs",
@@ -2475,19 +2492,19 @@
       "path": "risk-fork/src/e2b-node-runtime.mjs",
       "source": "reviewed_source",
       "bytes": 771,
-      "sha256": "sha256:f1699ddeacdd9b59f1cf95bd7eea9d265d36ac23437ae9ddaf9c502d9f92a61b"
+      "sha256": "sha256:3027d0121c25939559f0fafb26aaefbb53697cc4fad8f8c7ecbfc92c8f62db3a"
     },
     {
       "path": "risk-fork/src/e2b-qualification.mjs",
       "source": "reviewed_source",
-      "bytes": 95900,
-      "sha256": "sha256:8421bef10333babf90abf9cfae9e5921c631d848026b716a11adb067cff9f45c"
+      "bytes": 100204,
+      "sha256": "sha256:92eb084204009c8c9aa0505f5eac04f54f07924875f026905ff8aee4544d1bb8"
     },
     {
       "path": "risk-fork/src/e2b-sdk-process.mjs",
       "source": "reviewed_source",
       "bytes": 40861,
-      "sha256": "sha256:8eafad84fa3f3db265d2e646f54947b914db1b4e4fe9ad9b6a96b52511f5c8eb"
+      "sha256": "sha256:ecd15cf1e6fdf89f4ba5588642fb2fc8b055ba1374728722eca488a81deeacbb"
     },
     {
       "path": "risk-fork/src/host-boundary.mjs",
@@ -2813,8 +2830,8 @@
   },
   "artifact": {
     "path": "dist/runtime/index.mjs",
-    "bytes": 3603831,
-    "sha256": "sha256:99d41f5000707eb079d336dabd9ff1d4a8797bb9eb195569abec5aa8178564be"
+    "bytes": 3608202,
+    "sha256": "sha256:076fc71e98e9357f535e3adb261c68a41811256c8564c67209f88a2bd71226ae"
   },
   "packaged_assets": [
     {
@@ -2929,6 +2946,12 @@
       "source_path": "risk-fork/schema/e2b-qualification-evidence.v2.json",
       "bytes": 22323,
       "sha256": "sha256:37f018d1ad7f0226fb49da7d429a461feb25d1107eed487040d1f7280c92c332"
+    },
+    {
+      "path": "schema/e2b-qualification-evidence.v3.json",
+      "source_path": "risk-fork/schema/e2b-qualification-evidence.v3.json",
+      "bytes": 22323,
+      "sha256": "sha256:8d3c3e1ba6f0f632413a5e7f5270e54c92fc6f8a9b7d082a5acbb276f410f391"
     }
   ]
 }

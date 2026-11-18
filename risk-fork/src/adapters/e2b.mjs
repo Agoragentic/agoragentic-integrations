@@ -97,7 +97,7 @@ const EXECUTION_CLEANUP_MARGIN_MS = 5_000;
 const PROFILE_METADATA_SCHEMA = 'agoragentic.risk-fork.e2b-clean-template.v1';
 const LIVE_QUALIFICATION_METADATA_SCHEMA = 'agoragentic.risk-fork.e2b-live-qualification.v1';
 const EMPTY_WORKSPACE_DIGEST = sha256Ref([]);
-// E2B SDK 2.63.0 defines this IPv4-shaped CIDR as its `allTraffic`
+// E2B SDK 2.64.0 defines this IPv4-shaped CIDR as its `allTraffic`
 // sentinel and equates allowInternetAccess=false with denying it. Whether the
 // provider also blocks every IPv6 path is deliberately not inferred from that
 // SDK contract. Qualified mode additionally requires closed, exact-bound live
@@ -1701,8 +1701,8 @@ export class E2BRiskForkAdapter extends RiskForkProvider {
     }
     if (!this.#sdkVersionVerified && (!this.#SandboxClass || this.qualificationEligible)) {
       const version = this.#sdkVersion ?? await this.#sdkVersionLoader();
-      if (version !== '2.63.0') {
-        throw new Error(`E2B clean-template profile requires exact e2b@2.63.0; observed ${String(version)}`);
+      if (version !== '2.64.0') {
+        throw new Error(`E2B clean-template profile requires exact e2b@2.64.0; observed ${String(version)}`);
       }
       this.#sdkVersionVerified = true;
     }
@@ -2462,7 +2462,7 @@ export class E2BRiskForkAdapter extends RiskForkProvider {
         };
         payload.request_hash = sha256Ref({ ...payload, request_hash: null });
         await sandbox.files.write(IDENTITY_PATH, JSON.stringify(payload));
-        // e2b@2.63.0 CommandHandle concatenates stdout and stderr internally
+        // e2b@2.64.0 CommandHandle concatenates stdout and stderr internally
         // even when streaming callbacks are supplied, so those callbacks are
         // not a clean-controller memory bound. The bootstrap is therefore a
         // pinned, reviewed trusted artifact whose bounded-output behavior
