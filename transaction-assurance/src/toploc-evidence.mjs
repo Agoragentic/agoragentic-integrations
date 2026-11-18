@@ -1,4 +1,5 @@
 import { canonicalize, computeEnvelopeHash, sha256Ref } from './index.mjs';
+import { assertEnvelopeV2Shape, isSupportedEnvelopeSchema, promoteEnvelopeClone } from './envelope-profiles.mjs';
 
 export const TOPLOC_ATTESTATION_SCHEMA = 'agoragentic.toploc-inference-attestation.v1';
 export const TOPLOC_SUMMARY_SCHEMA = 'agoragentic.toploc-inference-attestation-summary.v1';
@@ -314,8 +315,8 @@ function verifyEnvelopeHash(envelope) {
 }
 
 export function attachToplocEvidence(envelope, entries, options = {}) {
-  if (!isObject(envelope) || envelope.schema !== 'agoragentic.transaction-assurance-envelope.v1') {
-    throw new TypeError('envelope must use agoragentic.transaction-assurance-envelope.v1');
+  if (!isObject(envelope) || !isSupportedEnvelopeSchema(envelope.schema)) {
+    throw new TypeError('envelope must use a supported transaction-assurance envelope schema');
   }
   assertJsonValue(envelope, 'envelope');
   if (!isObject(options)) throw new TypeError('options must be an object');
@@ -339,12 +340,13 @@ export function attachToplocEvidence(envelope, entries, options = {}) {
   if (source.length === 0) throw new TypeError('at least one TOPLOC attestation is required');
   const normalized = normalizeEntries(source);
   const updatedAt = normalizeDate(options.updatedAt ?? new Date(), 'updatedAt', true);
-  const attached = structuredClone(envelope);
+  const attached = promoteEnvelopeClone(envelope);
   attached.inference_attestations = [...existing, ...normalized];
   attached.inference_attestation_summary = summarizeToplocEvidence(attached.inference_attestations);
   attached.evidence.complete_chain_verified = false;
   attached.updated_at = updatedAt;
   attached.evidence.envelope_hash = null;
   attached.evidence.envelope_hash = computeEnvelopeHash(attached);
+  assertEnvelopeV2Shape(attached);
   return attached;
 }

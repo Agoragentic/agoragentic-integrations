@@ -4,10 +4,12 @@ import test from 'node:test';
 
 import {
   bindExternalVerification,
+  buildTransactionAssuranceEnvelope,
   computeEnvelopeHash,
   MYCELIUM_EXTERNAL_VERIFICATION_PINS,
   normalizeAnchorEvidence,
   normalizeExternalActionReference,
+  normalizeAuthorityArtifact,
   verifyAnchorEvidence,
   verifyExternalActionReferencePreimage,
 } from '../src/index.mjs';
@@ -43,35 +45,21 @@ function verifier(observation, inspect = () => {}) {
   };
 }
 
-function minimalEnvelope(outcome = {}) {
-  const envelope = {
-    schema: 'agoragentic.transaction-assurance-envelope.v1',
-    envelope_id: 'tae_external_fixture',
-    state: outcome.verification_status === 'verified' ? 'outcome_verified' : 'incomplete',
-    authenticated_action_ref: 'post_pin_auth:preserve-this-existing-field',
-    payment: {
-      status: 'not_started',
-      settlement_verification: 'not_checked',
-      settlement_final: false,
-    },
-    execution: { status: 'not_started' },
-    outcome: {
-      delivery_status: 'not_observed',
-      verification_status: 'not_checked',
-      ...outcome,
-    },
-    reconciliation: { status: 'not_started' },
-    evidence: { refs: [], envelope_hash: null, complete_chain_verified: false },
-    authority_flags: {
-      envelope_grants_authority: false,
-      can_spend: false,
-      can_fund_wallet: false,
-      can_deploy: false,
-      can_publish: false,
-      can_change_trust: false,
-      can_expand_scope: false,
-    },
-  };
+function fixtureEnvelope(outcome = {}) {
+  const envelope = buildTransactionAssuranceEnvelope({
+    envelopeId: 'tae_external_fixture',
+    createdAt: '2026-08-06T00:01:00Z',
+    normalizedAuthority: normalizeAuthorityArtifact({
+      owner_id: 'owner:external-fixture', buyer_agent_id: 'agent:external-fixture',
+      scope: { allowed_actions: ['execute:fixture'], allowed_sellers: ['seller:fixture'],
+        allowed_categories: ['fixture'], allowed_payment_rails: ['x402'] },
+      budget: { currency: 'USD', max_per_action: '0', max_daily: '0', max_total: '0' },
+    }),
+    commercialIntent: { action: 'execute:fixture', taskRef: 'task:fixture',
+      sellerRef: 'seller:fixture', capabilityRef: 'capability:fixture', category: 'fixture' },
+    outcome: { deliveryStatus: outcome.delivery_status, verificationStatus: outcome.verification_status },
+  });
+  envelope.authenticated_action_ref = 'post_pin_auth:preserve-this-existing-field';
   envelope.evidence.envelope_hash = computeEnvelopeHash(envelope);
   return envelope;
 }
@@ -246,9 +234,11 @@ test('binding preserves authenticated identity and never upgrades outcome, payme
   const verification = verifyAnchorEvidence(fixture.evidence, {
     verifier: verifier(fixture.verifier_observation),
   });
-  const envelope = minimalEnvelope();
+  const envelope = fixtureEnvelope();
+  const originalBytes = JSON.stringify(envelope);
   const previousHash = envelope.evidence.envelope_hash;
   const bound = bindExternalVerification(envelope, verification, { actionReference });
+  assert.equal(JSON.stringify(envelope), originalBytes);
   assert.equal(bound.authenticated_action_ref, envelope.authenticated_action_ref);
   assert.equal(bound.external_action_refs.length, 1);
   assert.equal(bound.external_action_refs[0].recomputation, 'match');
@@ -287,7 +277,7 @@ test('binding preserves authenticated identity and never upgrades outcome, payme
 
 test('delivery can remain verified while an unchecked external anchor remains not checked', () => {
   const actionReference = verifiedBaselineReference();
-  const envelope = minimalEnvelope({
+  const envelope = fixtureEnvelope({
     delivery_status: 'delivered',
     verification_status: 'verified',
   });
@@ -297,6 +287,19 @@ test('delivery can remain verified while an unchecked external anchor remains no
   assert.equal(bound.external_verification.status, 'not_checked');
   assert.deepEqual(bound.external_verification.proves, []);
   assert.equal(bound.external_verification.complete_chain_verified, false);
+});
+
+test('external binding rejects a stale source hash and clears derived complete-chain claims', () => {
+  const actionReference = verifiedBaselineReference();
+  const envelope = fixtureEnvelope();
+  envelope.payment.amount = '0.01';
+  assert.throws(() => bindExternalVerification(envelope, null, { actionReference }), /envelope hash mismatch/);
+  envelope.evidence.complete_chain_verified = true;
+  envelope.evidence.envelope_hash = computeEnvelopeHash(envelope);
+  const bound = bindExternalVerification(envelope, null, { actionReference });
+  assert.equal(envelope.evidence.complete_chain_verified, true);
+  assert.equal(bound.evidence.complete_chain_verified, false);
+  assert.equal(bound.external_verification.assurance_binding.prior_envelope_hash, envelope.evidence.envelope_hash);
 });
 
 test('adapter is no-network and the package subpath exports the same API', async () => {

@@ -4,8 +4,10 @@ import {
   trustedEnvelopeBinding,
 } from './trusted-verifier-boundary.mjs';
 import { canonicalize, isPlainObject, sha256Ref } from './canonical.mjs';
+import { ENVELOPE_SCHEMA, assertEnvelopeV2Shape, isEnvelopeV2Shape, isSupportedEnvelopeSchema } from './envelope-profiles.mjs';
 
 export { canonicalize, sha256Ref } from './canonical.mjs';
+export { ENVELOPE_SCHEMA, LEGACY_ENVELOPE_SCHEMA } from './envelope-profiles.mjs';
 
 export const AUTHORITY_PROTOCOLS = Object.freeze([
   'agoragentic_mandate',
@@ -649,7 +651,7 @@ export function buildTransactionAssuranceEnvelope(input = {}) {
   }
 
   const envelope = {
-    schema: 'agoragentic.transaction-assurance-envelope.v1',
+    schema: ENVELOPE_SCHEMA,
     envelope_id: normalizeString(
       input.envelopeId,
       `tae_${sha256Ref({ principalRef, agentRef, taskRef, createdAt }).slice(7, 23)}`,
@@ -832,6 +834,7 @@ export function buildTransactionAssuranceEnvelope(input = {}) {
   }
   envelope.state = derivedState;
   envelope.evidence.envelope_hash = computeEnvelopeHash(envelope);
+  assertEnvelopeV2Shape(envelope);
   if (authority.verification_trust_mode === 'trusted_callback') {
     bindTrustedEnvelope(envelope, {
       trust_mode: authority.verification_trust_mode,
@@ -853,8 +856,8 @@ function addUnique(list, value) {
 
 export function evaluateTransactionAssuranceEnvelope(envelope, options = {}) {
   if (!isPlainObject(envelope)
-    || envelope.schema !== 'agoragentic.transaction-assurance-envelope.v1') {
-    throw new TypeError('envelope must use agoragentic.transaction-assurance-envelope.v1');
+    || !isSupportedEnvelopeSchema(envelope.schema)) {
+    throw new TypeError('envelope must use a supported transaction-assurance envelope schema');
   }
   const phase = normalizeEnum(
     options.phase,
@@ -867,6 +870,9 @@ export function evaluateTransactionAssuranceEnvelope(envelope, options = {}) {
 
   const blockers = [];
   const warnings = [];
+  if (envelope.schema === ENVELOPE_SCHEMA && !isEnvelopeV2Shape(envelope)) {
+    addUnique(blockers, 'envelope_schema_invalid');
+  }
   const authority = envelope.authority || {};
   const intent = envelope.commercial_intent || {};
   const payment = envelope.payment || {};
@@ -961,6 +967,7 @@ export function evaluateTransactionAssuranceEnvelope(envelope, options = {}) {
   }
 
   const hardDenyCodes = new Set([
+    'envelope_schema_invalid',
     'authority_not_verified',
     'authority_verifier_boundary_not_trusted',
     'authority_verification_evidence_missing',

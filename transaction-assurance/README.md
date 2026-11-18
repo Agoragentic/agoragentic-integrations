@@ -40,6 +40,7 @@ This is a source-visible, unpublished alpha implementation.
 
 - package: `@agoragentic/transaction-assurance`
 - version: `0.2.0-alpha.0`
+- current-library envelope profile: `agoragentic.transaction-assurance-envelope.v2`; historical public v1 remains unchanged and readable
 - network calls: none
 - spend authority: none
 - protocol recognition: implemented
@@ -60,7 +61,7 @@ The focused `agoragentic-assure` Agent Skill is generated from one canonical sou
 npx skills add rhein1/agoragentic-integrations --full-depth --skill agoragentic-assure
 ```
 
-The skill pins this package at `0.2.0-alpha.0` and points every host to the same normalized-authority and evaluation schemas. Installing the skill does not install a registry package, configure credentials, grant authority, call a provider, or move money. The local package remains source-only; clone this repository and run the five-minute self-test below when local evaluation code is needed.
+The skill pins this package at `0.2.0-alpha.0` and points every host to the same normalized-authority v1, evaluation v1, historical envelope v1, and current library envelope v2 schemas. Installing the skill does not install a registry package, configure credentials, grant authority, call a provider, or move money. The local package remains source-only; clone this repository and run the five-minute self-test below when local evaluation code is needed.
 
 ## Vendor-neutral conformance suite
 
@@ -270,6 +271,8 @@ The envelope itself grants no authority. It carries evidence and decision contex
 The principal and agent references are bound to the verified normalized authority artifact. Callers cannot substitute different identities after verification. Authority scope lists must be non-empty; an omitted list is not interpreted as unrestricted authority. Daily and total budget limits require a referenced usage snapshot so the evaluator can check the prospective spend exactly with decimal-string arithmetic.
 
 `evidence.envelope_hash` is reproducible with `computeEnvelopeHash(envelope)`. The recipe canonicalizes the full envelope with only `evidence.envelope_hash` replaced by `null`, then hashes those UTF-8 bytes with SHA-256. Evaluation rejects an envelope whose embedded hash no longer matches that recipe.
+
+The current builder emits the closed [library v2 profile](schema/transaction-assurance-envelope.v2.json), which includes identity, verifier, budget and derived-evidence fields that the historical public v1 schema cannot represent. Attachments return v2 clones and retain an original-v1 hash reference when promoting a legacy input. V1 bytes and signatures stay bound to their original record; shape validation and self-hashing do not transfer trust. See [envelope profiles](docs/ENVELOPE_PROFILES.md) before exchanging records between versions. Hosted v2 acceptance is not implemented by this library change.
 
 ### Evaluate before execution
 
