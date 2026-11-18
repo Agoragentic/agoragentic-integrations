@@ -22,7 +22,7 @@ test('0.1.4 release metadata is locked to the audited direct toolchain', () => {
 		'@n8n/expression-runtime': 'file:fixtures/zod4-compat/packages/expression-runtime',
 		'@typescript-eslint/typescript-estree': '8.73.0',
 		'n8n-workflow': 'file:fixtures/zod4-compat/packages/n8n-workflow',
-		prettier: '3.9.10',
+		prettier: '3.10.1',
 		typescript: '5.9.2',
 		'typescript-eslint': '8.73.0',
 		zod: '4.6.7',
