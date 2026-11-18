@@ -32,7 +32,7 @@ const EXPECTED_BUILD_TRANSFORMS = Object.freeze([
   'reviewed UTF-8 source CRLF pairs normalized to LF while lone CR bytes remain distinct',
   'canonical upstream project sources verified against the reviewed SHA-256 digest inventory',
   'pg-native optional adapter disabled; reviewed pg JavaScript driver bundled',
-  'e2b is retained only as the exact optional peer e2b@2.63.0',
+  'e2b is retained only as the exact optional peer e2b@2.64.0',
 ]);
 const EXPECTED_PACKAGE_JSON = Object.freeze({
   name: '@agoragentic/risk-fork-hosted-mcp',
@@ -56,6 +56,7 @@ const EXPECTED_PACKAGE_JSON = Object.freeze({
     'migrations/001_distributed_authority.pg.sql',
     'ops/postgres/',
     'schema/e2b-qualification-evidence.v2.json',
+    'schema/e2b-qualification-evidence.v3.json',
     'scripts/verify-integrity.mjs',
     'THIRD_PARTY_NOTICES.txt',
     'README.md',
@@ -87,7 +88,7 @@ const EXPECTED_PACKAGE_JSON = Object.freeze({
     '@hono/node-server': '2.1.8',
     hono: '4.13.18',
   },
-  peerDependencies: { e2b: '2.63.0' },
+  peerDependencies: { e2b: '2.64.0' },
   peerDependenciesMeta: { e2b: { optional: true } },
   repository: {
     type: 'git',
@@ -109,6 +110,7 @@ const EXPECTED_EXPORTS = Object.freeze([
   'E2B_EXTERNAL_PROVIDER_CONTROLS',
   'E2B_EXTERNAL_QUALIFICATION_EVIDENCE_REFS',
   'E2B_EXTERNAL_QUALIFICATION_OBSERVATION_SCHEMA',
+  'E2B_HISTORICAL_QUALIFICATION_SCHEMA_V2',
   'E2B_INDEPENDENT_SOURCE_ATTESTATION_SCHEMA',
   'E2B_QUALIFICATION_CONTROLS',
   'E2B_QUALIFICATION_SCHEMA',
@@ -154,6 +156,7 @@ const EXPECTED_EXPORTS = Object.freeze([
   'acquirePostgresAuthorityClient',
   'adaptSkillSpectorReport',
   'applyE2BExternalQualificationObservation',
+  'applyHistoricalE2BExternalQualificationObservationV2',
   'assertHostCanEnforce',
   'assertPreparedForCleanCommit',
   'assertRiskForkProvider',
@@ -173,6 +176,8 @@ const EXPECTED_EXPORTS = Object.freeze([
   'createE2BQualificationTrustVerifier',
   'createE2BRuntimeSdkIntegrityVerifier',
   'createForkIdentity',
+  'createHistoricalE2BExternalQualificationObservationVerifierV2',
+  'createHistoricalE2BQualificationTrustVerifierV2',
   'createMcpEnforcementBoundary',
   'createMcpInterceptionPlan',
   'createMcpPortableHandlePreEffectBoundary',
@@ -219,11 +224,13 @@ const EXPECTED_EXPORTS = Object.freeze([
   'sha256FileRef',
   'validateCommitCandidate',
   'validateE2BQualificationEvidence',
+  'validateHistoricalE2BQualificationEvidenceV2',
   'verifyCleanupVerificationEvidence',
   'verifyCommitArtifact',
   'verifyE2BExternalQualificationObservation',
   'verifyE2BQualificationTrust',
   'verifyExecutionBinding',
+  'verifyHistoricalE2BCleanupQualificationProvenanceV2',
   'verifyPostgresAuthorityClientTransport',
   'verifyPostgresDistributedAuthoritySchema',
   'verifyRiskDecision',
@@ -240,6 +247,7 @@ const REVIEWED_SOURCE_EXACT_FILES = Object.freeze([
   'risk-fork/migrations/001_distributed_authority.pg.sql',
   'risk-fork/package.json',
   'risk-fork/schema/e2b-qualification-evidence.v2.json',
+  'risk-fork/schema/e2b-qualification-evidence.v3.json',
 ]);
 const REVIEWED_SOURCE_RECURSIVE_ROOTS = Object.freeze([
   'risk-fork/e2b-template',
@@ -266,6 +274,7 @@ const PACKAGED_REVIEWED_ASSETS = Object.freeze([
   { source: 'risk-fork/ops/postgres/owner-bootstrap.sql.template', target: 'ops/postgres/owner-bootstrap.sql.template' },
   { source: 'risk-fork/ops/postgres/roles.sql.template', target: 'ops/postgres/roles.sql.template' },
   { source: 'risk-fork/schema/e2b-qualification-evidence.v2.json', target: 'schema/e2b-qualification-evidence.v2.json' },
+  { source: 'risk-fork/schema/e2b-qualification-evidence.v3.json', target: 'schema/e2b-qualification-evidence.v3.json' },
 ]);
 const PACKAGED_PHYSICAL_ROOTS = Object.freeze([
   'dist/runtime',
@@ -1081,7 +1090,7 @@ function validateManifestContract(manifest, sourceAttestation, reviewedSourceByP
     || JSON.stringify(manifest.build.transforms) !== JSON.stringify(EXPECTED_BUILD_TRANSFORMS)
     || JSON.stringify(manifest.runtime_dependencies) !== '[]'
     || JSON.stringify(manifest.optional_peer_dependencies) !== JSON.stringify([
-      { name: 'e2b', version: '2.63.0', optional: true },
+      { name: 'e2b', version: '2.64.0', optional: true },
     ])
     || JSON.stringify(manifest.exports) !== JSON.stringify(EXPECTED_EXPORTS)
     || manifest.third_party_notices.path !== THIRD_PARTY_NOTICES_PATH

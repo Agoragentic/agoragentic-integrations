@@ -392,7 +392,7 @@ async function loadLiveQualificationSdk(gate) {
   const verifier = createE2BRuntimeSdkIntegrityVerifier();
   const loaded = await loadVerifiedE2BRuntimeSdk({
     package: 'e2b',
-    version: '2.63.0',
+    version: '2.64.0',
     integrity_hash: gate.sdkIntegrityHash,
   }, verifier);
   return Object.freeze({
@@ -610,7 +610,7 @@ async function runDefaultE2BSingleSandboxCanary({
   monotonicNow = () => performance.now(),
 }) {
   if (typeof SandboxNotFoundError !== 'function') {
-    throw new TypeError('Installed e2b@2.63.0 lacks SandboxNotFoundError');
+    throw new TypeError('Installed e2b@2.64.0 lacks SandboxNotFoundError');
   }
   const controls = emptyControls();
   const cleanup = {
@@ -1083,7 +1083,7 @@ export async function runE2BLiveQualification(options = {}) {
     || typeof Sandbox?.list !== 'function'
     || typeof Sandbox?.kill !== 'function'
     || typeof SandboxNotFoundError !== 'function') {
-    throw new TypeError('Installed e2b@2.63.0 lacks the required Sandbox APIs');
+    throw new TypeError('Installed e2b@2.64.0 lacks the required Sandbox APIs');
   }
   const clock = () => new Date();
   const canary = await runDefaultE2BSingleSandboxCanary({

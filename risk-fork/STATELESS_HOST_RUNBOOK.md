@@ -184,7 +184,7 @@ See [worker contract](./managed-service/WORKER.md) and
 restart limits. Delivery replay never replays a provider effect or recreates a
 prepared object, and reaping never asserts cloud resource deletion.
 
-The optional E2B SDK is pinned at `2.63.0` and requires Node >=22.19.0.
+The optional E2B SDK is pinned at `2.64.0` and requires Node >=22.19.0.
 Its development graph lives in `sdk-qualification/`; the core Node 20 graph
 does not install it. The SDK upgrade replaces the affected glob/minimatch graph
 through upstream dependencies without E2B overrides or audit exceptions.

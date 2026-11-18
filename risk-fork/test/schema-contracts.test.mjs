@@ -51,6 +51,7 @@ const EXPECTED_SCHEMA_FILES = Object.freeze([
   'distributed-authority-reconciliation.v1.json',
   'e2b-qualification-evidence.v1.json',
   'e2b-qualification-evidence.v2.json',
+  'e2b-qualification-evidence.v3.json',
   'execution-binding.v1.json',
   'fork-identity.v1.json',
   'interception-plan.v1.json',
@@ -251,7 +252,7 @@ function makeE2BQualificationEvidence() {
     },
     sdk: {
       package: 'e2b',
-      version: '2.63.0',
+      version: '2.64.0',
       integrity_hash: hash('schema-e2b-sdk-integrity'),
     },
     template: {
@@ -381,14 +382,14 @@ test('generic ref schemas match exact runtime token filters without rejecting ca
 test('E2B qualification schema accepts source evidence and rejects authority claims', async () => {
   const ajv = await loadSchemaRegistry();
   const evidence = makeE2BQualificationEvidence();
-  assertSchemaAccepts(ajv, 'e2b-qualification-evidence.v2.json', evidence);
+  assertSchemaAccepts(ajv, 'e2b-qualification-evidence.v3.json', evidence);
 
   const noFailureDiagnostic = clone(evidence);
   noFailureDiagnostic.observations.failure_stage = 'none';
   noFailureDiagnostic.observations.failure_class = 'none';
   assertSchemaAccepts(
     ajv,
-    'e2b-qualification-evidence.v2.json',
+    'e2b-qualification-evidence.v3.json',
     noFailureDiagnostic,
     'E2B qualification evidence with paired no-failure diagnostics',
   );
@@ -398,7 +399,7 @@ test('E2B qualification schema accepts source evidence and rejects authority cla
   providerAbsenceDiagnostic.observations.failure_class = 'provider_absence';
   assertSchemaAccepts(
     ajv,
-    'e2b-qualification-evidence.v2.json',
+    'e2b-qualification-evidence.v3.json',
     providerAbsenceDiagnostic,
     'E2B qualification evidence with a closed provider-absence diagnostic',
   );
@@ -425,7 +426,7 @@ test('E2B qualification schema accepts source evidence and rejects authority cla
     mutate(invalidDiagnostic);
     assertSchemaRejects(
       ajv,
-      'e2b-qualification-evidence.v2.json',
+      'e2b-qualification-evidence.v3.json',
       invalidDiagnostic,
       `E2B qualification evidence with ${label}`,
     );
@@ -435,7 +436,7 @@ test('E2B qualification schema accepts source evidence and rejects authority cla
   authorityClaim.authority_flags.production_activation_granted = true;
   assertSchemaRejects(
     ajv,
-    'e2b-qualification-evidence.v2.json',
+    'e2b-qualification-evidence.v3.json',
     authorityClaim,
     'E2B qualification evidence claiming production activation',
   );
@@ -444,7 +445,7 @@ test('E2B qualification schema accepts source evidence and rejects authority cla
   unsupportedSdk.sdk.version = '2.40.0';
   assertSchemaRejects(
     ajv,
-    'e2b-qualification-evidence.v2.json',
+    'e2b-qualification-evidence.v3.json',
     unsupportedSdk,
     'E2B qualification evidence using an unreviewed SDK version',
   );
@@ -453,7 +454,7 @@ test('E2B qualification schema accepts source evidence and rejects authority cla
   delete missingReceiptField.external_observation_receipt;
   assertSchemaRejects(
     ajv,
-    'e2b-qualification-evidence.v2.json',
+    'e2b-qualification-evidence.v3.json',
     missingReceiptField,
     'E2B qualification evidence omitting explicit observer receipt state',
   );
@@ -462,7 +463,7 @@ test('E2B qualification schema accepts source evidence and rejects authority cla
   selfPromotedBirthControl.controls.inherited_environment_absent = 'verified';
   assertSchemaRejects(
     ajv,
-    'e2b-qualification-evidence.v2.json',
+    'e2b-qualification-evidence.v3.json',
     selfPromotedBirthControl,
     'provisional E2B qualification evidence self-promoting a birth control',
   );
@@ -472,7 +473,7 @@ test('E2B qualification schema accepts source evidence and rejects authority cla
     nonCanonicalDecimal.limits.max_cost_usd = spelling;
     assertSchemaRejects(
       ajv,
-      'e2b-qualification-evidence.v2.json',
+      'e2b-qualification-evidence.v3.json',
       nonCanonicalDecimal,
       `E2B qualification evidence using non-six-place decimal ${spelling}`,
     );
@@ -485,7 +486,7 @@ test('E2B qualification schema accepts source evidence and rejects authority cla
   });
   assertSchemaAccepts(
     ajv,
-    'e2b-qualification-evidence.v2.json',
+    'e2b-qualification-evidence.v3.json',
     duplicateSemanticRef,
     'structurally distinct evidence refs sharing a semantic ref key',
   );

@@ -598,7 +598,7 @@ export function createE2BRuntimeSdkProcessBoundary(options = {}) {
         || observed.custody.uid !== process.getuid() || observed.custody.gid !== process.getgid()) throw failure();
       assertPlainObject(observed.binding, 'SDK binding');
       assertAllowedKeys(observed.binding, ['package', 'version', 'integrity_hash'], 'SDK binding');
-      if (observed.binding.package !== 'e2b' || observed.binding.version !== '2.63.0') throw failure();
+      if (observed.binding.package !== 'e2b' || observed.binding.version !== '2.64.0') throw failure();
       requireSha256Ref(observed.binding.integrity_hash, 'SDK integrity hash');
       pin = Object.freeze({ ...observed.binding });
       return pin;

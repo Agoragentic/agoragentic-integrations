@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import test from 'node:test';
 import { sha256Ref } from '../../src/canonical.mjs';
-import { createCleanupVerificationEvidence } from '../../src/provider.mjs';
+import { createCleanupVerificationEvidence, REQUIRED_PROVIDER_METHODS } from '../../src/provider.mjs';
 import { createPostgresAuthorityPool, quotePostgresAuthorityIdentifier } from '../../src/adapters/postgres-authority-migrator.mjs';
 import { createManagedAuthenticator, hashManagedApiKey } from '../src/auth.mjs';
 import { cancellationRequest } from '../src/cancellation.mjs';
@@ -64,8 +64,17 @@ async function fixture(run) {
         VALUES ($1,$2,'tenant_alpha',$3::jsonb,clock_timestamp()-interval '1 minute',clock_timestamp()+interval '1 hour')`,
       [hashManagedApiKey(token), id, scopes]);
     }
+    const providerCalls = [];
+    const provider = new TestProvider();
+    for (const method of REQUIRED_PROVIDER_METHODS) {
+      const original = provider[method];
+      Object.defineProperty(provider, method, { value: async (...args) => {
+        providerCalls.push(method);
+        return Reflect.apply(original, provider, args);
+      } });
+    }
     const providerRegistry = createManagedProviderRegistry([{
-      provider: new TestProvider(), enabled: true, adapter_digest: sha256Ref('pg cancellation fixture adapter'),
+      provider, enabled: true, adapter_digest: sha256Ref('pg cancellation fixture adapter'),
       qualification_class: 'local_test', qualification_receipt_hash: sha256Ref('pg cancellation fixture only'),
       tenant_ids: ['tenant_alpha'], verify_resource_binding: async () => true,
       verify_cleanup_evidence: async () => true, verify_recovery_absence: async () => true,
@@ -81,7 +90,7 @@ async function fixture(run) {
         invocationRef: () => `rfi_cancel_${randomUUID().replaceAll('-', '')}` });
       const principal = await authenticator.authenticate(`Bearer ${TEST_TOKEN}`, 'invocations:write');
       const worker = await authenticator.authenticate(`Bearer ${SAME_TENANT_TOKEN}`, 'worker:execution:claim');
-      return { store, control, principal, worker };
+      return { store, control, principal, worker, authenticator };
     };
     const current = await make();
     const { invocation } = await current.control.admitInvocation(current.principal, invocationRequest());
@@ -94,7 +103,7 @@ async function fixture(run) {
     };
     const claim = () => current.control.claimExecution(current.worker, { invocation_ref: ref,
       worker_id: 'worker_pg_cancellation', lease_token: testLeaseToken('pg_cancel_execution'), lease_ms: 30_000 });
-    await run({ ...current, pool, s, make, invocation, ref, usage, claim });
+    await run({ ...current, pool, s, make, invocation, ref, usage, claim, providerCalls });
   } finally {
     const errors = [];
     const cleanup = async (fn) => { try { await fn(); } catch (error) { errors.push(error); } };
@@ -266,7 +275,8 @@ for (const inFlight of [false, true]) {
 
 test('PG cancellation rechecks immutable invocation binding and current credential inside the transaction', { skip }, async () => {
   await fixture(async (f) => {
-    const input = { ...cancellationRequest(f.invocation, f.principal.key_id, cancel(f.ref)), now: new Date().toISOString() };
+    const input = { ...cancellationRequest(f.invocation, f.principal.key_id, cancel(f.ref)),
+      expected_key_hash: hashManagedApiKey(TEST_TOKEN), now: new Date().toISOString() };
     const before = await f.store.getAuditSnapshot('tenant_alpha', f.ref);
     await f.pool.query(`UPDATE ${f.s}.managed_invocations SET provider_binding_hash=$1 WHERE invocation_ref=$2`,
       [sha256Ref('synthetic changed binding'), f.ref]);
@@ -295,6 +305,83 @@ async function waitForBlocked(pool, pid) {
   }
   assert.fail('Cancellation did not reach the exact held PostgreSQL lock');
 }
+
+test('PG cancellation rejects stale A when active B replaces the same key ID during the credential lock wait', { skip, timeout: 10_000 }, async () => {
+  await fixture(async (f) => {
+    const replacementToken = `${TEST_TOKEN}_replacement`;
+    const replacementHash = hashManagedApiKey(replacementToken);
+    const before = await f.store.getInvocation('tenant_alpha', f.ref);
+    const auditBefore = await f.store.getAuditSnapshot('tenant_alpha', f.ref);
+    const usageBefore = await f.usage();
+    const providerBefore = [...f.providerCalls];
+    const blocker = await f.pool.connect();
+    let pending;
+    try {
+      await blocker.query('BEGIN');
+      const pid = (await blocker.query('SELECT pg_backend_pid() AS pid')).rows[0].pid;
+      // Rotate in place: reuse key_alpha's key ID with a new credential hash B.
+      await blocker.query(`UPDATE ${f.s}.managed_api_keys SET key_hash=$1
+        WHERE tenant_id='tenant_alpha' AND key_id='key_alpha'`, [replacementHash]);
+      pending = f.control.requestCancellation(f.principal, cancel(f.ref))
+        .then((value) => ({ value }), (error) => ({ error }));
+      await waitForBlocked(f.pool, pid);
+      await blocker.query('COMMIT');
+    } finally {
+      await blocker.query('ROLLBACK').catch(() => {});
+      blocker.release();
+    }
+    assert.equal((await pending).error?.code, 'AUTHENTICATION_FAILED');
+    assert.deepEqual(await f.store.getInvocation('tenant_alpha', f.ref), before);
+    assert.deepEqual(await f.store.getAuditSnapshot('tenant_alpha', f.ref), auditBefore);
+    assert.deepEqual(await f.usage(), usageBefore);
+    assert.deepEqual(f.providerCalls, providerBefore);
+    // Freshly-authenticated B control: the replacement credential still cancels.
+    const replacementPrincipal = await f.authenticator.authenticate(
+      `Bearer ${replacementToken}`, 'invocations:cancel');
+    const canceled = await f.control.requestCancellation(replacementPrincipal, cancel(f.ref));
+    assert.equal(canceled.state, 'failed_closed');
+    assert.deepEqual(f.providerCalls, providerBefore);
+  });
+});
+
+test('PG cancellation final write rejects a synthetic same-transaction credential substitution', { skip, timeout: 10_000 }, async () => {
+  await fixture(async (f) => {
+    const replacementHash = hashManagedApiKey(`${TEST_TOKEN}_final_write_fixture`);
+    const before = await f.store.getInvocation('tenant_alpha', f.ref);
+    const auditBefore = await f.store.getAuditSnapshot('tenant_alpha', f.ref);
+    const usageBefore = await f.usage();
+    const providerBefore = [...f.providerCalls];
+    let armed = false;
+    let injected = 0;
+    // Synthetic diagnostic only: this changes the credential using the same
+    // transaction after the locked check, isolating the final SQL predicate.
+    // A real external rotation cannot pass the retained credential-row lock.
+    const intercepted = wrapper(f.pool, async (client, sql, params) => {
+      if (armed && sql.includes('WITH cancel_clock AS')
+        && sql.includes('managed_invocations AS target')) {
+        armed = false;
+        injected += 1;
+        const changed = await client.query(`UPDATE ${f.s}.managed_api_keys SET key_hash=$1
+          WHERE tenant_id='tenant_alpha' AND key_id='key_alpha'`, [replacementHash]);
+        assert.equal(changed.rowCount, 1);
+      }
+      return client.query(sql, params);
+    });
+    const guarded = await f.make(intercepted);
+    armed = true;
+    await assert.rejects(guarded.control.requestCancellation(guarded.principal, cancel(f.ref)),
+      { code: 'AUTHENTICATION_FAILED' });
+    assert.equal(injected, 1);
+    assert.deepEqual(await f.store.getInvocation('tenant_alpha', f.ref), before);
+    assert.deepEqual(await f.store.getAuditSnapshot('tenant_alpha', f.ref), auditBefore);
+    assert.deepEqual(await f.usage(), usageBefore);
+    assert.deepEqual(f.providerCalls, providerBefore);
+    const key = await f.pool.query(`SELECT key_hash FROM ${f.s}.managed_api_keys
+      WHERE tenant_id='tenant_alpha' AND key_id='key_alpha'`);
+    assert.equal(key.rows[0].key_hash, hashManagedApiKey(TEST_TOKEN));
+  });
+});
+
 for (const lockKind of ['credential', 'budget']) {
   test(`PG cancellation expiry during the ${lockKind} lock wait rolls back audit, marker and usage`, { skip, timeout: 10_000 }, async () => {
     await fixture(async (f) => {

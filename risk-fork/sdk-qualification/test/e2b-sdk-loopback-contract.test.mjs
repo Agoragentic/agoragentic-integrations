@@ -415,7 +415,7 @@ test('pinned E2B SDK preserves the clean request and observation contract over l
   assert.ok(requests[0].rawBody.includes(
     '"network":{"allowOut":[],"denyOut":["0.0.0.0/0"],"allowPublicTraffic":false}',
   ));
-  // e2b@2.63.0 omits an empty IAM input from the wire body. This exact SDK
+  // e2b@2.64.0 omits an empty IAM input from the wire body. This exact SDK
   // behavior is recorded here and is not treated as provider-side absence
   // proof; live credential-inheritance qualification remains external.
   assert.equal('iam' in requests[0].body, false);

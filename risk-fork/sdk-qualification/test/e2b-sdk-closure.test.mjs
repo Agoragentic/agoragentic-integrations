@@ -19,7 +19,7 @@ test('runtime SDK integrity verifier loads only the exact signed e2b package tre
   await mkdir(path.join(root, 'dist'), { recursive: true });
   await writeFile(path.join(root, 'package.json'), JSON.stringify({
     name: 'e2b',
-    version: '2.63.0',
+    version: '2.64.0',
     main: 'dist/index.js',
   }));
   await writeFile(path.join(root, 'dist', 'index.js'), 'module.exports = { Sandbox: class Sandbox {} };\n');
@@ -28,7 +28,7 @@ test('runtime SDK integrity verifier loads only the exact signed e2b package tre
   const inspected = await verifier.inspect();
   const loaded = await loadVerifiedE2BRuntimeSdk(inspected, verifier);
   assert.equal(loaded.package, 'e2b');
-  assert.equal(loaded.version, '2.63.0');
+  assert.equal(loaded.version, '2.64.0');
   assert.equal(loaded.integrity_hash, inspected.integrity_hash);
   assert.equal(typeof loaded.module.default.Sandbox, 'function');
 
@@ -63,7 +63,7 @@ test('runtime SDK closure binds recursive dependencies plus present and absent o
   await mkdir(path.join(sdkRoot, 'dist'), { recursive: true });
   await writeFile(path.join(sdkRoot, 'package.json'), JSON.stringify({
     name: 'e2b',
-    version: '2.63.0',
+    version: '2.64.0',
     main: 'dist/index.js',
     dependencies: { 'required-dependency': '1.0.0' },
     optionalDependencies: {

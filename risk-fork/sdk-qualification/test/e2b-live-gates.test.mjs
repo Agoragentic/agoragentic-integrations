@@ -330,7 +330,7 @@ test('template build attempt intent is durable, sanitized, one-shot, and precede
   ].map((field) => [field, sha256Ref(field)]));
   const sdk = {
     package: 'e2b',
-    version: '2.63.0',
+    version: '2.64.0',
     integrity_hash: env.RISK_FORK_E2B_SDK_INTEGRITY_HASH,
   };
   const provenanceHash = sha256Ref({ sdk, runtime });
@@ -584,7 +584,7 @@ test('injected harness seams fail before SDK/provider I/O and cannot write evide
         sdkLoads += 1;
         return { Template, waitForFile: () => ({}) };
       },
-      sdkVersionLoader: async () => '2.63.0',
+      sdkVersionLoader: async () => '2.64.0',
     }),
     /Injected.*evidence-producing.*template-build/i,
   );
@@ -595,7 +595,7 @@ test('injected harness seams fail before SDK/provider I/O and cannot write evide
         sdkLoads += 1;
         return { Sandbox };
       },
-      sdkVersionLoader: async () => '2.63.0',
+      sdkVersionLoader: async () => '2.64.0',
       canaryRunner: async () => {
         providerCalls += 1;
         return {};

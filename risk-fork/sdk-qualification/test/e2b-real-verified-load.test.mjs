@@ -7,7 +7,7 @@ test('the installed exact SDK loads through the verifier and reuses only the sam
   const verifier = createE2BRuntimeSdkIntegrityVerifier({ packageDirectory:
     fileURLToPath(new URL('../node_modules/e2b/', import.meta.url)) });
   const binding = await verifier.inspect();
-  assert.equal(binding.version, '2.63.0');
+  assert.equal(binding.version, '2.64.0');
   const loaded = await loadVerifiedE2BRuntimeSdk(binding, verifier);
   assert.equal(typeof loaded.module.Sandbox, 'function');
   assert.equal((await loadVerifiedE2BRuntimeSdk(binding, verifier)).module, loaded.module);

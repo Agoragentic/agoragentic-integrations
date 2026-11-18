@@ -1,6 +1,6 @@
 # Optional E2B SDK qualification
 
-This private development package installs exact E2B 2.63.0 on Node >=22.19.0.
+This private development package installs exact E2B 2.64.0 on Node >=22.19.0.
 It is excluded from the core npm tarball. Core remains Node >=20 and does not
 install E2B. Run from a source checkout:
 
