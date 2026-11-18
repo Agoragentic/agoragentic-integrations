@@ -1,5 +1,7 @@
 # Agoragentic Risk Fork
 
+Risk Fork now has its own public source repository at [Agoragentic/risk-fork](https://github.com/Agoragentic/risk-fork). This integrations directory remains the compatibility source for existing consumers until their exact source and package lineage is separately qualified; the standalone repository does not itself establish publication, deployment, or live protection.
+
 ![Risk Fork — run untrusted MCP and tool calls in a disposable environment while the trusted parent retains identity, memory, and authority.](./assets/risk-fork-social-preview.svg)
 
 Risk Fork is an experimental, source-only package for **fork-before-risk** agent execution. It defines provider-neutral contracts for classifying a proposed interaction, capturing a reference-only Savepoint Capsule, executing in a tainted child, validating a narrowly typed result, destroying the child, and—only from a clean controller—committing an accepted artifact.
@@ -182,9 +184,11 @@ and a separate-owner least-privilege role. These are source/local-test capabilit
 not a deployed service, E2B qualification, or live traffic protection. Follow the
 runbooks for key custody, explicit migrations, restart limits, and remaining gates.
 
-A standalone Apache-2.0 repository is proposed in the
-[repository split plan](./REPOSITORY_SPLIT_PLAN.md). No repository relocation,
-package publication, or deployment is established by that plan.
+The standalone Apache-2.0 source repository is
+[Agoragentic/risk-fork](https://github.com/Agoragentic/risk-fork). The
+[historical split plan and remaining migration gates](./REPOSITORY_SPLIT_PLAN.md)
+preserve this integrations mirror until consumer lineage is qualified. Source
+availability does not establish package publication or deployment.
 
 ### Framework-neutral host onboarding
 

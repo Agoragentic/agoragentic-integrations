@@ -67,6 +67,28 @@ test('owner cancellation before claim is exact-replayable and prevents execution
   assert.equal(events.filter((e) => e.event_type === 'cancellation_requested').length, 1);
 });
 
+test('memory cancellation rejects a stale credential binding before changing invocation or audit', async () => {
+  const f = await createFixture();
+  const { invocation } = await f.controlPlane.admitInvocation(f.principal, invocationRequest());
+  const ref = invocation.invocation_ref;
+  const before = await f.store.getInvocation('tenant_alpha', ref);
+  const auditBefore = await f.store.getAuditSnapshot('tenant_alpha', ref);
+  // Stale-binding fallback: the store has no supported in-place credential
+  // mutation seam, so this exercises a stale expected_key_hash against the
+  // constructor-populated active credential (distinct from an in-place rotation).
+  const request = {
+    ...cancellationRequest(invocation, f.principal.key_id, cancellation(ref)),
+    expected_key_hash: sha256Ref('superseded cancellation credential'),
+    now: '2026-09-05T12:00:00.000Z',
+  };
+  await assert.rejects(f.store.requestCancellation(request), { code: 'AUTHENTICATION_FAILED' });
+  assert.deepEqual(await f.store.getInvocation('tenant_alpha', ref), before);
+  assert.deepEqual(await f.store.getAuditSnapshot('tenant_alpha', ref), auditBefore);
+  // Freshly-authenticated control: the correct binding still cancels.
+  const canceled = await f.controlPlane.requestCancellation(f.principal, cancellation(ref));
+  assert.equal(canceled.state, 'failed_closed');
+});
+
 test('only the current admitted key can cancel; scope, tenant and caller refs fail closed', async () => {
   const f = await createFixture();
   const { invocation } = await f.controlPlane.admitInvocation(f.principal, invocationRequest());
