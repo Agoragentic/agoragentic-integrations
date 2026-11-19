@@ -8,8 +8,8 @@
   "source_attestation": {
     "schema": "agoragentic.risk-fork-hosted-mcp.reviewed-sources.v2",
     "normalization": "utf8_crlf_to_lf_lone_cr_preserved",
-    "files": 73,
-    "sha256": "sha256:2e82ce67f61cf70208e5dcb2043bc9506961203b5174c967764da562bbe1aa0d"
+    "files": 74,
+    "sha256": "sha256:8f904ff859b6ccaec1ce1b71052e4c5ea24186808dccf9c4ecadb8449e2e6358"
   },
   "reviewed_sources": [
     {
@@ -348,19 +348,24 @@
       "sha256": "sha256:8eef9d77c17e57c0a52d569fba5d334540bf2369e0bddeec5fd35ecd9abcc23f"
     },
     {
+      "path": "transaction-assurance/src/envelope-profiles.mjs",
+      "bytes": 3062,
+      "sha256": "sha256:a22b16387209d068bde41fb52b92972e04a7dcf9d75f254b2c541bd76efd92c6"
+    },
+    {
       "path": "transaction-assurance/src/evaluation-evidence.mjs",
-      "bytes": 9956,
-      "sha256": "sha256:d0e1df763606274ec299e76b7043ef42d7dec2803ef0991e496397c6bb6bb7d1"
+      "bytes": 10090,
+      "sha256": "sha256:9680345aad995609d08b5516f83962a6a3175f95d38fbb196c4d4daf198e53d7"
     },
     {
       "path": "transaction-assurance/src/external-verification-adapters.mjs",
-      "bytes": 28117,
-      "sha256": "sha256:ff73ee6e43e7f3be740b3962c3ba41026f9ab8541c2753ef88b386e935a203d3"
+      "bytes": 28459,
+      "sha256": "sha256:6385e975eb3e7e9933882c49e13eac91546c9366b38c04aa197db6bd918c7c67"
     },
     {
       "path": "transaction-assurance/src/index.mjs",
-      "bytes": 43286,
-      "sha256": "sha256:3e4c8e560af92cff06283daeddf87ade02c2f8a291ff28f79d29b12cbcb4a09a"
+      "bytes": 43644,
+      "sha256": "sha256:9d2187bab17afe087cc2df697402a25cb01e1e7198f24532733fea66d74c2e1b"
     },
     {
       "path": "transaction-assurance/src/protocol-adapters.mjs",
@@ -369,8 +374,8 @@
     },
     {
       "path": "transaction-assurance/src/toploc-evidence.mjs",
-      "bytes": 13306,
-      "sha256": "sha256:09d135ff08e83ff6c44e10f79310ab57fa15130b0682160d54a1b3926774c590"
+      "bytes": 13440,
+      "sha256": "sha256:08c52cd8b21f30151367296e8c2ad195700db12c6f3af3c500c3fdabd0ce9f71"
     },
     {
       "path": "transaction-assurance/src/trusted-verifier-boundary.mjs",
@@ -2831,7 +2836,7 @@
   "artifact": {
     "path": "dist/runtime/index.mjs",
     "bytes": 3608202,
-    "sha256": "sha256:076fc71e98e9357f535e3adb261c68a41811256c8564c67209f88a2bd71226ae"
+    "sha256": "sha256:894e9547d7926ec8e6839cd7e8d948fe07e00f183ab7ba1cf18f70eb4755536c"
   },
   "packaged_assets": [
     {

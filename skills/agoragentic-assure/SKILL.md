@@ -13,11 +13,15 @@ Use the source-only `@agoragentic/transaction-assurance` package when an agent m
 - version: `0.2.0-alpha.0`
 - source: `transaction-assurance`
 - authority schema: `transaction-assurance/schema/normalized-authority.v1.json`
+- current library envelope schema: `transaction-assurance/schema/transaction-assurance-envelope.v2.json`
+- historical public envelope schema: `transaction-assurance/schema/transaction-assurance-envelope.v1.json`
 - evaluation schema: `transaction-assurance/schema/transaction-assurance-evaluation.v1.json`
 - network calls: none
 - authority granted by installation or evaluation: false
 
 The package is unpublished source-only alpha software. Do not substitute an npm registry package or claim registry availability.
+
+Current library output uses envelope v2; historical v1 records remain readable. Authority and evaluation keep their independent v1 contracts. Retain original v1 bytes and signatures when attaching evidence; derived v2 records do not inherit portable trust. Hosted v2 acceptance is not qualified by this source change. Preserve existing hosted v1 reference defaults until the matching consumer route is separately qualified, and never silently drop fields to force a v1 conversion.
 
 ## Install And Prove Locally
 

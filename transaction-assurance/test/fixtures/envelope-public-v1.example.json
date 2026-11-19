@@ -1,0 +1,131 @@
+{
+  "schema": "agoragentic.transaction-assurance-envelope.v1",
+  "envelope_id": "tae_example_research_001",
+  "created_at": "2026-08-06T00:10:00Z",
+  "updated_at": "2026-08-06T00:10:00Z",
+  "state": "authority_ready",
+  "principal": {
+    "principal_ref": "owner:example-principal",
+    "principal_type": "human",
+    "identity_verification": "verified"
+  },
+  "agent": {
+    "agent_ref": "agent:example-research-buyer",
+    "agent_uri": "agent://example-research-buyer",
+    "operator_ref": "operator:example",
+    "identity_verification": "verified"
+  },
+  "authority": {
+    "source_protocol": "agoragentic_mandate",
+    "source_artifact_ref": "mandate:example-approved-001",
+    "source_artifact_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "issuer_ref": "owner:example-principal",
+    "verification_status": "verified",
+    "issued_at": "2026-08-06T00:05:00Z",
+    "expires_at": "2026-08-07T00:05:00Z",
+    "revocation_status": "active",
+    "audience": "agent:example-research-buyer",
+    "merchant_binding": null,
+    "allowed_actions": [
+      "execute:research"
+    ],
+    "allowed_sellers": [],
+    "allowed_categories": [
+      "research"
+    ],
+    "allowed_payment_rails": [
+      "x402"
+    ],
+    "currency": "USDC",
+    "max_per_action": "0.10",
+    "max_daily": "1.00",
+    "max_total": "5.00"
+  },
+  "commercial_intent": {
+    "action": "execute:research",
+    "task_ref": "task:example-evidence-brief",
+    "task_contract_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "seller_ref": "seller:example-research-provider",
+    "capability_ref": "capability:example-research",
+    "category": "research",
+    "quote_ref": "quote:example-001",
+    "quote_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+    "quoted_amount": "0.05",
+    "currency": "USDC",
+    "terms_ref": "terms:example-001",
+    "terms_hash": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+    "terms_match_status": "match"
+  },
+  "payment": {
+    "payment_identifier": "payment:example-idempotent-001",
+    "rail": "x402",
+    "status": "not_started",
+    "amount": "0.05",
+    "currency": "USDC",
+    "offer_ref": null,
+    "offer_hash": null,
+    "receipt_ref": null,
+    "receipt_hash": null,
+    "settlement_ref": null,
+    "settlement_verification": "not_checked",
+    "settlement_final": false
+  },
+  "execution": {
+    "idempotency_key_hash": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+    "invocation_ref": null,
+    "status": "not_started",
+    "attempt_count": 0,
+    "duplicate_detected": false,
+    "input_hash": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+    "output_hash": null,
+    "started_at": null,
+    "completed_at": null
+  },
+  "outcome": {
+    "delivery_status": "not_observed",
+    "artifact_refs": [],
+    "seller_attestation_ref": null,
+    "validation_refs": [],
+    "verification_status": "not_checked",
+    "verification_scope": "No execution or delivery has occurred. Required output schema and source checks are declared by the task contract.",
+    "unknowns": [
+      "Payment has not been submitted.",
+      "Execution has not started.",
+      "No delivery artifact exists."
+    ]
+  },
+  "reconciliation": {
+    "status": "not_started",
+    "result": "Pre-execution envelope only; nothing has been reconciled.",
+    "refund_ref": null,
+    "dispute_ref": null,
+    "next_safe_action": "Re-check live paid availability and all mandate gates before executing."
+  },
+  "evidence": {
+    "refs": [
+      "mandate:example-approved-001",
+      "quote:example-001",
+      "terms:example-001"
+    ],
+    "envelope_hash": null,
+    "complete_chain_verified": false
+  },
+  "redaction": {
+    "raw_prompt_excluded": true,
+    "raw_tool_output_excluded": true,
+    "raw_payment_credentials_excluded": true,
+    "raw_wallet_private_data_excluded": true,
+    "private_owner_data_excluded": true,
+    "secrets_excluded": true
+  },
+  "authority_flags": {
+    "envelope_grants_authority": false,
+    "can_spend": false,
+    "can_fund_wallet": false,
+    "can_deploy": false,
+    "can_publish": false,
+    "can_change_trust": false,
+    "can_expand_scope": false
+  },
+  "public_safe_summary": "Example pre-execution assurance envelope with verified bounded authority and no payment or execution yet."
+}

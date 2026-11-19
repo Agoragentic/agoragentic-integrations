@@ -1,0 +1,327 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agoragentic.com/schema/transaction-assurance-envelope.v1.json",
+  "title": "Agoragentic Transaction Assurance Envelope V1",
+  "description": "A portable, redacted record binding principal authority, agent identity, commercial intent, payment evidence, execution evidence, outcome verification, and reconciliation state. The envelope grants no authority and is not certification or universal independent proof.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "envelope_id",
+    "created_at",
+    "updated_at",
+    "state",
+    "principal",
+    "agent",
+    "authority",
+    "commercial_intent",
+    "payment",
+    "execution",
+    "outcome",
+    "reconciliation",
+    "evidence",
+    "redaction",
+    "authority_flags",
+    "public_safe_summary"
+  ],
+  "properties": {
+    "schema": { "const": "agoragentic.transaction-assurance-envelope.v1" },
+    "envelope_id": { "$ref": "#/$defs/ref" },
+    "created_at": { "$ref": "#/$defs/date" },
+    "updated_at": { "$ref": "#/$defs/date" },
+    "state": {
+      "enum": [
+        "incomplete",
+        "authority_ready",
+        "payment_pending",
+        "payment_observed",
+        "execution_observed",
+        "outcome_verified",
+        "reconciled",
+        "failed",
+        "refunded",
+        "disputed"
+      ]
+    },
+    "principal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["principal_ref", "principal_type", "identity_verification"],
+      "properties": {
+        "principal_ref": { "$ref": "#/$defs/ref" },
+        "principal_type": { "enum": ["human", "organization", "dao", "treasury", "service_principal", "unknown"] },
+        "identity_verification": { "$ref": "#/$defs/verificationStatus" }
+      }
+    },
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["agent_ref", "agent_uri", "operator_ref", "identity_verification"],
+      "properties": {
+        "agent_ref": { "$ref": "#/$defs/ref" },
+        "agent_uri": { "$ref": "#/$defs/nullableRef" },
+        "operator_ref": { "$ref": "#/$defs/nullableRef" },
+        "identity_verification": { "$ref": "#/$defs/verificationStatus" }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_protocol",
+        "source_artifact_ref",
+        "source_artifact_hash",
+        "issuer_ref",
+        "verification_status",
+        "issued_at",
+        "expires_at",
+        "revocation_status",
+        "audience",
+        "merchant_binding",
+        "allowed_actions",
+        "allowed_sellers",
+        "allowed_categories",
+        "allowed_payment_rails",
+        "currency",
+        "max_per_action",
+        "max_daily",
+        "max_total"
+      ],
+      "properties": {
+        "source_protocol": {
+          "enum": [
+            "agoragentic_mandate",
+            "google_ap2",
+            "visa_tap",
+            "openai_stripe_acp",
+            "x402",
+            "circle_agent_wallet_policy",
+            "skyfire_kyapay",
+            "mastercard_verifiable_intent",
+            "other"
+          ]
+        },
+        "source_artifact_ref": { "$ref": "#/$defs/ref" },
+        "source_artifact_hash": { "$ref": "#/$defs/sha256" },
+        "issuer_ref": { "$ref": "#/$defs/nullableRef" },
+        "verification_status": { "$ref": "#/$defs/verificationStatus" },
+        "issued_at": { "$ref": "#/$defs/nullableDate" },
+        "expires_at": { "$ref": "#/$defs/nullableDate" },
+        "revocation_status": { "enum": ["not_checked", "active", "revoked", "unknown"] },
+        "audience": { "$ref": "#/$defs/nullableRef" },
+        "merchant_binding": { "$ref": "#/$defs/nullableRef" },
+        "allowed_actions": { "$ref": "#/$defs/stringList" },
+        "allowed_sellers": { "$ref": "#/$defs/stringList" },
+        "allowed_categories": { "$ref": "#/$defs/stringList" },
+        "allowed_payment_rails": { "$ref": "#/$defs/stringList" },
+        "currency": { "$ref": "#/$defs/currency" },
+        "max_per_action": { "$ref": "#/$defs/money" },
+        "max_daily": { "$ref": "#/$defs/money" },
+        "max_total": { "$ref": "#/$defs/money" }
+      }
+    },
+    "commercial_intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action",
+        "task_ref",
+        "task_contract_hash",
+        "seller_ref",
+        "capability_ref",
+        "category",
+        "quote_ref",
+        "quote_hash",
+        "quoted_amount",
+        "currency",
+        "terms_ref",
+        "terms_hash",
+        "terms_match_status"
+      ],
+      "properties": {
+        "action": { "$ref": "#/$defs/ref" },
+        "task_ref": { "$ref": "#/$defs/ref" },
+        "task_contract_hash": { "$ref": "#/$defs/sha256" },
+        "seller_ref": { "$ref": "#/$defs/ref" },
+        "capability_ref": { "$ref": "#/$defs/ref" },
+        "category": { "$ref": "#/$defs/nullableRef" },
+        "quote_ref": { "$ref": "#/$defs/nullableRef" },
+        "quote_hash": { "$ref": "#/$defs/nullableHash" },
+        "quoted_amount": { "$ref": "#/$defs/money" },
+        "currency": { "$ref": "#/$defs/currency" },
+        "terms_ref": { "$ref": "#/$defs/nullableRef" },
+        "terms_hash": { "$ref": "#/$defs/nullableHash" },
+        "terms_match_status": { "enum": ["not_checked", "match", "changed", "unknown"] }
+      }
+    },
+    "payment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payment_identifier",
+        "rail",
+        "status",
+        "amount",
+        "currency",
+        "offer_ref",
+        "offer_hash",
+        "receipt_ref",
+        "receipt_hash",
+        "settlement_ref",
+        "settlement_verification",
+        "settlement_final"
+      ],
+      "properties": {
+        "payment_identifier": { "$ref": "#/$defs/nullableRef" },
+        "rail": { "$ref": "#/$defs/nullableRef" },
+        "status": { "enum": ["not_started", "required", "submitted", "observed", "settled", "failed", "refunded", "unknown"] },
+        "amount": { "$ref": "#/$defs/money" },
+        "currency": { "$ref": "#/$defs/currency" },
+        "offer_ref": { "$ref": "#/$defs/nullableRef" },
+        "offer_hash": { "$ref": "#/$defs/nullableHash" },
+        "receipt_ref": { "$ref": "#/$defs/nullableRef" },
+        "receipt_hash": { "$ref": "#/$defs/nullableHash" },
+        "settlement_ref": { "$ref": "#/$defs/nullableRef" },
+        "settlement_verification": { "$ref": "#/$defs/verificationStatus" },
+        "settlement_final": { "type": "boolean" }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "idempotency_key_hash",
+        "invocation_ref",
+        "status",
+        "attempt_count",
+        "duplicate_detected",
+        "input_hash",
+        "output_hash",
+        "started_at",
+        "completed_at"
+      ],
+      "properties": {
+        "idempotency_key_hash": { "$ref": "#/$defs/nullableHash" },
+        "invocation_ref": { "$ref": "#/$defs/nullableRef" },
+        "status": { "enum": ["not_started", "pending", "success", "failed", "timed_out", "ambiguous", "unknown"] },
+        "attempt_count": { "type": "integer", "minimum": 0, "maximum": 1000 },
+        "duplicate_detected": { "type": "boolean" },
+        "input_hash": { "$ref": "#/$defs/nullableHash" },
+        "output_hash": { "$ref": "#/$defs/nullableHash" },
+        "started_at": { "$ref": "#/$defs/nullableDate" },
+        "completed_at": { "$ref": "#/$defs/nullableDate" }
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "delivery_status",
+        "artifact_refs",
+        "seller_attestation_ref",
+        "validation_refs",
+        "verification_status",
+        "verification_scope",
+        "unknowns"
+      ],
+      "properties": {
+        "delivery_status": { "enum": ["not_observed", "partial", "delivered", "failed", "unknown"] },
+        "artifact_refs": { "$ref": "#/$defs/stringList" },
+        "seller_attestation_ref": { "$ref": "#/$defs/nullableRef" },
+        "validation_refs": { "$ref": "#/$defs/stringList" },
+        "verification_status": { "$ref": "#/$defs/verificationStatus" },
+        "verification_scope": { "type": "string", "minLength": 1, "maxLength": 3000 },
+        "unknowns": { "$ref": "#/$defs/stringList" }
+      }
+    },
+    "reconciliation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "result", "refund_ref", "dispute_ref", "next_safe_action"],
+      "properties": {
+        "status": { "enum": ["not_started", "pending", "complete", "failed", "refunded", "disputed", "unknown"] },
+        "result": { "type": "string", "minLength": 1, "maxLength": 3000 },
+        "refund_ref": { "$ref": "#/$defs/nullableRef" },
+        "dispute_ref": { "$ref": "#/$defs/nullableRef" },
+        "next_safe_action": { "type": "string", "minLength": 1, "maxLength": 3000 }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["refs", "envelope_hash", "complete_chain_verified"],
+      "properties": {
+        "refs": { "$ref": "#/$defs/stringList" },
+        "envelope_hash": { "$ref": "#/$defs/nullableHash" },
+        "complete_chain_verified": { "type": "boolean" }
+      }
+    },
+    "redaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "raw_prompt_excluded",
+        "raw_tool_output_excluded",
+        "raw_payment_credentials_excluded",
+        "raw_wallet_private_data_excluded",
+        "private_owner_data_excluded",
+        "secrets_excluded"
+      ],
+      "properties": {
+        "raw_prompt_excluded": { "const": true },
+        "raw_tool_output_excluded": { "const": true },
+        "raw_payment_credentials_excluded": { "const": true },
+        "raw_wallet_private_data_excluded": { "const": true },
+        "private_owner_data_excluded": { "const": true },
+        "secrets_excluded": { "const": true }
+      }
+    },
+    "authority_flags": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "envelope_grants_authority",
+        "can_spend",
+        "can_fund_wallet",
+        "can_deploy",
+        "can_publish",
+        "can_change_trust",
+        "can_expand_scope"
+      ],
+      "properties": {
+        "envelope_grants_authority": { "const": false },
+        "can_spend": { "const": false },
+        "can_fund_wallet": { "const": false },
+        "can_deploy": { "const": false },
+        "can_publish": { "const": false },
+        "can_change_trust": { "const": false },
+        "can_expand_scope": { "const": false }
+      }
+    },
+    "public_safe_summary": { "type": "string", "minLength": 1, "maxLength": 3000 }
+  },
+  "$defs": {
+    "ref": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "nullableRef": { "type": ["string", "null"], "maxLength": 2000 },
+    "date": { "type": "string", "format": "date-time" },
+    "nullableDate": { "type": ["string", "null"], "format": "date-time" },
+    "money": { "type": "string", "pattern": "^(0|[1-9]\\d*)(\\.\\d{1,6})?$" },
+    "currency": { "type": "string", "minLength": 1, "maxLength": 30 },
+    "sha256": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "nullableHash": {
+      "oneOf": [
+        { "$ref": "#/$defs/sha256" },
+        { "type": "null" }
+      ]
+    },
+    "verificationStatus": {
+      "enum": ["not_checked", "unverified", "verified", "failed", "unknown", "not_applicable"]
+    },
+    "stringList": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "maxLength": 2000 },
+      "uniqueItems": true,
+      "maxItems": 200
+    }
+  }
+}
