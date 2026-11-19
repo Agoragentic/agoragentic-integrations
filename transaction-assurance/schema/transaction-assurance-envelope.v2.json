@@ -1,0 +1,1485 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agoragentic.com/schemas/transaction-assurance-envelope.v2.json",
+  "title": "Agoragentic Transaction Assurance Library Envelope V2",
+  "description": "Versioned current-library record, including unverified privacy declarations and optional derived evidence. Shape validation grants no authority, verifies no signature, and proves no hosted acceptance or complete transaction.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "envelope_id",
+    "created_at",
+    "updated_at",
+    "state",
+    "principal",
+    "agent",
+    "authority",
+    "commercial_intent",
+    "payment",
+    "execution",
+    "outcome",
+    "reconciliation",
+    "evidence",
+    "redaction",
+    "authority_flags",
+    "public_safe_summary"
+  ],
+  "properties": {
+    "schema": {
+      "const": "agoragentic.transaction-assurance-envelope.v2"
+    },
+    "envelope_id": {
+      "$ref": "#/$defs/ref"
+    },
+    "created_at": {
+      "$ref": "#/$defs/date"
+    },
+    "updated_at": {
+      "$ref": "#/$defs/date"
+    },
+    "state": {
+      "enum": [
+        "incomplete",
+        "authority_ready",
+        "payment_pending",
+        "payment_observed",
+        "execution_observed",
+        "outcome_verified",
+        "reconciled",
+        "failed",
+        "refunded",
+        "disputed"
+      ]
+    },
+    "principal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "principal_ref",
+        "principal_type",
+        "identity_verification",
+        "identity_evidence_ref"
+      ],
+      "properties": {
+        "principal_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "principal_type": {
+          "enum": [
+            "human",
+            "organization",
+            "dao",
+            "treasury",
+            "service_principal",
+            "unknown"
+          ]
+        },
+        "identity_verification": {
+          "$ref": "#/$defs/verificationStatus"
+        },
+        "identity_evidence_ref": {
+          "$ref": "#/$defs/nullableRef"
+        }
+      }
+    },
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "agent_ref",
+        "agent_uri",
+        "operator_ref",
+        "identity_verification",
+        "identity_evidence_ref"
+      ],
+      "properties": {
+        "agent_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "agent_uri": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "operator_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "identity_verification": {
+          "$ref": "#/$defs/verificationStatus"
+        },
+        "identity_evidence_ref": {
+          "$ref": "#/$defs/nullableRef"
+        }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_protocol",
+        "source_artifact_ref",
+        "source_artifact_hash",
+        "issuer_ref",
+        "verification_status",
+        "issued_at",
+        "expires_at",
+        "revocation_status",
+        "audience",
+        "merchant_binding",
+        "allowed_actions",
+        "allowed_sellers",
+        "allowed_categories",
+        "allowed_payment_rails",
+        "currency",
+        "max_per_action",
+        "max_daily",
+        "max_total",
+        "principal_ref",
+        "agent_ref",
+        "verification_verifier_ref",
+        "verification_evidence_ref",
+        "verification_checked_at",
+        "verification_trust_mode",
+        "verification_binding_hash",
+        "revocation_evidence_ref",
+        "revocation_checked_at"
+      ],
+      "properties": {
+        "source_protocol": {
+          "enum": [
+            "agoragentic_mandate",
+            "google_ap2",
+            "visa_tap",
+            "openai_stripe_acp",
+            "x402",
+            "circle_agent_wallet_policy",
+            "skyfire_kyapay",
+            "mastercard_verifiable_intent",
+            "other"
+          ]
+        },
+        "source_artifact_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "source_artifact_hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "issuer_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "verification_status": {
+          "$ref": "#/$defs/verificationStatus"
+        },
+        "issued_at": {
+          "$ref": "#/$defs/nullableDate"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/nullableDate"
+        },
+        "revocation_status": {
+          "enum": [
+            "not_checked",
+            "active",
+            "revoked",
+            "unknown"
+          ]
+        },
+        "audience": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "merchant_binding": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "allowed_actions": {
+          "$ref": "#/$defs/stringList"
+        },
+        "allowed_sellers": {
+          "$ref": "#/$defs/stringList"
+        },
+        "allowed_categories": {
+          "$ref": "#/$defs/stringList"
+        },
+        "allowed_payment_rails": {
+          "$ref": "#/$defs/stringList"
+        },
+        "currency": {
+          "$ref": "#/$defs/currency"
+        },
+        "max_per_action": {
+          "$ref": "#/$defs/money"
+        },
+        "max_daily": {
+          "$ref": "#/$defs/money"
+        },
+        "max_total": {
+          "$ref": "#/$defs/money"
+        },
+        "principal_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "agent_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "verification_verifier_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "verification_evidence_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "verification_checked_at": {
+          "$ref": "#/$defs/nullableDate"
+        },
+        "verification_trust_mode": {
+          "enum": [
+            "none",
+            "trusted_callback"
+          ]
+        },
+        "verification_binding_hash": {
+          "$ref": "#/$defs/nullableHash"
+        },
+        "revocation_evidence_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "revocation_checked_at": {
+          "$ref": "#/$defs/nullableDate"
+        }
+      }
+    },
+    "commercial_intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action",
+        "task_ref",
+        "task_contract_hash",
+        "seller_ref",
+        "capability_ref",
+        "category",
+        "quote_ref",
+        "quote_hash",
+        "quoted_amount",
+        "currency",
+        "terms_ref",
+        "terms_hash",
+        "terms_match_status"
+      ],
+      "properties": {
+        "action": {
+          "$ref": "#/$defs/ref"
+        },
+        "task_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "task_contract_hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "seller_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "capability_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "category": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "quote_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "quote_hash": {
+          "$ref": "#/$defs/nullableHash"
+        },
+        "quoted_amount": {
+          "$ref": "#/$defs/money"
+        },
+        "currency": {
+          "$ref": "#/$defs/currency"
+        },
+        "terms_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "terms_hash": {
+          "$ref": "#/$defs/nullableHash"
+        },
+        "terms_match_status": {
+          "enum": [
+            "not_checked",
+            "match",
+            "changed",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "payment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payment_identifier",
+        "rail",
+        "status",
+        "amount",
+        "currency",
+        "offer_ref",
+        "offer_hash",
+        "receipt_ref",
+        "receipt_hash",
+        "settlement_ref",
+        "settlement_verification",
+        "settlement_final",
+        "daily_spend_before",
+        "total_spend_before",
+        "budget_usage_ref"
+      ],
+      "properties": {
+        "payment_identifier": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "rail": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "status": {
+          "enum": [
+            "not_started",
+            "required",
+            "submitted",
+            "observed",
+            "settled",
+            "failed",
+            "refunded",
+            "unknown"
+          ]
+        },
+        "amount": {
+          "$ref": "#/$defs/money"
+        },
+        "currency": {
+          "$ref": "#/$defs/currency"
+        },
+        "offer_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "offer_hash": {
+          "$ref": "#/$defs/nullableHash"
+        },
+        "receipt_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "receipt_hash": {
+          "$ref": "#/$defs/nullableHash"
+        },
+        "settlement_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "settlement_verification": {
+          "$ref": "#/$defs/verificationStatus"
+        },
+        "settlement_final": {
+          "type": "boolean"
+        },
+        "daily_spend_before": {
+          "$ref": "#/$defs/nullableMoney"
+        },
+        "total_spend_before": {
+          "$ref": "#/$defs/nullableMoney"
+        },
+        "budget_usage_ref": {
+          "$ref": "#/$defs/nullableRef"
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "idempotency_key_hash",
+        "invocation_ref",
+        "status",
+        "attempt_count",
+        "duplicate_detected",
+        "input_hash",
+        "output_hash",
+        "started_at",
+        "completed_at"
+      ],
+      "properties": {
+        "idempotency_key_hash": {
+          "$ref": "#/$defs/nullableHash"
+        },
+        "invocation_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "status": {
+          "enum": [
+            "not_started",
+            "pending",
+            "success",
+            "failed",
+            "timed_out",
+            "ambiguous",
+            "unknown"
+          ]
+        },
+        "attempt_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "duplicate_detected": {
+          "type": "boolean"
+        },
+        "input_hash": {
+          "$ref": "#/$defs/nullableHash"
+        },
+        "output_hash": {
+          "$ref": "#/$defs/nullableHash"
+        },
+        "started_at": {
+          "$ref": "#/$defs/nullableDate"
+        },
+        "completed_at": {
+          "$ref": "#/$defs/nullableDate"
+        }
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "delivery_status",
+        "artifact_refs",
+        "seller_attestation_ref",
+        "validation_refs",
+        "verification_status",
+        "verification_scope",
+        "unknowns"
+      ],
+      "properties": {
+        "delivery_status": {
+          "enum": [
+            "not_observed",
+            "partial",
+            "delivered",
+            "failed",
+            "unknown"
+          ]
+        },
+        "artifact_refs": {
+          "$ref": "#/$defs/stringList"
+        },
+        "seller_attestation_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "validation_refs": {
+          "$ref": "#/$defs/stringList"
+        },
+        "verification_status": {
+          "$ref": "#/$defs/verificationStatus"
+        },
+        "verification_scope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 3000
+        },
+        "unknowns": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "reconciliation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "result",
+        "refund_ref",
+        "dispute_ref",
+        "next_safe_action"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "not_started",
+            "pending",
+            "complete",
+            "failed",
+            "refunded",
+            "disputed",
+            "unknown"
+          ]
+        },
+        "result": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 3000
+        },
+        "refund_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "dispute_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "next_safe_action": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 3000
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "refs",
+        "envelope_hash",
+        "complete_chain_verified"
+      ],
+      "properties": {
+        "refs": {
+          "$ref": "#/$defs/stringList"
+        },
+        "envelope_hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "complete_chain_verified": {
+          "const": false
+        },
+        "profile_source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema",
+            "envelope_hash",
+            "envelope_id"
+          ],
+          "properties": {
+            "schema": {
+              "const": "agoragentic.transaction-assurance-envelope.v1"
+            },
+            "envelope_hash": {
+              "$ref": "#/$defs/sha256"
+            },
+            "envelope_id": {
+              "$ref": "#/$defs/ref"
+            }
+          }
+        }
+      }
+    },
+    "redaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "raw_prompt_excluded",
+        "raw_tool_output_excluded",
+        "raw_payment_credentials_excluded",
+        "raw_wallet_private_data_excluded",
+        "private_owner_data_excluded",
+        "secrets_excluded",
+        "verification_status"
+      ],
+      "properties": {
+        "raw_prompt_excluded": {
+          "type": "boolean"
+        },
+        "raw_tool_output_excluded": {
+          "type": "boolean"
+        },
+        "raw_payment_credentials_excluded": {
+          "type": "boolean"
+        },
+        "raw_wallet_private_data_excluded": {
+          "type": "boolean"
+        },
+        "private_owner_data_excluded": {
+          "type": "boolean"
+        },
+        "secrets_excluded": {
+          "type": "boolean"
+        },
+        "verification_status": {
+          "const": "not_verified"
+        }
+      },
+      "description": "Unverified declarations only. Current builder exclusions are false. A historical source may retain its declarations without becoming verified or public-safe."
+    },
+    "authority_flags": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "envelope_grants_authority",
+        "can_spend",
+        "can_fund_wallet",
+        "can_deploy",
+        "can_publish",
+        "can_change_trust",
+        "can_expand_scope"
+      ],
+      "properties": {
+        "envelope_grants_authority": {
+          "const": false
+        },
+        "can_spend": {
+          "const": false
+        },
+        "can_fund_wallet": {
+          "const": false
+        },
+        "can_deploy": {
+          "const": false
+        },
+        "can_publish": {
+          "const": false
+        },
+        "can_change_trust": {
+          "const": false
+        },
+        "can_expand_scope": {
+          "const": false
+        }
+      }
+    },
+    "public_safe_summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 3000
+    },
+    "authenticated_action_ref": {
+      "$ref": "#/$defs/nullableRef",
+      "description": "Opaque existing caller reference; carrying it does not authenticate an action or grant authority."
+    },
+    "evaluation_evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "https://agoragentic.com/schemas/transaction-evaluation-evidence.v1.json"
+      },
+      "minItems": 1
+    },
+    "evaluation_summary": {
+      "$ref": "#/$defs/evaluationSummary"
+    },
+    "inference_attestations": {
+      "type": "array",
+      "items": {
+        "$ref": "https://agoragentic.com/schemas/toploc-inference-attestation.v1.json"
+      },
+      "minItems": 1,
+      "maxItems": 100
+    },
+    "inference_attestation_summary": {
+      "$ref": "#/$defs/toplocSummary"
+    },
+    "external_action_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/actionReference"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "external_verification": {
+      "$ref": "#/$defs/externalVerification"
+    }
+  },
+  "$defs": {
+    "ref": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "nullableRef": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 2000
+    },
+    "date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "nullableDate": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "money": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)(\\.\\d{1,6})?$"
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 30
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "nullableHash": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/sha256"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "verificationStatus": {
+      "enum": [
+        "not_checked",
+        "unverified",
+        "verified",
+        "failed",
+        "unknown",
+        "not_applicable"
+      ]
+    },
+    "stringList": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2000
+      },
+      "uniqueItems": true,
+      "maxItems": 200
+    },
+    "nullableMoney": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/money"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "evaluationSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "status",
+        "evidence_count",
+        "evaluator_count",
+        "deterministic_evaluator_count",
+        "failed_evaluator_ids",
+        "review_evaluator_ids",
+        "mean_score",
+        "complete_transaction_verified",
+        "certification",
+        "authority_granted"
+      ],
+      "properties": {
+        "schema": {
+          "const": "agoragentic.transaction-evaluation-summary.v1"
+        },
+        "status": {
+          "enum": [
+            "unknown",
+            "failed",
+            "review",
+            "passed"
+          ]
+        },
+        "evidence_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "evaluator_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "deterministic_evaluator_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed_evaluator_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
+        },
+        "review_evaluator_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
+        },
+        "mean_score": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "complete_transaction_verified": {
+          "const": false
+        },
+        "certification": {
+          "const": false
+        },
+        "authority_granted": {
+          "const": false
+        }
+      }
+    },
+    "toplocSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "status",
+        "declared_validation_result",
+        "attestation_count",
+        "declared_accept_count",
+        "declared_reject_count",
+        "declared_review_count",
+        "scope",
+        "verification_status",
+        "provenance_verification_status",
+        "source_exactness_verification_status",
+        "privacy_verification_status",
+        "public_safe_verification_status",
+        "trusted_proof",
+        "output_correctness_proven",
+        "task_fulfillment_proven",
+        "seller_identity_proven",
+        "payment_settlement_proven",
+        "delivery_proven",
+        "complete_transaction_verified",
+        "certification",
+        "trust_endorsement",
+        "authority_granted"
+      ],
+      "properties": {
+        "schema": {
+          "const": "agoragentic.toploc-inference-attestation-summary.v1"
+        },
+        "status": {
+          "enum": [
+            "rejected",
+            "review"
+          ]
+        },
+        "declared_validation_result": {
+          "enum": [
+            "accepted",
+            "rejected",
+            "review"
+          ]
+        },
+        "attestation_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "declared_accept_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "declared_reject_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "declared_review_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "scope": {
+          "const": "model_configuration_execution"
+        },
+        "verification_status": {
+          "const": "not_verified"
+        },
+        "provenance_verification_status": {
+          "const": "not_verified"
+        },
+        "source_exactness_verification_status": {
+          "const": "not_verified"
+        },
+        "privacy_verification_status": {
+          "const": "not_verified"
+        },
+        "public_safe_verification_status": {
+          "const": "not_verified"
+        },
+        "trusted_proof": {
+          "const": false
+        },
+        "output_correctness_proven": {
+          "const": false
+        },
+        "task_fulfillment_proven": {
+          "const": false
+        },
+        "seller_identity_proven": {
+          "const": false
+        },
+        "payment_settlement_proven": {
+          "const": false
+        },
+        "delivery_proven": {
+          "const": false
+        },
+        "complete_transaction_verified": {
+          "const": false
+        },
+        "certification": {
+          "const": false
+        },
+        "trust_endorsement": {
+          "const": false
+        },
+        "authority_granted": {
+          "const": false
+        }
+      }
+    },
+    "actionReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "value",
+        "preimage_ref",
+        "recomputation",
+        "source_revision"
+      ],
+      "properties": {
+        "profile": {
+          "const": "mycelium-action-ref-v1.0"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "preimage_ref": {
+          "$ref": "#/$defs/nullableHash"
+        },
+        "recomputation": {
+          "enum": [
+            "not_checked",
+            "match",
+            "mismatch"
+          ]
+        },
+        "source_revision": {
+          "const": "2935c328177dca9f042fa1b910f5237ffe71da9e"
+        }
+      }
+    },
+    "decimalUint": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)$"
+    },
+    "hex32": {
+      "type": "string",
+      "pattern": "^0x[a-f0-9]{64}$"
+    },
+    "externalVerification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "profile",
+        "source_revision",
+        "status",
+        "action_reference_profile",
+        "action_reference",
+        "checks",
+        "failed_checks",
+        "proves",
+        "does_not_prove",
+        "chain_id",
+        "registry_ref",
+        "transaction_ref",
+        "block_number",
+        "block_hash",
+        "block_timestamp",
+        "log_index",
+        "confirmations",
+        "minimum_confirmations",
+        "observed_matching_event_count",
+        "verifier_ref",
+        "evidence_ref",
+        "checked_at",
+        "raw_rpc_payload_embedded",
+        "complete_chain_verified",
+        "authority_flags",
+        "assurance_binding"
+      ],
+      "properties": {
+        "schema": {
+          "const": "agoragentic.external-verification.v1"
+        },
+        "profile": {
+          "const": "mycelium-anchor-registry-v1"
+        },
+        "source_revision": {
+          "const": "cd8100e63d17882ba11843882acaf5b1e069fdce"
+        },
+        "status": {
+          "enum": [
+            "not_checked",
+            "checked_match",
+            "checked_mismatch"
+          ]
+        },
+        "action_reference_profile": {
+          "const": "mycelium-action-ref-v1.0"
+        },
+        "action_reference": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "checks": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [],
+              "properties": {}
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "chain_id",
+                "registry_address",
+                "runtime_code_hash",
+                "transaction_hash",
+                "receipt_success",
+                "target_contract",
+                "call_selector",
+                "calldata_reference",
+                "block_number",
+                "event_present",
+                "event_address",
+                "event_topic",
+                "event_reference",
+                "log_index",
+                "event_block_number",
+                "event_block_hash",
+                "event_transaction_hash",
+                "event_not_removed",
+                "event_timestamp",
+                "finality"
+              ],
+              "properties": {
+                "chain_id": {
+                  "type": "boolean"
+                },
+                "registry_address": {
+                  "type": "boolean"
+                },
+                "runtime_code_hash": {
+                  "type": "boolean"
+                },
+                "transaction_hash": {
+                  "type": "boolean"
+                },
+                "receipt_success": {
+                  "type": "boolean"
+                },
+                "target_contract": {
+                  "type": "boolean"
+                },
+                "call_selector": {
+                  "type": "boolean"
+                },
+                "calldata_reference": {
+                  "type": "boolean"
+                },
+                "block_number": {
+                  "type": "boolean"
+                },
+                "event_present": {
+                  "type": "boolean"
+                },
+                "event_address": {
+                  "type": "boolean"
+                },
+                "event_topic": {
+                  "type": "boolean"
+                },
+                "event_reference": {
+                  "type": "boolean"
+                },
+                "log_index": {
+                  "type": "boolean"
+                },
+                "event_block_number": {
+                  "type": "boolean"
+                },
+                "event_block_hash": {
+                  "type": "boolean"
+                },
+                "event_transaction_hash": {
+                  "type": "boolean"
+                },
+                "event_not_removed": {
+                  "type": "boolean"
+                },
+                "event_timestamp": {
+                  "type": "boolean"
+                },
+                "finality": {
+                  "type": "boolean"
+                }
+              }
+            }
+          ]
+        },
+        "failed_checks": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "chain_id",
+              "registry_address",
+              "runtime_code_hash",
+              "transaction_hash",
+              "receipt_success",
+              "target_contract",
+              "call_selector",
+              "calldata_reference",
+              "block_number",
+              "event_present",
+              "event_address",
+              "event_topic",
+              "event_reference",
+              "log_index",
+              "event_block_number",
+              "event_block_hash",
+              "event_transaction_hash",
+              "event_not_removed",
+              "event_timestamp",
+              "finality"
+            ]
+          },
+          "uniqueItems": true,
+          "maxItems": 20
+        },
+        "proves": {
+          "enum": [
+            [],
+            [
+              "reference_anchored",
+              "public_block_timestamp",
+              "event_inclusion"
+            ]
+          ]
+        },
+        "does_not_prove": {
+          "const": [
+            "principal_authority",
+            "execution_correctness",
+            "delivery",
+            "settlement",
+            "single_execution"
+          ]
+        },
+        "chain_id": {
+          "enum": [
+            null,
+            "eip155:8453",
+            "eip155:42161",
+            "eip155:57073"
+          ]
+        },
+        "registry_ref": {
+          "enum": [
+            null,
+            "evm:0x49feca52bc634a9ab773226d16619dec547794aa"
+          ]
+        },
+        "transaction_ref": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^evm-tx:0x[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "block_number": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/decimalUint"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "block_hash": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/hex32"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "block_timestamp": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/decimalUint"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "log_index": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "confirmations": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/decimalUint"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "minimum_confirmations": {
+          "type": "integer",
+          "minimum": 12,
+          "maximum": 9007199254740991
+        },
+        "observed_matching_event_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 32
+        },
+        "verifier_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "evidence_ref": {
+          "$ref": "#/$defs/nullableRef"
+        },
+        "checked_at": {
+          "$ref": "#/$defs/nullableDate"
+        },
+        "raw_rpc_payload_embedded": {
+          "const": false
+        },
+        "complete_chain_verified": {
+          "const": false
+        },
+        "authority_flags": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "evidence_grants_authority",
+            "can_spend",
+            "can_execute",
+            "can_fund_wallet",
+            "can_publish",
+            "can_deploy",
+            "can_change_trust"
+          ],
+          "properties": {
+            "evidence_grants_authority": {
+              "const": false
+            },
+            "can_spend": {
+              "const": false
+            },
+            "can_execute": {
+              "const": false
+            },
+            "can_fund_wallet": {
+              "const": false
+            },
+            "can_publish": {
+              "const": false
+            },
+            "can_deploy": {
+              "const": false
+            },
+            "can_change_trust": {
+              "const": false
+            }
+          }
+        },
+        "assurance_binding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "envelope_id",
+            "prior_envelope_hash",
+            "binding_hash"
+          ],
+          "properties": {
+            "envelope_id": {
+              "$ref": "#/$defs/ref"
+            },
+            "prior_envelope_hash": {
+              "$ref": "#/$defs/sha256"
+            },
+            "binding_hash": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "not_checked"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "checks": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [],
+                "properties": {}
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "checks": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "chain_id",
+                  "registry_address",
+                  "runtime_code_hash",
+                  "transaction_hash",
+                  "receipt_success",
+                  "target_contract",
+                  "call_selector",
+                  "calldata_reference",
+                  "block_number",
+                  "event_present",
+                  "event_address",
+                  "event_topic",
+                  "event_reference",
+                  "log_index",
+                  "event_block_number",
+                  "event_block_hash",
+                  "event_transaction_hash",
+                  "event_not_removed",
+                  "event_timestamp",
+                  "finality"
+                ],
+                "properties": {
+                  "chain_id": {
+                    "type": "boolean"
+                  },
+                  "registry_address": {
+                    "type": "boolean"
+                  },
+                  "runtime_code_hash": {
+                    "type": "boolean"
+                  },
+                  "transaction_hash": {
+                    "type": "boolean"
+                  },
+                  "receipt_success": {
+                    "type": "boolean"
+                  },
+                  "target_contract": {
+                    "type": "boolean"
+                  },
+                  "call_selector": {
+                    "type": "boolean"
+                  },
+                  "calldata_reference": {
+                    "type": "boolean"
+                  },
+                  "block_number": {
+                    "type": "boolean"
+                  },
+                  "event_present": {
+                    "type": "boolean"
+                  },
+                  "event_address": {
+                    "type": "boolean"
+                  },
+                  "event_topic": {
+                    "type": "boolean"
+                  },
+                  "event_reference": {
+                    "type": "boolean"
+                  },
+                  "log_index": {
+                    "type": "boolean"
+                  },
+                  "event_block_number": {
+                    "type": "boolean"
+                  },
+                  "event_block_hash": {
+                    "type": "boolean"
+                  },
+                  "event_transaction_hash": {
+                    "type": "boolean"
+                  },
+                  "event_not_removed": {
+                    "type": "boolean"
+                  },
+                  "event_timestamp": {
+                    "type": "boolean"
+                  },
+                  "finality": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "dependentRequired": {
+    "evaluation_evidence": [
+      "evaluation_summary"
+    ],
+    "evaluation_summary": [
+      "evaluation_evidence"
+    ],
+    "inference_attestations": [
+      "inference_attestation_summary"
+    ],
+    "inference_attestation_summary": [
+      "inference_attestations"
+    ],
+    "external_action_refs": [
+      "external_verification"
+    ],
+    "external_verification": [
+      "external_action_refs"
+    ]
+  }
+}
