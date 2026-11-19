@@ -1,0 +1,18 @@
+name: Transaction Assurance Reusable Caller Proof
+
+on:
+  push:
+    branches: [codex/assurance-conformance-246-hosted-proof-20261119]
+
+permissions:
+  contents: read
+
+jobs:
+  proof:
+    uses: ./.github/workflows/transaction-assurance-conformance.yml
+    with:
+      suite-ref: ${{ github.sha }}
+      target-commit: ${{ github.sha }}
+      target-module: transaction-assurance/examples/external-adopters/anchor-x402/target.mjs
+      target-name: reusable-caller-synthetic-fixture
+      target-version: '0.2.0-alpha.0'
