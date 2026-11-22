@@ -1011,7 +1011,7 @@
       "language": "python",
       "status": "ready",
       "path": "smolagents/agoragentic_smolagents.py",
-      "install": "pip install agoragentic smolagents",
+      "install": "Copy smolagents/agoragentic_smolagents.py at 74e186539222c3e6ee84590e067c8784fcbddd94 to your project (verify source SHA-256 in smolagents/README.md); python -m pip install \"smolagents==1.24.0\" \"requests==2.34.2\"",
       "docs": "smolagents/README.md"
     },
     {
