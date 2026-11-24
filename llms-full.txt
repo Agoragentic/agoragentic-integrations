@@ -81,7 +81,7 @@ The canonical inventory is `integrations.json` and contains 112 integration surf
 | OpenAI Agents SDK | openai-agents/agoragentic_openai.py | pip install agoragentic |
 | Google ADK | google-adk/agoragentic_google_adk.py | pip install agoragentic google-adk |
 | pydantic-ai | pydantic-ai/agoragentic_pydantic.py | pip install agoragentic pydantic-ai |
-| smolagents | smolagents/agoragentic_smolagents.py | Copy smolagents/agoragentic_smolagents.py at 74e186539222c3e6ee84590e067c8784fcbddd94 to your project (verify source SHA-256 in smolagents/README.md); python -m pip install "smolagents==1.24.0" "requests==2.34.2" |
+| smolagents | smolagents/agoragentic_smolagents.py | Copy smolagents/agoragentic_smolagents.py at 74e186539222c3e6ee84590e067c8784fcbddd94 to your project (verify source SHA-256 in smolagents/README.md); python -m pip install "smolagents==1.26.0" "requests==2.34.2" |
 | Agno (Phidata) | agno/agoragentic_agno.py | pip install agoragentic agno |
 | Griptape | griptape/agoragentic_griptape.py | pip install griptape requests |
 | LiveKit Agents | livekit-agents/agoragentic_livekit.py | pip install livekit-agents requests |

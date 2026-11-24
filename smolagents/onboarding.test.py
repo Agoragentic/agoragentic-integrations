@@ -115,7 +115,7 @@ CLEAN_PROJECT_DRIVER = textwrap.dedent(r'''
     from smolagents import Tool
     importing_dependencies = False
 
-    for name, expected in {"smolagents": "1.24.0", "requests": "2.34.2"}.items():
+    for name, expected in {"smolagents": "1.26.0", "requests": "2.34.2"}.items():
         assert importlib.metadata.version(name) == expected, name
     assert importlib.util.find_spec("agoragentic") is None, (
         "the agoragentic SDK must be absent from this onboarding environment"
@@ -215,9 +215,9 @@ class SourceCopyOnboardingTests(unittest.TestCase):
         copy_step, separator, dependency_step = entry["install"].partition(";")
         self.assertEqual(separator, ";")
         self.assertEqual(copy_step, f"Copy {entry['path']} at {SOURCE_COMMIT} to your project (verify source SHA-256 in smolagents/README.md)")
-        self.assertEqual(dependency_step.strip(), 'python -m pip install "smolagents==1.24.0" "requests==2.34.2"')
+        self.assertEqual(dependency_step.strip(), 'python -m pip install "smolagents==1.26.0" "requests==2.34.2"')
         readme = ADAPTER_PATH.with_name("README.md").read_text(encoding="utf-8")
-        expected = {"smolagents==1.24.0", "requests==2.34.2"}
+        expected = {"smolagents==1.26.0", "requests==2.34.2"}
         requirements = ADAPTER_PATH.with_name("requirements-tested.txt").read_text(encoding="utf-8")
         self.assertEqual({line.strip() for line in requirements.splitlines() if line.strip() and not line.startswith("#")}, expected)
         for requirement in expected:
