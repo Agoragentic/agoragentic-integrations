@@ -155,6 +155,26 @@
       ]
     },
     {
+      "id": "docx-comment-annotation-observation",
+      "file": "commented-document.docx",
+      "format": "docx",
+      "expected_canonical_format": "docx",
+      "expect_conversion": true,
+      "expected_markdown_tokens": ["Synthetic comment anchor"],
+      "expected_absent_markdown_tokens": ["Synthetic review annotation"],
+      "expected_risk": "medium",
+      "expected_receipt_status": "pending",
+      "expected_coverage_complete": true,
+      "expected_structured_note_count": 0,
+      "expected_limitations": [
+        "layout_text_boxes_headers_and_footers_may_be_lossy"
+      ],
+      "semantic_observation_labels": [
+        "docx_comment_part_and_anchor_are_source_verified",
+        "docx_comment_text_not_emitted_by_pinned_parser"
+      ]
+    },
+    {
       "id": "pptx-untitled-slides",
       "file": "untitled-slides.pptx",
       "format": "pptx",
