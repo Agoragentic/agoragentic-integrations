@@ -19,7 +19,7 @@ async function fixture(t, { optional = true, name = 'risk-fork-synthetic-optiona
   t.after(() => { delete globalThis[marker]; });
   await mkdir(path.join(sdk, 'dist'), { recursive: true });
   await writeFile(path.join(sdk, 'package.json'), JSON.stringify({
-    name: 'e2b', version: '2.63.0', main: 'dist/index.js',
+    name: 'e2b', version: '2.64.0', main: 'dist/index.js',
     [optional ? 'optionalDependencies' : 'dependencies']: { [name]: '1.0.0' },
   }));
   await writeFile(path.join(sdk, 'dist', 'index.js'), entry ?? `module.exports = require(${JSON.stringify(name)});\n`);
@@ -149,7 +149,7 @@ test('optional Node builtin cannot be treated as absent', async (t) => {
 test('optional peer outside the anchor is rejected', async (t) => {
   const f = await fixture(t);
   await writeFile(path.join(f.sdk, 'package.json'), JSON.stringify({
-    name: 'e2b', version: '2.63.0', main: 'dist/index.js',
+    name: 'e2b', version: '2.64.0', main: 'dist/index.js',
     peerDependencies: { [f.name]: '1.0.0' }, peerDependenciesMeta: { [f.name]: { optional: true } },
   }));
   await writePackage(f.outer, f.name, f.source);

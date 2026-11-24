@@ -16,7 +16,7 @@ import {
   workerClaimScope,
   workerWriteScope,
 } from './constants.mjs';
-import { normalizeApiKeyRecord } from './auth.mjs';
+import { assertManagedPrincipalWindow, normalizeApiKeyRecord } from './auth.mjs';
 import { cancellationAuditDetails, normalizeCancellationFields, planCancellation,
   verifyCancellationObservation } from './cancellation.mjs';
 import {
@@ -236,15 +236,19 @@ export class MemoryManagedServiceStore {
     return this.#credentials.get(keyHash) ?? null;
   }
 
-  async findIdempotentInvocation(input) {
+  async findIdempotentInvocation(input, { clock = () => new Date() } = {}) {
+    if (typeof clock !== 'function') throw new TypeError('admission clock must be a function');
     return this.#exclusive(async () => {
       assertPlainRecord(input, 'idempotency lookup');
       assertAllowedKeys(
         input,
-        ['tenant_id', 'idempotency_hash', 'request_hash'],
+        ['tenant_id', 'key_id', 'key_hash', 'principal_window', 'idempotency_hash', 'request_hash'],
         'idempotency lookup',
       );
       const tenantId = requireTenantId(input.tenant_id);
+      const now = requireIso(clock(), 'admission clock result');
+      this.#requireActiveClaimant(tenantId, input.key_id, now, 'invocations:write', input.key_hash);
+      assertManagedPrincipalWindow(input.principal_window, now);
       const idempotencyHash = requireSha256(input.idempotency_hash, 'idempotency_hash');
       const requestHash = requireSha256(input.request_hash, 'request_hash');
       const existingRef = this.#idempotency.get(idempotencyKey(tenantId, idempotencyHash));
@@ -295,10 +299,15 @@ export class MemoryManagedServiceStore {
     });
   }
 
-  async admitInvocation(input) {
+  async admitInvocation(input, { clock = () => new Date() } = {}) {
+    if (typeof clock !== 'function') throw new TypeError('admission clock must be a function');
     return this.#exclusive(async () => {
       assertPlainRecord(input, 'admission');
       const tenantId = requireTenantId(input.tenant_id);
+      // Capture time after the exclusive wait, never from the earlier request.
+      const now = requireIso(clock(), 'admission clock result');
+      this.#requireActiveClaimant(tenantId, input.key_id, now, 'invocations:write', input.key_hash);
+      assertManagedPrincipalWindow(input.principal_window, now);
       const invocationRef = requireInvocationRef(input.invocation_ref, 'invocation_ref');
       const requestHash = requireSha256(input.request_hash, 'request_hash');
       const idempotencyHash = requireSha256(input.idempotency_hash, 'idempotency_hash');
@@ -321,7 +330,6 @@ export class MemoryManagedServiceStore {
           503,
         );
       }
-      const now = requireIso(input.now, 'admission.now');
       const tenant = this.#tenants.get(tenantId);
       if (!tenant || tenant.status !== 'active') {
         throw managedError('Tenant is not active', 'TENANT_NOT_ACTIVE', 403);
@@ -693,18 +701,20 @@ export class MemoryManagedServiceStore {
     return record;
   }
 
-  #requireActiveClaimant(tenantIdValue, claimantKeyIdValue, nowValue, requiredScope) {
-    if (requiredScope !== 'invocations:cancel' && requiredScope !== 'audit:read'
+  #requireActiveClaimant(tenantIdValue, claimantKeyIdValue, nowValue, requiredScope, expectedKeyHash) {
+    if (requiredScope !== 'invocations:write' && requiredScope !== 'invocations:cancel' && requiredScope !== 'audit:read'
       && !/^worker:(execution|cleanup|recovery):(claim|write)$/.test(requiredScope)) {
       throw new TypeError('claimant scope must be purpose-specific');
     }
     const tenantId = requireTenantId(tenantIdValue);
     const claimantKeyId = requireOpaqueRef(claimantKeyIdValue, 'claimant_key_id');
     const now = requireIso(nowValue, 'claimant credential time');
-    const claimantCredential = [...this.#credentials.values()].find(
-      (credential) => credential.key_id === claimantKeyId,
-    );
+    const claimantCredential = requiredScope === 'invocations:write'
+      || requiredScope === 'invocations:cancel'
+      ? this.#credentials.get(requireSha256(expectedKeyHash, 'claimant credential hash'))
+      : [...this.#credentials.values()].find((credential) => credential.key_id === claimantKeyId);
     if (!claimantCredential
+      || claimantCredential.key_id !== claimantKeyId
       || claimantCredential.tenant_id !== tenantId
       || claimantCredential.revoked_at !== null
       || Date.parse(claimantCredential.not_before) > Date.parse(now)
@@ -1138,12 +1148,13 @@ export class MemoryManagedServiceStore {
     return this.#exclusive(async () => {
       assertPlainRecord(input, 'stored cancellation request');
       assertAllowedKeys(input, ['tenant_id', 'invocation_ref', 'claimant_key_id',
-        'cancel_request_hash', 'cancel_reason_hash', 'now', 'expected_request_hash',
+        'cancel_request_hash', 'cancel_reason_hash', 'now', 'expected_key_hash', 'expected_request_hash',
         'expected_operation_hash', 'expected_provider_binding_hash', 'expected_provider_recovery_key'], 'stored cancellation request');
       const tenantId = requireTenantId(input.tenant_id);
       const ref = requireInvocationRef(input.invocation_ref);
       const now = requireIso(input.now, 'cancellation time');
-      this.#requireActiveClaimant(tenantId, input.claimant_key_id, now, 'invocations:cancel');
+      this.#requireActiveClaimant(tenantId, input.claimant_key_id, now,
+        'invocations:cancel', input.expected_key_hash);
       const record = this.#invocations.get(invocationKey(tenantId, ref));
       if (!record) throw managedError('Invocation was not found', 'INVOCATION_NOT_FOUND', 404);
       const plan = planCancellation(record, input, now);

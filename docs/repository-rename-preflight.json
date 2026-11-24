@@ -6,11 +6,11 @@
   "safe_to_rename": false,
   "target_repository": null,
   "summary": {
-    "file_count": 185,
-    "occurrence_count": 371,
+    "file_count": 184,
+    "occurrence_count": 370,
     "category_file_counts": {
       "installer_or_clone": 31,
-      "machine_discovery": 61,
+      "machine_discovery": 60,
       "package_registry_metadata": 23,
       "public_documentation": 92,
       "raw_content_url": 2,
@@ -294,16 +294,6 @@
         4,
         7,
         10
-      ],
-      "categories": [
-        "machine_discovery"
-      ]
-    },
-    {
-      "path": ".github/workflows/transaction-assurance-conformance.yml",
-      "occurrences": 1,
-      "line_numbers": [
-        77
       ],
       "categories": [
         "machine_discovery"
@@ -1546,7 +1536,7 @@
       "path": "risk-fork-hosted-mcp/package.json",
       "occurrences": 1,
       "line_numbers": [
-        66
+        67
       ],
       "categories": [
         "installer_or_clone",
@@ -1558,7 +1548,7 @@
       "path": "risk-fork-hosted-mcp/scripts/build.mjs",
       "occurrences": 1,
       "line_numbers": [
-        105
+        106
       ],
       "categories": [
         "installer_or_clone"
@@ -1568,7 +1558,7 @@
       "path": "risk-fork-hosted-mcp/scripts/verify-integrity.mjs",
       "occurrences": 1,
       "line_numbers": [
-        94
+        95
       ],
       "categories": [
         "installer_or_clone"
@@ -1763,8 +1753,8 @@
       "path": "risk-fork/README.md",
       "occurrences": 4,
       "line_numbers": [
-        11,
-        74
+        13,
+        76
       ],
       "categories": [
         "public_documentation"
@@ -2019,7 +2009,7 @@
       "path": "smolagents/README.md",
       "occurrences": 1,
       "line_numbers": [
-        161
+        198
       ],
       "categories": [
         "public_documentation"
