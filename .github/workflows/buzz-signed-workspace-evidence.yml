@@ -45,6 +45,11 @@ jobs:
         run: |
           npm run check
           npm test
+      - name: Verify local NIP-01 signatures
+        working-directory: examples/buzz-signed-workspace-evidence/verification
+        run: |
+          npm ci --engine-strict --strict-peer-deps --ignore-scripts --no-audit --no-fund
+          npm test
       - name: Parse machine contracts
         run: |
           node -e "for (const file of ['listing-candidates.json','receipt-reference.schema.json','receipt-reference.example.json','upstream-provenance.json']) JSON.parse(require('node:fs').readFileSync(file, 'utf8'))"
