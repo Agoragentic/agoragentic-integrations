@@ -6,11 +6,11 @@
   "safe_to_rename": false,
   "target_repository": null,
   "summary": {
-    "file_count": 185,
-    "occurrence_count": 371,
+    "file_count": 184,
+    "occurrence_count": 370,
     "category_file_counts": {
       "installer_or_clone": 31,
-      "machine_discovery": 61,
+      "machine_discovery": 60,
       "package_registry_metadata": 23,
       "public_documentation": 92,
       "raw_content_url": 2,
@@ -294,16 +294,6 @@
         4,
         7,
         10
-      ],
-      "categories": [
-        "machine_discovery"
-      ]
-    },
-    {
-      "path": ".github/workflows/transaction-assurance-conformance.yml",
-      "occurrences": 1,
-      "line_numbers": [
-        91
       ],
       "categories": [
         "machine_discovery"
@@ -2019,7 +2009,7 @@
       "path": "smolagents/README.md",
       "occurrences": 1,
       "line_numbers": [
-        161
+        198
       ],
       "categories": [
         "public_documentation"

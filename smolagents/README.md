@@ -2,35 +2,75 @@
 
 Connect HuggingFace [smolagents](https://github.com/huggingface/smolagents) to Agoragentic Agent OS for execute-first routing, receipts, and optional compatibility catalog helpers.
 
-> smolagents is HuggingFace's minimal agent framework where LLMs write actions as Python code — 30% fewer calls than JSON tool-calling.
+## Install the reviewed source adapter
 
-## Install
+`agoragentic_smolagents.py` is a standalone repository file. The `agoragentic`
+PyPI 1.7.1 wheel and sdist do not include it. This adapter imports `smolagents`
+and `requests` directly; the Agoragentic SDK is not required.
+
+Use Python 3.10 or later. From the project directory that will contain your
+Python script, create an isolated environment and install the tested direct
+dependencies:
 
 ```bash
-pip install smolagents requests
+python -m venv .venv
+. .venv/bin/activate
+python -m pip install "smolagents==1.26.0" "requests==2.34.2"
 ```
 
-## Quick Start
+On Windows, activate `.venv\Scripts\activate` instead. The source acquisition
+below writes the adapter beside your script so a normal
+`from agoragentic_smolagents import ...` resolves it. It uses an existing reviewed
+revision, rather than the moving `main` branch or this documentation change's
+future commit. Inspect the [pinned source](https://github.com/Agoragentic/agoragentic-integrations/blob/74e186539222c3e6ee84590e067c8784fcbddd94/smolagents/agoragentic_smolagents.py), then download and verify it:
 
 ```python
-from smolagents import CodeAgent, InferenceClientModel
-from agoragentic_smolagents import get_all_tools
+# source-adapter-download
+from hashlib import sha256
+from pathlib import Path
+from urllib.request import urlopen
 
-agent = CodeAgent(
-    tools=get_all_tools("amk_your_key"),
-    model=InferenceClientModel(),
-)
-
-agent.run("Preview data-analysis providers, execute through Agent OS if policy allows, and return the receipt")
+source_url = "https://raw.githubusercontent.com/Agoragentic/agoragentic-integrations/74e186539222c3e6ee84590e067c8784fcbddd94/smolagents/agoragentic_smolagents.py"
+expected_sha256 = "72d0dae36b32fa790299575e14077a1ec0105ab110ee534b2b6349047be3a983"
+with urlopen(source_url, timeout=30) as response:
+    source = response.read(128 * 1024 + 1)
+if len(source) > 128 * 1024 or sha256(source).hexdigest() != expected_sha256:
+    raise RuntimeError("Source adapter digest mismatch; no file written")
+with Path("agoragentic_smolagents.py").open("xb") as destination:
+    destination.write(source)
 ```
 
-No API key? Get one free:
+The exclusive write refuses to replace an existing module. Use the same reviewed
+directory on your notebook's import path if your notebook runs elsewhere.
 
-```bash
-curl -X POST https://agoragentic.com/api/quickstart \
-  -H "Content-Type: application/json" \
-  -d '{"name": "my-smolagent", "intent": "buyer"}'
+## First check: offline import and mocked Match
+
+Run this from that same project directory. It imports the real framework and
+copied module, then replaces the HTTP request with a synthetic response. It uses
+no account key, model, Hub artifact, capability call or payment:
+
+```python
+import json
+from unittest.mock import Mock, patch
+from agoragentic_smolagents import AgoragenticMatchTool
+
+response = Mock(status_code=200)
+response.json.return_value = {"providers": [], "matches": 0}
+with patch("requests.get", return_value=response) as request:
+    result = json.loads(
+        AgoragenticMatchTool(api_key="local-test-key").forward("preview only", max_cost=0.1)
+    )
+assert result == {"task": "preview only", "matches": 0, "top_providers": []}
+request.assert_called_once()
+print("Source adapter import and mocked Match passed")
 ```
+
+The repository's `smolagents/onboarding.test.py` repeats this in a clean temporary
+project with socket access blocked, real pinned dependencies, and no Agoragentic
+SDK. The broader adapter contract also checks malformed responses and wallet
+paths. These are local source contracts, not live provider or hosted-runtime
+qualification. Live model use and execution require separate configuration and
+authorization; the example below is optional.
 
 ## Tools (10)
 
@@ -96,22 +136,19 @@ result = agent.run("Which providers can summarize text under $0.10?")
 result = agent.run("Summarize this article about quantum computing")
 ```
 
-## Optional Hugging Face Hub Release
+## Hugging Face Hub path: unqualified
 
-The repository file above is the canonical source. A merge does not update the
-live Hub artifact. Use the Hub path below only after a separately authorized
-publication has verified the exact generated tool and remote runtime; otherwise
-download and import `agoragentic_smolagents.py` directly.
+The default path is the reviewed local source copy above. The inspected
+`Acre1/agoragentic-execute` Space at revision
+`47daadcbe74356d25f920dad315f35f064b76d14` reported `CONFIG_ERROR` with
+"Missing configuration in README"; this source change
+does not repair, publish or qualify that Space.
 
-```python
-from smolagents import load_tool, CodeAgent, InferenceClientModel
-
-execute = load_tool("Acre1/agoragentic-execute")
-execute.api_key = "amk_your_key"
-
-agent = CodeAgent(tools=[execute], model=InferenceClientModel())
-agent.run("Find and use a code review tool")
-```
+In smolagents 1.26.0, `load_tool` requires explicit remote-code trust and then
+executes the downloaded `tool.py`. It is not a dependency-only installation path.
+There is no hosted-loader quickstart here. Any future Hub use requires separate
+review of the exact remote bytes, explicit trust, publication authorization and
+runtime verification. No Hub code is downloaded or executed by the qualification.
 
 ## How It Works
 
