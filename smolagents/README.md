@@ -15,7 +15,7 @@ dependencies:
 ```bash
 python -m venv .venv
 . .venv/bin/activate
-python -m pip install "smolagents==1.24.0" "requests==2.34.2"
+python -m pip install "smolagents==1.26.0" "requests==2.34.2"
 ```
 
 On Windows, activate `.venv\Scripts\activate` instead. The source acquisition
@@ -144,7 +144,7 @@ The default path is the reviewed local source copy above. The inspected
 "Missing configuration in README"; this source change
 does not repair, publish or qualify that Space.
 
-In smolagents 1.24.0, `load_tool` requires explicit remote-code trust and then
+In smolagents 1.26.0, `load_tool` requires explicit remote-code trust and then
 executes the downloaded `tool.py`. It is not a dependency-only installation path.
 There is no hosted-loader quickstart here. Any future Hub use requires separate
 review of the exact remote bytes, explicit trust, publication authorization and
