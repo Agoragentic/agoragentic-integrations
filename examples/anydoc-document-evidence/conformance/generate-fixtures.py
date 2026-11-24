@@ -11,6 +11,7 @@ from io import BytesIO
 import json
 from pathlib import Path
 import shutil
+import xml.etree.ElementTree as ET
 from zipfile import ZipFile
 
 from docx import Document
@@ -32,6 +33,8 @@ TEXT_PDF_LINES = ("Synthetic text PDF control", "Text evidence marker 1269")
 ENCRYPTED_PDF_TEXT = "Synthetic encrypted document"
 DOCX_HEADER_TEXT = "Synthetic section header"
 DOCX_FOOTER_TEXT = "Synthetic section footer"
+DOCX_COMMENT_ANCHOR = "Synthetic comment anchor"
+DOCX_COMMENT_TEXT = "Synthetic review annotation"
 PPTX_SPEAKER_NOTE = "Synthetic speaker notes"
 XLSX_FORMAT_ROWS = (
     ("Calendar value", datetime(2025, 1, 15), "yyyy-mm-dd"),
@@ -144,6 +147,15 @@ def write_docx_embedded_image() -> None:
     document.save(GENERATED / "embedded-image.docx")
 
 
+def write_docx_comment() -> None:
+    document = Document()
+    run = document.add_paragraph().add_run(DOCX_COMMENT_ANCHOR)
+    comment = document.add_comment(run, text=DOCX_COMMENT_TEXT, author="Synthetic", initials="SY")
+    assert comment.comment_id == 0 and comment.text == DOCX_COMMENT_TEXT
+    path = GENERATED / "commented-document.docx"
+    document.save(path)
+
+
 def add_textbox(slide, text: str) -> None:
     box = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(8), Inches(2))
     box.text_frame.text = text
@@ -248,6 +260,47 @@ def verify_sources() -> dict[str, list[str]]:
             assert image.format == "PNG" and image.size == DOCX_IMAGE_SIZE
             image.verify()
 
+    comment_path = GENERATED / "commented-document.docx"
+    comment_document = Document(comment_path)
+    assert comment_document.paragraphs[0].text == DOCX_COMMENT_ANCHOR
+    comment = comment_document.comments.get(0)
+    assert comment is not None and comment.text == DOCX_COMMENT_TEXT
+    with ZipFile(comment_path) as archive:
+        document_root = ET.fromstring(archive.read("word/document.xml"))
+        assert "word/comments.xml" in archive.namelist()
+    word_ns = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+    paragraph = document_root.find(f".//{{{word_ns}}}p")
+    assert paragraph is not None
+    children = list(paragraph)
+    start_tag = f"{{{word_ns}}}commentRangeStart"
+    end_tag = f"{{{word_ns}}}commentRangeEnd"
+    run_tag = f"{{{word_ns}}}r"
+    text_tag = f"{{{word_ns}}}t"
+    reference_tag = f"{{{word_ns}}}commentReference"
+    starts = [
+        index for index, child in enumerate(children)
+        if child.tag == start_tag and child.get(f"{{{word_ns}}}id") == "0"
+    ]
+    ends = [
+        index for index, child in enumerate(children)
+        if child.tag == end_tag and child.get(f"{{{word_ns}}}id") == "0"
+    ]
+    anchor_runs = [
+        index for index, child in enumerate(children)
+        if child.tag == run_tag
+        and any(node.tag == text_tag and node.text == DOCX_COMMENT_ANCHOR for node in child.iter())
+    ]
+    references = [
+        index for index, child in enumerate(children)
+        if child.tag == run_tag
+        and any(
+            node.tag == reference_tag and node.get(f"{{{word_ns}}}id") == "0"
+            for node in child.iter()
+        )
+    ]
+    assert len(starts) == len(ends) == len(anchor_runs) == len(references) == 1
+    assert starts[0] < anchor_runs[0] < ends[0] < references[0]
+
     document = Document(GENERATED / "nested-table.docx")
     section = document.sections[0]
     assert section.header.paragraphs[0].text == DOCX_HEADER_TEXT
@@ -308,6 +361,10 @@ def verify_sources() -> dict[str, list[str]]:
             "worksheet_names_order_and_cell_coordinates_verified",
         ],
         "embedded-image.docx": ["single_inline_png_and_image_dimensions_verified"],
+        "commented-document.docx": [
+            "docx_comment_part_and_anchor_range_verified",
+            "comment_text_kept_out_of_public_fixture_facts",
+        ],
         "nested-table.docx": ["nested_table_cells_verified", "section_header_and_footer_text_verified"],
         "untitled-slides.pptx": [
             "untitled_slide_structure_and_text_verified",
@@ -355,6 +412,7 @@ def main() -> None:
     write_xlsx_formats()
     write_docx()
     write_docx_embedded_image()
+    write_docx_comment()
     write_pptx()
     write_text_pdf()
     write_image_only_pdf()
