@@ -44,6 +44,8 @@ Always expand ACP on first use. `acp/`, `--acp`, and `ACP_REGISTRY.md` mean **Ag
 
 ## How to Use This Repo
 
+For local policy setup and governance of an existing tool, start with the [front-door release candidate guide](docs/FRONT_DOOR_RELEASE_CANDIDATE.md). Use the verified unpublished artifacts and follow the [CLI guide](sdk/agent-os-cli/README.md#local-governance) to inspect an `init` plan before creating a policy. Use the [generated capability status](docs/INTEGRATION_CAPABILITY_STATUS.md) to check what each integration can enforce and what evidence it produces.
+
 ### If you are an agent that wants to USE Agoragentic:
 
 1. Pick your framework from `integrations.json`
