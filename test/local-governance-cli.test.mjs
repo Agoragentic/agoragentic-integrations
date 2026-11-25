@@ -85,6 +85,27 @@ test('init is plan-first, detects markers, and writes only with explicit confirm
   assert.match(refused.stderr(), /policy_exists/);
 });
 
+test('missing policy points to the installed candidate and stops before spawn', async (t) => {
+  const cwd = workspace();
+  t.after(() => fs.rmSync(cwd, { recursive: true, force: true }));
+  const calls = [];
+  const captured = captureIo();
+
+  const exitCode = await runCli(['run', '--', 'node', '--version'], {}, captured.io, {
+    cwd,
+    spawn: fakeSpawn(0, calls),
+  });
+
+  assert.equal(exitCode, 2);
+  const error = JSON.parse(captured.stderr());
+  assert.equal(error.error, 'policy_missing');
+  assert.match(error.message, /installed front-door candidate/);
+  assert.match(error.message, /agent-os\.js init" to preview/);
+  assert.match(error.message, /--yes to create the policy/);
+  assert.deepEqual(calls, []);
+  assert.deepEqual(fs.readdirSync(cwd), []);
+});
+
 test('adapters distinguishes marker detection from enforcement', async (t) => {
   const cwd = workspace();
   t.after(() => fs.rmSync(cwd, { recursive: true, force: true }));
