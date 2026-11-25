@@ -21,6 +21,12 @@ The published packages and repo-local source/CLI surfaces are:
 - **Risk Fork**: `risk-fork/` is an experimental source-only fork-before-risk protocol and adapter package. From a source checkout, first run `npm --prefix risk-fork ci --ignore-scripts --no-audit --no-fund`, then start the named-fixture hackathon demo with `node risk-fork/hackathon/bin/risk-fork-demo.mjs doctor`. A verified offline kit bundles the dependency closure and needs no install. The demo is a local protocol simulator, not isolation or live protection. Local and disposable evidence does not establish live E2B containment, hosted MCP interception, managed PostgreSQL operations, deployment, npm publication, spend authority, or production readiness.
 - **ARD v0.91 source profile**: `ard/` pins upstream schemas and context, adds a local JSON-LD vocabulary, and generates offline repository candidates from one canonical source. It never dereferences contexts, serves a route, executes, pays, verifies trust, publishes, or deploys.
 
+## Local Governance Front Door
+
+The published CLI aliases are `agora` and `agoragentic-os`. The canonical `agoragentic` binary and the JavaScript and Python `govern` APIs use the unpublished local artifacts in `docs/FRONT_DOOR_RELEASE_CANDIDATE.md`.
+
+Follow `sdk/agent-os-cli/README.md` for the no-write `init` plan and explicit policy creation. The local policy applies to the directly launched process or wrapped tool call documented in `sdk/node/README.md` and `sdk/python/README.md`. Its receipts record that local action. Use `docs/INTEGRATION_CAPABILITY_STATUS.md` for evidence of each integration's enforcement boundary.
+
 ## Authentication
 
 Authenticated SDK and REST integrations use the same auth pattern:
