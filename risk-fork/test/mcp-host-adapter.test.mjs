@@ -1182,6 +1182,35 @@ test('transport results fail closed on unsafe resolution, rebinding, redirects, 
   }
 });
 
+test('discovery with a valid child result refuses clean import until both resources have verified absence', async (t) => {
+  for (const method of ['verifyDestroyed', 'verifySavepointDestroyed']) {
+    await t.test(method, async () => {
+      const current = dynamicFixture();
+      const observe = current.provider[method].bind(current.provider);
+      const observations = [];
+      current.provider[method] = async (input) => {
+        const observed = await observe(input);
+        const unknown = createCleanupVerificationEvidence(input.cleanup_request, {
+          status: 'unknown',
+          observation_hash: sha256Ref('synthetic absence observation unavailable'),
+        });
+        observations.push([observed.status, unknown.status]);
+        return unknown;
+      };
+
+      await assert.rejects(
+        openDirect(current.adapter),
+        (error) => error instanceof RiskForkMcpHostAdapterError
+          && error.code === RISK_FORK_MCP_HOST_DIAGNOSTIC_CODES.PRE_EFFECT_REJECTED,
+      );
+      assert.deepEqual(current.provider.operations.map(({ phase }) => phase), ['server/discover']);
+      assert.equal(current.provider.destroyedForks.size, 1);
+      assert.equal(current.provider.destroyedSavepoints.size, 1);
+      assert.deepEqual(observations, [['verified', 'unknown']]);
+    });
+  }
+});
+
 test('untrusted instruction content from a child MCP phase is rejected after verified cleanup', { skip: process.platform === 'win32' ? 'Windows local storage is fail-closed until ACL proof exists' : false }, async () => {
   const current = dynamicFixture((phase) => {
     const { payload } = resultForPhase(phase);
