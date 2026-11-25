@@ -100,6 +100,7 @@ Especially important:
 - formulas are not independently recalculated;
 - merged-cell ranges may be clipped;
 - nested document tables may be flattened;
+- Word text boxes can contribute text without preserving their layout, and hidden Word text may appear in Markdown;
 - slide boundaries and layout may be lossy;
 - scanned or image-only PDFs require OCR;
 - embedded assets require separate review;
