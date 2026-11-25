@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
-import { link, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import childProcess, { spawn } from 'node:child_process';
+import fsPromises, { link, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
+import { syncBuiltinESMExports } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -10,6 +11,7 @@ import {
   ANYDOC_EVIDENCE_CONSTANTS,
   AnyDocEvidenceError,
   convertBytesToEvidence,
+  convertFileToEvidence,
 } from './agoragentic-anydoc.mjs';
 
 const parserModulePath = fileURLToPath(new URL('./test-fixtures/fake-anydoc.mjs', import.meta.url));
@@ -60,6 +62,29 @@ function runCli(args) {
     child.once('error', rejectPromise);
     child.once('close', (code, signal) => resolvePromise({ code, signal, stdout, stderr }));
   });
+}
+
+function observeParserChild(t, observe) {
+  const fork = childProcess.fork;
+  t.mock.method(childProcess, 'fork', (...args) => {
+    const child = fork(...args);
+    observe(child);
+    return child;
+  });
+  syncBuiltinESMExports();
+  t.after(() => {
+    t.mock.restoreAll();
+    syncBuiltinESMExports();
+  });
+}
+
+function assertCancelled(error) {
+  assert(error instanceof AnyDocEvidenceError);
+  assert.equal(error.code, 'parser_cancelled');
+  assert.equal(error.message, 'Document conversion was cancelled.');
+  assert.equal(error.retryable, false);
+  assert.equal(error.cause, undefined);
+  return true;
 }
 
 test('the distributable package carries its declared Apache-2.0 license', async () => {
@@ -348,6 +373,110 @@ test('a hanging parser is killed at the configured deadline', async () => {
     error => error instanceof AnyDocEvidenceError && error.code === 'parser_timeout',
   );
   assert(Date.now() - startedAt < 5_000);
+});
+
+test('a cancelled conversion does not read input or start a parser', async () => {
+  const signal = AbortSignal.abort('private stop reason');
+  const input = {
+    get bytes() { assert.fail('input bytes were read'); },
+  };
+  const filePath = {
+    toString() { assert.fail('file path was read'); },
+  };
+  await assert.rejects(convertBytesToEvidence(input, { signal }), assertCancelled);
+  await assert.rejects(convertFileToEvidence(filePath, { signal }), assertCancelled);
+  for (const convert of [
+    (options) => convertBytesToEvidence(input, options),
+    (options) => convertFileToEvidence(filePath, options),
+  ]) {
+    await assert.rejects(convert({ signal: {} }), { code: 'invalid_option' });
+  }
+});
+
+test('abort during file reading closes the handle before rejecting', async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'agoragentic-anydoc-abort-'));
+  const source = join(directory, 'source.csv');
+  const controller = new AbortController();
+  let handle;
+  let reads = 0;
+  let starts = 0;
+  const open = fsPromises.open;
+  t.mock.method(fsPromises, 'open', async (...args) => {
+    handle = await open(...args);
+    const read = handle.read.bind(handle);
+    handle.read = async (...readArgs) => {
+      const result = await read(...readArgs);
+      reads += 1;
+      controller.abort('private stop reason');
+      return result;
+    };
+    return handle;
+  });
+  syncBuiltinESMExports();
+  t.after(async () => {
+    t.mock.restoreAll();
+    syncBuiltinESMExports();
+    await handle?.close();
+    await rm(directory, { recursive: true, force: true });
+  });
+  observeParserChild(t, () => { starts += 1; });
+  await writeFile(source, Buffer.alloc(128 * 1024, 65));
+
+  await assert.rejects(convertFileToEvidence(source, { signal: controller.signal }), assertCancelled);
+  assert.equal(reads, 1);
+  assert.equal(starts, 0);
+  assert.equal(handle.fd, -1);
+});
+
+test('abort kills a running parser and waits for its exit before rejecting', async (t) => {
+  const controller = new AbortController();
+  let exited = false;
+  let entered = false;
+  observeParserChild(t, (child) => {
+    let stderr = '';
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk.toString('utf8');
+      if (!entered && stderr.includes('ANYDOC_ABORT_TEST_ENTERED\n')) {
+        entered = true;
+        controller.abort('private stop reason');
+      }
+    });
+    child.once('exit', (_code, signal) => { exited = signal === 'SIGKILL'; });
+  });
+  const conversion = convertBytesToEvidence({
+    bytes: Buffer.from('ABORT_DURING_PARSE'),
+    filename: 'abort.csv',
+  }, { ...customParser, signal: controller.signal, parserTimeoutMs: 5_000 });
+  controller.signal.dispatchEvent(new Event('abort'));
+
+  await assert.rejects(conversion, assertCancelled);
+  assert.equal(entered, true);
+  assert.equal(exited, true);
+});
+
+test('abort after a parser reply but before exit withholds the evidence receipt', async (t) => {
+  const controller = new AbortController();
+  let replied = false;
+  let exited = false;
+  observeParserChild(t, (child) => {
+    child.once('spawn', () => {
+      child.once('message', (message) => {
+        replied = message.ok;
+        controller.abort('private stop reason');
+      });
+    });
+    child.once('exit', () => { exited = true; });
+  });
+
+  await assert.rejects(
+    convertBytesToEvidence({ bytes: Buffer.from('name,value\na,1\n'), filename: 'pending.csv' }, {
+      ...customParser,
+      signal: controller.signal,
+    }),
+    assertCancelled,
+  );
+  assert.equal(replied, true);
+  assert.equal(exited, true);
 });
 
 test('the CLI refuses a hardlink output without truncating the source', async () => {
