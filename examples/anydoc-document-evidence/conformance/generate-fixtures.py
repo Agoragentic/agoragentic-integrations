@@ -10,6 +10,7 @@ from importlib.metadata import version
 from io import BytesIO
 import json
 from pathlib import Path
+import re
 import shutil
 import xml.etree.ElementTree as ET
 from zipfile import ZipFile
@@ -33,6 +34,10 @@ GENERATED = ROOT / "generated"
 MANIFEST = GENERATED / "fixture-manifest.json"
 REQUIREMENTS_LOCK = ROOT / "requirements.txt"
 TEXT_PDF_LINES = ("Synthetic text PDF control", "Text evidence marker 1269")
+MIXED_PDF_PAGE_ORDER = {
+    "text-then-image.pdf": ("text", "image"),
+    "image-then-text.pdf": ("image", "text"),
+}
 ENCRYPTED_PDF_TEXT = "Synthetic encrypted document"
 DOCX_HEADER_TEXT = "Synthetic section header"
 DOCX_FOOTER_TEXT = "Synthetic section footer"
@@ -315,16 +320,20 @@ def write_pptx() -> None:
     presentation.save(GENERATED / "untitled-slides.pptx")
 
 
+def draw_pdf_text_page(pdf: canvas.Canvas) -> None:
+    for y, line in zip((132, 110), TEXT_PDF_LINES, strict=True):
+        pdf.drawString(36, y, line)
+
+
 def write_text_pdf() -> None:
     path = GENERATED / "text.pdf"
     pdf = canvas.Canvas(str(path), pagesize=(360, 180), pageCompression=0, invariant=1)
-    for y, line in zip((132, 110), TEXT_PDF_LINES, strict=True):
-        pdf.drawString(36, y, line)
+    draw_pdf_text_page(pdf)
     pdf.showPage()
     pdf.save()
 
 
-def write_image_only_pdf() -> None:
+def draw_pdf_image_page(pdf: canvas.Canvas) -> None:
     image = Image.new("RGB", (300, 120), "white")
     draw = ImageDraw.Draw(image)
     draw.rectangle((20, 20, 280, 100), outline="black", width=3)
@@ -333,12 +342,58 @@ def write_image_only_pdf() -> None:
     png = BytesIO()
     image.save(png, format="PNG")
     png.seek(0)
+    pdf.drawImage(ImageReader(png), 30, 30, width=300, height=120)
 
+
+def write_image_only_pdf() -> None:
     path = GENERATED / "image-only.pdf"
     pdf = canvas.Canvas(str(path), pagesize=(360, 180))
-    pdf.drawImage(ImageReader(png), 30, 30, width=300, height=120)
+    draw_pdf_image_page(pdf)
     pdf.showPage()
     pdf.save()
+
+
+def write_mixed_pdfs() -> None:
+    for name, order in MIXED_PDF_PAGE_ORDER.items():
+        pdf = canvas.Canvas(str(GENERATED / name), pagesize=(360, 180), pageCompression=0, invariant=1)
+        for kind in order:
+            draw_page = draw_pdf_text_page if kind == "text" else draw_pdf_image_page
+            draw_page(pdf)
+            pdf.showPage()
+        pdf.save()
+
+
+def verify_mixed_pdf(path: Path, order: tuple[str, ...]) -> list[str]:
+    # These fixtures use ReportLab's plain page streams and direct object references.
+    pdf = path.read_bytes()
+    assert pdf.startswith(b"%PDF-") and pdf.rstrip().endswith(b"%%EOF")
+    objects = dict(re.findall(rb"(?ms)^(\d+) 0 obj\n(.*?)\nendobj\b", pdf))
+    page_tree, = [body for body in objects.values() if re.search(rb"/Type /Pages\b", body)]
+    assert re.search(rb"/Count\s+2\b", page_tree)
+    kids = re.search(rb"/Kids\s*\[([^\]]+)\]", page_tree)
+    assert kids is not None
+    page_refs = re.findall(rb"(\d+) 0 R", kids[1])
+    assert len(page_refs) == len(order) == 2 and len(set(page_refs)) == 2
+
+    for page_ref, kind in zip(page_refs, order, strict=True):
+        page = objects[page_ref]
+        assert re.search(rb"/Type /Page\b", page)
+        contents = re.search(rb"/Contents\s+(\d+) 0 R", page)
+        assert contents is not None
+        header, separator, stream = objects[contents[1]].partition(b"stream\n")
+        assert separator and b"/Filter" not in header
+        text = re.findall(rb"\(([^()]*)\)\s+Tj\b", stream)
+        images = re.findall(rb"/([^\s/]+)\s+Do\b", stream)
+        if kind == "text":
+            assert text == [line.encode("ascii") for line in TEXT_PDF_LINES]
+            assert not images
+        else:
+            assert not text and not re.search(rb"\bTj\b|\bTJ\b", stream)
+            image, = images
+            xobject = re.search(rb"/XObject\s*<<\s*/" + re.escape(image) + rb"\s+(\d+) 0 R", page)
+            assert xobject is not None and b"/Subtype /Image" in objects[xobject[1]]
+
+    return [f"pdf_{'_then_'.join(order)}_page_order_verified", "pdf_image_page_has_no_extractable_text"]
 
 
 def write_encrypted_pdf() -> None:
@@ -516,6 +571,7 @@ def verify_sources() -> dict[str, list[str]]:
         ],
         "text.pdf": ["pdf_contains_both_text_showing_operators", "pdf_contains_no_image_objects"],
         "image-only.pdf": ["pdf_contains_embedded_image_object"],
+        **{name: verify_mixed_pdf(GENERATED / name, order) for name, order in MIXED_PDF_PAGE_ORDER.items()},
         "encrypted.pdf": ["pdf_standard_encryption_dictionary_present", "pdf_marker_absent_in_plaintext"],
         "malformed.pdf": ["pdf_page_tree_reference_has_no_target", "pdf_cross_reference_and_eof_missing"],
     }
@@ -562,6 +618,7 @@ def main() -> None:
     write_pptx()
     write_text_pdf()
     write_image_only_pdf()
+    write_mixed_pdfs()
     write_encrypted_pdf()
     write_malformed_pdf()
     facts = verify_sources()

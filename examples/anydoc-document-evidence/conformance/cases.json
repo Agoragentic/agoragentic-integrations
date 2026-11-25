@@ -285,6 +285,24 @@
       "expected_error_code": "unsupported_or_ocr_required"
     },
     {
+      "id": "pdf-text-then-image-ocr-required",
+      "file": "text-then-image.pdf",
+      "format": "pdf",
+      "expected_canonical_format": "pdf",
+      "expect_conversion": false,
+      "expected_error_code": "unsupported_or_ocr_required",
+      "expected_retryable": false
+    },
+    {
+      "id": "pdf-image-then-text-ocr-required",
+      "file": "image-then-text.pdf",
+      "format": "pdf",
+      "expected_canonical_format": "pdf",
+      "expect_conversion": false,
+      "expected_error_code": "unsupported_or_ocr_required",
+      "expected_retryable": false
+    },
+    {
       "id": "pdf-encrypted-rejected",
       "file": "encrypted.pdf",
       "format": "pdf",

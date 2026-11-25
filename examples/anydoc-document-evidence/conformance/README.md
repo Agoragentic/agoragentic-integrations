@@ -7,7 +7,7 @@ It does **not** assert that AnyDoc preserves every source semantic. It verifies 
 - runs the installed package in a killable child process with a deadline, V8 heap bound, sanitized environment, and Node permission boundary;
 - reports installed parser and native-binding provenance instead of trusting hard-coded metadata;
 - hard-splits evidence units and accounts for every covered or omitted character;
-- fails closed for image-only, password-protected, and malformed PDFs;
+- fails closed for image-only, mixed text/image, password-protected, and malformed PDFs;
 - independently recomputes fixture, source, parser-output, bounded-output, and evidence-coverage hashes;
 - marks the result as non-source-exact and discloses format-specific limitations;
 - blocks incomplete output, structure failures, unreviewed assets, and unattested custom parsers;
@@ -35,6 +35,7 @@ The adapter-level network guard blocks Node built-in and global network APIs. It
 | PPTX untitled slides with speaker notes | slide and note text retained in Markdown, zero notes counted in the structured result |
 | Text PDF control | both text markers retained without OCR, complete text coverage, and a receipt blocked on unavailable document structure |
 | Image-only PDF | explicit OCR-required failure |
+| PDFs with one text page and one image-only page | both verified page orders reject with an OCR-required error and return no partial packet or receipt |
 | Password-protected PDF | explicit encrypted-document failure |
 | Truncated PDF container | explicit malformed-document failure |
 
