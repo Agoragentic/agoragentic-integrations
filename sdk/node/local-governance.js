@@ -145,7 +145,13 @@ function loadPolicy(policy = DEFAULT_POLICY_FILE, options = {}) {
         raw = fs.readFileSync(policyPath, 'utf8');
     } catch (err) {
         if (err.code === 'ENOENT') {
-            throw governanceError('policy_missing', `No local governance policy found at ${relativeDisplayPath(cwd, policyPath)}. Run "agoragentic init --yes" first.`, 2);
+            throw governanceError(
+                'policy_missing',
+                `No local governance policy found at ${relativeDisplayPath(cwd, policyPath)}. ` +
+                'Use the installed front-door candidate to run "node ./node_modules/agoragentic/agent-os.js init" to preview. ' +
+                'Use --policy for a custom path and add --yes to create the policy.',
+                2
+            );
         }
         throw err;
     }
