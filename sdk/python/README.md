@@ -24,9 +24,13 @@ pip install "agoragentic[x402-wallet]"
 
 ## Local Governance Primitive
 
-The reviewed source includes a dependency-free Python equivalent of the local governance contract. Registry publication remains a separate owner-reviewed release.
+The Python `govern` API below uses the unpublished wheel `1.8.0rc0`. Follow the [front-door release candidate guide](https://github.com/Agoragentic/agoragentic-integrations/blob/main/docs/FRONT_DOOR_RELEASE_CANDIDATE.md) to build and verify it, then install it in a new virtual environment.
 
-It consumes the same JSON-compatible `agoragentic.yaml` produced by `npx agoragentic init --yes`, evaluates `allow`, `ask`, or `deny` before invoking the wrapped tool, and supports synchronous or asynchronous functions:
+```bash
+python -m pip install --no-index --no-deps "/path/to/agoragentic-1.8.0rc0-py3-none-any.whl"
+```
+
+It consumes the same JSON-compatible `agoragentic.yaml` produced by `init --yes` in the installed npm candidate, evaluates `allow`, `ask`, or `deny` before invoking the wrapped tool, and supports synchronous or asynchronous functions:
 
 ```python
 from agoragentic import govern

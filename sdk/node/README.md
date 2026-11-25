@@ -59,20 +59,21 @@ AGORAGENTIC_API_KEY=amk_your_api_key npx agoragentic-os doctor
 
 ## Local Governance Front Door
 
-The reviewed source adds `agoragentic` as an umbrella binary while preserving the existing `agora` and `agoragentic-os` aliases. Registry publication remains a separate owner-reviewed release.
+The local governance commands and JavaScript `govern` API below use the unpublished npm candidate `1.8.0-rc.0`. The published `1.7.1` package supplies the existing `agora` and `agoragentic-os` aliases. Follow the [front-door release candidate guide](https://github.com/Agoragentic/agoragentic-integrations/blob/main/docs/FRONT_DOOR_RELEASE_CANDIDATE.md) to build and verify the tarball, then install it in a new directory.
 
 Start with a no-write plan, inspect detected host boundaries, then explicitly create the policy:
 
 ```sh
-npx agoragentic init
-npx agoragentic adapters
-npx agoragentic init --yes
+npm install --offline --ignore-scripts --no-audit --no-fund "/path/to/agoragentic-1.8.0-rc.0.tgz"
+node ./node_modules/agoragentic/agent-os.js init
+node ./node_modules/agoragentic/agent-os.js adapters
+node ./node_modules/agoragentic/agent-os.js init --yes
 ```
 
 The generated `agoragentic.yaml` is JSON-compatible YAML and defaults `process.run` to `ask`. It preserves spend and retry authority as owner-only. Run an existing command only after reviewing the boundary and explicitly approving the ask decision:
 
 ```sh
-npx agoragentic run --yes -- node ./scripts/offline-check.mjs
+node ./node_modules/agoragentic/agent-os.js run --yes -- node -e "console.log('local check')"
 ```
 
 `run` uses a direct subprocess boundary with `shell: false`. A policy `deny` can never be overridden by `--yes`. Local receipts contain the executable basename, argument count, command-shape digest, timing, exit status, and policy decision; they do not store raw arguments, environment values, stdout, or stderr. These receipts prove only the local boundary. They are not host, provider, deployment, payment, settlement, or on-chain proof.
