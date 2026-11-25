@@ -39,6 +39,24 @@ class GovernanceTests(unittest.TestCase):
             self.assertEqual(loaded, policy)
             self.assertTrue(evaluate_policy(loaded, "memory.read")["execute"])
 
+    def test_missing_policy_points_to_local_setup_without_dispatch(self):
+        with tempfile.TemporaryDirectory() as root:
+            calls = []
+            safe_tool = govern(lambda: calls.append(True), action="memory.read", cwd=root)
+
+            with self.assertRaises(GovernanceError) as raised:
+                safe_tool()
+
+            error = raised.exception
+            self.assertEqual(error.code, "policy_missing")
+            self.assertIn("agoragentic.yaml", str(error))
+            self.assertIn("create_default_policy()", str(error))
+            self.assertIn("installed front-door candidate", str(error))
+            self.assertNotIn("npx", str(error))
+            self.assertIsNone(error.receipt)
+            self.assertEqual(calls, [])
+            self.assertEqual(list(Path(root).iterdir()), [])
+
     def test_ask_requires_approval_and_deny_cannot_be_overridden(self):
         policy = create_default_policy()
         ask = evaluate_policy(policy, "process.run")

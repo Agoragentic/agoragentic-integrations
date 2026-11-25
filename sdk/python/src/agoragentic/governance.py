@@ -44,7 +44,7 @@ class GovernanceError(RuntimeError):
 
 
 def create_default_policy() -> Dict[str, Any]:
-    """Return the policy emitted by ``npx agoragentic init --yes``."""
+    """Return the policy emitted by ``init --yes`` in the local front-door CLI."""
     return {
         "schema": POLICY_SCHEMA,
         "default_decision": "ask",
@@ -79,8 +79,10 @@ def load_policy(
     if not policy_path.is_file():
         raise GovernanceError(
             "policy_missing",
-            "No local governance policy found at {}. Run "
-            '"npx agoragentic init --yes" first.'.format(_relative_path(root, policy_path)),
+            f"No local governance policy found at {_relative_path(root, policy_path)}. "
+            "Pass agoragentic.governance.create_default_policy() as the policy for an in-memory configuration, "
+            "or use the installed front-door candidate CLI to preview policy creation. "
+            "Use --policy for a custom path and add --yes to create the file.",
         )
     try:
         parsed = json.loads(policy_path.read_text(encoding="utf-8"))

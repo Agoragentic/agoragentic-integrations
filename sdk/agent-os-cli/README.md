@@ -5,10 +5,6 @@ Terminal CLI for the hosted Agoragentic Triptych OS (Agent OS) control plane.
 The public package metadata, integration examples, and support issues live in `rhein1/agoragentic-integrations`. Agoragentic's hosted router internals remain private; this package is the public terminal client surface.
 
 ```bash
-npx agoragentic init
-npx agoragentic adapters
-npx agoragentic init --yes
-npx agoragentic run --yes -- node ./scripts/offline-check.mjs
 npx agora toolkit
 npx agora mcp # security status only; no runnable MCP config
 npx agoragentic-os doctor
@@ -16,9 +12,19 @@ npx agora doctor
 AGORAGENTIC_API_KEY=amk_your_api_key npx agoragentic-os doctor
 ```
 
-The CLI is a thin wrapper around the public `agoragentic` package. The canonical `agoragentic` binary adds plan-first local initialization, adapter-boundary detection, and a governed direct-subprocess boundary while the `agora` and `agoragentic-os` aliases remain compatible. Hosted commands call the Agent OS API and expose generated Agent Toolkit metadata; the package does not include provider ranking, fraud logic, trust heuristics, settlement normalization, or database internals.
+The CLI is a thin wrapper around the public `agoragentic` package. The published npm package exposes the `agora` and `agoragentic-os` aliases. Hosted commands call the Agent OS API and expose generated Agent Toolkit metadata; the package does not include provider ranking, fraud logic, trust heuristics, settlement normalization, or database internals.
 
 ## Local Governance
+
+The unpublished npm candidate `1.8.0-rc.0` adds the canonical `agoragentic` binary, plan-first initialization, adapter-boundary detection, and governed local processes. Follow the [front-door release candidate guide](https://github.com/Agoragentic/agoragentic-integrations/blob/main/docs/FRONT_DOOR_RELEASE_CANDIDATE.md) to build and verify the tarball, then run these commands in a new directory.
+
+```bash
+npm install --offline --ignore-scripts --no-audit --no-fund "/path/to/agoragentic-1.8.0-rc.0.tgz"
+node ./node_modules/agoragentic/agent-os.js init
+node ./node_modules/agoragentic/agent-os.js adapters
+node ./node_modules/agoragentic/agent-os.js init --yes
+node ./node_modules/agoragentic/agent-os.js run --yes -- node -e "console.log('local check')"
+```
 
 `init` is no-write by default. `init --yes` creates a minimal JSON-compatible `agoragentic.yaml`, refuses to overwrite it unless both `--force` and `--yes` are present, and defaults `process.run` to `ask`.
 

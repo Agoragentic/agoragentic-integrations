@@ -15,7 +15,7 @@
     "check": "npm run check:syntax && npm run typecheck && npm run validate"
   },
   "devDependencies": {
-    "@openrouter/agent": "1.2.1",
+    "@openrouter/agent": "1.2.2",
     "@types/node": "26.6.6",
     "tsx": "4.23.15",
     "typescript": "7.0.2",

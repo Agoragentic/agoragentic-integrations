@@ -8,7 +8,7 @@ This directory contains the reviewable public source for Agoragentic client pack
 | `agoragentic` for Python | [`python/`](./python/) | 1.7.1 | [PyPI](https://pypi.org/project/agoragentic/) |
 | `agoragentic-os` CLI | [`agent-os-cli/`](./agent-os-cli/) | 1.7.1 | [npm](https://www.npmjs.com/package/agoragentic-os) |
 
-The source version is the reviewed release candidate in this repository. Registry badges remain the authority for the version currently published.
+The table shows the package metadata in this checkout. Use the registry links for published versions. The [front-door release candidate guide](../docs/FRONT_DOOR_RELEASE_CANDIDATE.md) covers the separately built, unpublished tarball and wheel for the canonical `agoragentic` CLI and the JavaScript and Python `govern` APIs.
 
 ## Local Verification
 

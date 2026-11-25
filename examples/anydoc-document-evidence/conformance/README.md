@@ -29,6 +29,8 @@ The adapter-level network guard blocks Node built-in and global network APIs. It
 | DOCX nested table with a header and footer | nested cell text retained, header and footer text absent from untruncated Markdown |
 | DOCX with one embedded image | image counted in the receipt, image excluded from evidence, and incomplete receipt blocker |
 | DOCX comment annotation | comment part and anchor are source-verified; pinned parser behavior is recorded without publishing comment text |
+| DOCX Word text box | text from a source-verified VML text box appears in Markdown; the result makes no layout-fidelity claim |
+| DOCX hidden run | instruction-like text marked hidden in Word appears in Markdown; the receipt stays pending and context attachment requires a trap scan |
 | PPTX untitled slides with speaker notes | slide and note text retained in Markdown, zero notes counted in the structured result |
 | Text PDF control | both text markers retained without OCR, complete text coverage, and a receipt blocked on unavailable document structure |
 | Image-only PDF | explicit OCR-required failure |

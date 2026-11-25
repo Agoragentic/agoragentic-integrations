@@ -464,7 +464,7 @@
       "path": "AGENTS.md",
       "occurrences": 1,
       "line_numbers": [
-        127
+        129
       ],
       "categories": [
         "public_documentation"
@@ -1342,8 +1342,8 @@
       "path": "llms-full.txt",
       "occurrences": 2,
       "line_numbers": [
-        114,
-        115
+        120,
+        121
       ],
       "categories": [
         "machine_discovery",
@@ -1819,8 +1819,8 @@
       "occurrences": 3,
       "line_numbers": [
         5,
-        31,
-        32
+        37,
+        38
       ],
       "categories": [
         "public_documentation"

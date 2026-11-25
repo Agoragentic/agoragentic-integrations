@@ -13,7 +13,7 @@ isolation, verify settlements, or provide a production approval service.
 | Component | Scope |
 | --- | --- |
 | Python and TypeScript preflight | Decimal spend-cap validation; unknown tools denied; paid execution always blocked |
-| SDK callback and registration factory | Installed Python/TypeScript SDK wire contracts; real CLI 2.1.263 enforces the TypeScript adapter's unsupported-tool deny in a local Messages fixture |
+| SDK callback and registration factory | Installed Python/TypeScript SDK wire contracts; the checksum-verified bundled CLI enforces the TypeScript adapter's unsupported-tool deny in a local Messages fixture |
 | Receipt display projection | Drops freeform/nested receipt fields; not a verifier or a general PII filter |
 | [Commerce Agents integration](commerce/README.md) | Pinned upstream interface bridge, local SQLite fixture, shared-executor conformance driver, optional canonical Harness composition |
 
