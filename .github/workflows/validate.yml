@@ -37,6 +37,7 @@ on:
       - 'sdk/**'
       - 'coinbase-agentic-wallets/**'
       - 'agenttax/**'
+      - 'nullclear/**'
       - 'x402/**'
       - 'interchange/**'
       - 'ard/**'
@@ -62,6 +63,19 @@ permissions:
   contents: read
 
 jobs:
+  nullclear-compat:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ['18', '22', '24']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Test NullClear guarded adapter offline
+        run: node --test nullclear/nullclear_adapter.test.mjs
+
   python-sdk-compat:
     runs-on: ubuntu-22.04
     strategy:
@@ -160,6 +174,9 @@ jobs:
           python -m build sdk/python --outdir "${RUNNER_TEMP}/agoragentic-python-dist"
           npm pack ./sdk/node --dry-run
           npm pack ./sdk/agent-os-cli --dry-run
+
+      - name: Test NullClear guarded adapter offline
+        run: node --test nullclear/nullclear_adapter.test.mjs
 
       - name: Validate MCP package
         working-directory: mcp

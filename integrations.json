@@ -1877,6 +1877,15 @@
       "path": "examples/x402-spotcheck-buyer/buyer.mjs",
       "install": "cd examples/x402-spotcheck-buyer && npm ci",
       "docs": "sdk/node/README.md"
+    },
+    {
+      "id": "nullclear",
+      "name": "NullClear Pre-Flight Safety & x402 Arbiter",
+      "language": "javascript",
+      "status": "experimental",
+      "path": "nullclear/agoragentic_adapter.mjs",
+      "install": "node --test nullclear/nullclear_adapter.test.mjs",
+      "docs": "nullclear/README.md"
     }
   ],
   "specs": [
