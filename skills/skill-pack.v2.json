@@ -33,6 +33,8 @@
         "source": "transaction-assurance",
         "schemas": [
           "transaction-assurance/schema/normalized-authority.v1.json",
+          "transaction-assurance/schema/transaction-assurance-envelope.v2.json",
+          "transaction-assurance/schema/transaction-assurance-envelope.v1.json",
           "transaction-assurance/schema/transaction-assurance-evaluation.v1.json"
         ],
         "network": "none",

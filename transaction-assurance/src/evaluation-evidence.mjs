@@ -3,6 +3,7 @@ import {
   computeEnvelopeHash,
   sha256Ref,
 } from './index.mjs';
+import { assertEnvelopeV2Shape, isSupportedEnvelopeSchema, promoteEnvelopeClone } from './envelope-profiles.mjs';
 
 const EVIDENCE_SCHEMA = 'agoragentic.transaction-evaluation-evidence.v1';
 const SUMMARY_SCHEMA = 'agoragentic.transaction-evaluation-summary.v1';
@@ -208,8 +209,8 @@ export function summarizeEvaluationEvidence(entries = []) {
 }
 
 export function attachEvaluationEvidence(envelope, entries) {
-  if (!isObject(envelope) || envelope.schema !== 'agoragentic.transaction-assurance-envelope.v1') {
-    throw new TypeError('envelope must use agoragentic.transaction-assurance-envelope.v1');
+  if (!isObject(envelope) || !isSupportedEnvelopeSchema(envelope.schema)) {
+    throw new TypeError('envelope must use a supported transaction-assurance envelope schema');
   }
   if (envelope.evidence?.envelope_hash !== computeEnvelopeHash(envelope)) {
     throw new TypeError('envelope hash mismatch');
@@ -220,7 +221,7 @@ export function attachEvaluationEvidence(envelope, entries) {
     ? envelope.evaluation_evidence.map(verifyEvaluationEvidence)
     : [];
   const normalized = source.map(normalizeOrVerify);
-  const attached = structuredClone(envelope);
+  const attached = promoteEnvelopeClone(envelope);
   attached.evaluation_evidence = [
     ...existing,
     ...normalized,
@@ -235,5 +236,6 @@ export function attachEvaluationEvidence(envelope, entries) {
   attached.evidence.complete_chain_verified = false;
   attached.evidence.envelope_hash = null;
   attached.evidence.envelope_hash = computeEnvelopeHash(attached);
+  assertEnvelopeV2Shape(attached);
   return attached;
 }

@@ -49,8 +49,12 @@ jobs:
           node -e "for (const file of [
             'package.json',
             'schema/normalized-authority.v1.json',
+            'schema/transaction-assurance-envelope.v1.json',
+            'schema/transaction-assurance-envelope.v2.json',
             'schema/transaction-assurance-evaluation.v1.json',
             'schema/transaction-evaluation-evidence.v1.json',
+            'schema/toploc-inference-attestation.v1.json',
+            'test/fixtures/envelope-public-v1.example.json',
             'test/fixtures/protocol-adapter-vectors.v1.json',
             'test/fixtures/mycelium-action-ref-v1.vectors.json',
             'test/fixtures/mycelium-anchor-registry-v1.vectors.json',

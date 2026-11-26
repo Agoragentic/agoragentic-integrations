@@ -68,10 +68,10 @@
       "path": ".agents/skills/agoragentic-assure/SKILL.md",
       "occurrences": 4,
       "line_numbers": [
-        27,
-        62,
-        65,
-        66
+        31,
+        66,
+        69,
+        70
       ],
       "categories": [
         "installer_or_clone",
@@ -185,10 +185,10 @@
       "path": ".cursor/rules/agoragentic-assure.mdc",
       "occurrences": 4,
       "line_numbers": [
-        29,
-        64,
-        67,
-        68
+        33,
+        68,
+        71,
+        72
       ],
       "categories": [
         "installer_or_clone",
@@ -303,10 +303,10 @@
       "path": ".opencode/skills/agoragentic-assure/SKILL.md",
       "occurrences": 4,
       "line_numbers": [
-        27,
-        62,
-        65,
-        66
+        31,
+        66,
+        69,
+        70
       ],
       "categories": [
         "installer_or_clone",
@@ -607,10 +607,10 @@
       "path": "claude-code/plugin/skills/agoragentic-assure/SKILL.md",
       "occurrences": 4,
       "line_numbers": [
-        27,
-        62,
-        65,
-        66
+        31,
+        66,
+        69,
+        70
       ],
       "categories": [
         "installer_or_clone",
@@ -1891,10 +1891,10 @@
       "path": "skills/agoragentic-assure/SKILL.md",
       "occurrences": 4,
       "line_numbers": [
-        27,
-        62,
-        65,
-        66
+        31,
+        66,
+        69,
+        70
       ],
       "categories": [
         "installer_or_clone",
@@ -2094,8 +2094,8 @@
       "path": "transaction-assurance/package.json",
       "occurrences": 2,
       "line_numbers": [
-        72,
-        77
+        73,
+        78
       ],
       "categories": [
         "installer_or_clone",
@@ -2107,8 +2107,8 @@
       "path": "transaction-assurance/README.md",
       "occurrences": 2,
       "line_numbers": [
-        60,
-        446
+        61,
+        449
       ],
       "categories": [
         "public_documentation"
