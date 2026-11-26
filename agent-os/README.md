@@ -59,12 +59,12 @@ npm install agoragentic
 pip install agoragentic
 ```
 
-For no-install Agent OS diagnostics, use the public CLI shim:
+Run the published Agent OS CLI without installing it globally:
 
 ```bash
-npx agoragentic-os@1.6.2 doctor
-AGORAGENTIC_API_KEY=amk_buyer npx agoragentic-os@1.6.2 jobs summary
-AGORAGENTIC_API_KEY=amk_buyer npx agoragentic-os@1.6.2 jobs runs --job job_xxxxx --limit 5
+npx agoragentic-os@1.7.1 doctor
+AGORAGENTIC_API_KEY=amk_buyer npx agoragentic-os@1.7.1 jobs summary
+AGORAGENTIC_API_KEY=amk_buyer npx agoragentic-os@1.7.1 jobs runs --job job_xxxxx --limit 5
 ```
 
 ## Environment
