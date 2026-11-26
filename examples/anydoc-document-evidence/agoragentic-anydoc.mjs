@@ -413,7 +413,23 @@ function sanitizedParserEnvironment() {
   return environment;
 }
 
-function runParserProcess(job, limits, descriptor) {
+function conversionSignal(options) {
+  const { signal } = options;
+  if (signal !== undefined && !(signal instanceof AbortSignal)) {
+    throw new AnyDocEvidenceError('invalid_option', 'signal must be an AbortSignal.');
+  }
+  return signal;
+}
+
+function cancellationError() {
+  return new AnyDocEvidenceError('parser_cancelled', 'Document conversion was cancelled.');
+}
+
+function throwIfCancelled(signal) {
+  if (signal?.aborted) throw cancellationError();
+}
+
+function runParserProcess(job, limits, descriptor, signal) {
   const readRoots = [dirname(WORKER_PATH)];
   if (descriptor.kind === 'pinned_anydoc') {
     let anydocEntry;
@@ -433,6 +449,13 @@ function runParserProcess(job, limits, descriptor) {
     `--max-old-space-size=${limits.parserMemoryMb}`,
     ...permissionExecArgs(readRoots),
   ];
+
+  throwIfCancelled(signal);
+  // A private signal keeps other listeners from intercepting cancellation.
+  // Early Node 20 releases only support direct subscription.
+  const parserSignal = signal && typeof AbortSignal.any === 'function'
+    ? AbortSignal.any([signal])
+    : signal;
 
   return new Promise((resolvePromise, rejectPromise) => {
     let child;
@@ -478,6 +501,7 @@ function runParserProcess(job, limits, descriptor) {
       settled = true;
       clearTimeout(deadlineTimer);
       clearTimeout(terminationTimer);
+      parserSignal?.removeEventListener('abort', onAbort);
       if (!outcome.ok) {
         rejectPromise(outcome.error);
         return;
@@ -523,6 +547,11 @@ function runParserProcess(job, limits, descriptor) {
           ),
         });
       }, PARSER_TERMINATION_GRACE_MS);
+    };
+    const onAbort = () => {
+      if (parserSignal.aborted) {
+        requestTermination({ ok: false, error: cancellationError() });
+      }
     };
 
     deadlineTimer = setTimeout(() => {
@@ -579,6 +608,12 @@ function runParserProcess(job, limits, descriptor) {
       }
       requestTermination({ ok: true, result: message.result });
     });
+
+    parserSignal?.addEventListener('abort', onAbort);
+    if (parserSignal?.aborted) {
+      onAbort();
+      return;
+    }
 
     try {
       child.send({
@@ -709,6 +744,11 @@ function buildReceipt({
 }
 
 export async function convertBytesToEvidence(input = {}, options = {}) {
+  return convertBytes(input, options, conversionSignal(options));
+}
+
+async function convertBytes(input, options, signal) {
+  throwIfCancelled(signal);
   const startedAt = Date.now();
   const bytes = normalizeBytes(input.bytes);
   const filename = safeFilename(input.filename);
@@ -789,7 +829,8 @@ export async function convertBytesToEvidence(input = {}, options = {}) {
     inspectStructure: options.inspectStructure !== false,
     maxMarkdownChars,
     maxTraversalBlocks,
-  }, limits, descriptor);
+  }, limits, descriptor, signal);
+  throwIfCancelled(signal);
 
   const sourceHash = sha256(bytes);
   const outputHash = sha256(parsed.markdown);
@@ -911,11 +952,13 @@ export async function convertBytesToEvidence(input = {}, options = {}) {
   };
 }
 
-async function readFileBounded(filePath, maxInputBytes) {
+async function readFileBounded(filePath, maxInputBytes, signal) {
   let handle;
   try {
     handle = await open(filePath, 'r');
+    throwIfCancelled(signal);
     const fileStat = await handle.stat();
+    throwIfCancelled(signal);
     if (!fileStat.isFile()) {
       throw new AnyDocEvidenceError('not_a_file', 'filePath must refer to a regular file.');
     }
@@ -932,6 +975,7 @@ async function readFileBounded(filePath, maxInputBytes) {
       const length = Math.min(READ_CHUNK_BYTES, maxInputBytes + 1 - total);
       const chunk = Buffer.allocUnsafe(length);
       const { bytesRead } = await handle.read(chunk, 0, length, null);
+      throwIfCancelled(signal);
       if (bytesRead === 0) break;
       chunks.push(chunk.subarray(0, bytesRead));
       total += bytesRead;
@@ -945,6 +989,7 @@ async function readFileBounded(filePath, maxInputBytes) {
     return Buffer.concat(chunks, total);
   } catch (error) {
     if (error instanceof AnyDocEvidenceError) throw error;
+    throwIfCancelled(signal);
     throw new AnyDocEvidenceError('io_error', 'The document could not be read.', {
       cause: error,
       retryable: true,
@@ -960,6 +1005,8 @@ async function readFileBounded(filePath, maxInputBytes) {
 }
 
 export async function convertFileToEvidence(filePath, options = {}) {
+  const signal = conversionSignal(options);
+  throwIfCancelled(signal);
   const normalizedPath = filePath instanceof URL ? fileURLToPath(filePath) : String(filePath);
   const maxInputBytes = boundedInteger(
     options.maxInputBytes,
@@ -968,12 +1015,14 @@ export async function convertFileToEvidence(filePath, options = {}) {
     HARD_MAX_INPUT_BYTES,
     'maxInputBytes',
   );
-  const bytes = await readFileBounded(normalizedPath, maxInputBytes);
-  return convertBytesToEvidence({
+  throwIfCancelled(signal);
+  const bytes = await readFileBounded(normalizedPath, maxInputBytes, signal);
+  throwIfCancelled(signal);
+  return convertBytes({
     bytes,
     filename: options.filename || basename(normalizedPath),
     format: options.format,
-  }, options);
+  }, options, signal);
 }
 
 export const ANYDOC_EVIDENCE_CONSTANTS = Object.freeze({

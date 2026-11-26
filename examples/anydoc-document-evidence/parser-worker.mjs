@@ -85,14 +85,25 @@ function validateParserModule(anydoc) {
   }
 }
 
-function installedNativeBinding(packageJson) {
-  for (const packageName of Object.keys(packageJson.optionalDependencies || {})) {
+function loadedNativeBinding(packageRequire, packageJson, exportedBinding) {
+  for (const [packageName, expectedVersion] of Object.entries(packageJson.optionalDependencies || {})) {
+    let bindingPath;
     try {
-      const binding = require(`${packageName}/package.json`);
-      return { package: binding.name, package_version: binding.version };
-    } catch {
-      // Optional native packages for other platforms are expected to be absent.
+      bindingPath = packageRequire.resolve(packageName);
+    } catch (error) {
+      if (error?.code === 'MODULE_NOT_FOUND') continue;
+      throw error;
     }
+    // AnyDoc 0.1.7 exports the selected native module's exports object.
+    // Other optional binaries may be installed for the same platform.
+    const loaded = packageRequire.cache[bindingPath];
+    if (!loaded?.loaded || loaded.exports !== exportedBinding) continue;
+
+    const binding = packageRequire(`${packageName}/package.json`);
+    if (binding.name !== packageName || binding.version !== expectedVersion) {
+      throw codedError('parser_version_mismatch', 'The loaded AnyDoc binding does not match the adapter pin.');
+    }
+    return { package: binding.name, package_version: binding.version };
   }
   return { package: 'bundled_or_unresolved_native_binding', package_version: null };
 }
@@ -105,12 +116,13 @@ async function loadParser(job) {
     }
     const anydoc = await import(job.expectedPackage);
     validateParserModule(anydoc);
+    const packageRequire = createRequire(require.resolve(job.expectedPackage));
     return {
       anydoc,
       provenance: {
         package: packageJson.name,
         package_version: packageJson.version,
-        native_binding: installedNativeBinding(packageJson),
+        native_binding: loadedNativeBinding(packageRequire, packageJson, anydoc.default),
         engine: 'firecrawl_anydoc',
         module_kind: 'pinned_dependency',
         attested: true,

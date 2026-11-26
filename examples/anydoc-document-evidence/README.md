@@ -63,6 +63,9 @@ const result = await convertBytesToEvidence({
 });
 ```
 
+Both JavaScript functions accept an optional `AbortSignal` in `options.signal`.
+Cancellation stops further file reads, closes any open input handle, and ends an active parser process before returning `parser_cancelled`. An in-flight file operation may finish before cleanup. If the adapter cannot confirm parser exit, it returns `parser_termination_unconfirmed`. Cancellation returns no evidence or receipt and does not disclose the caller's abort reason.
+
 ## Output contract
 
 The top-level schema is:
@@ -162,7 +165,7 @@ npm run verify:packed
 npm run pack:dry
 ```
 
-The adversarial suite exercises hard splitting, exact coverage accounting, aliases, custom provenance, structure failures/truncation, denied network/listen/write/process attempts, environment sanitization, confirmed timeout termination, and output-path aliasing. The smoke test exercises the real `@firecrawl/anydoc@0.1.7` package and deliberately reports OS network isolation as unverified. The semantic workflow runs the same package inside Docker `--network none` with finite cgroup limits and verifies that sandbox before making a no-network claim. CI also installs the generated tarball and reruns its packaged checks and smoke test. See [`conformance/README.md`](conformance/README.md).
+The adversarial suite exercises hard splitting, exact coverage accounting, aliases, custom provenance, structure failures/truncation, denied network/listen/write/process attempts, environment sanitization, cancellation and timeout cleanup, and output-path aliasing. The smoke test exercises the real `@firecrawl/anydoc@0.1.7` package and deliberately reports OS network isolation as unverified. The semantic workflow runs the same package inside Docker `--network none` with finite cgroup limits and verifies that sandbox before making a no-network claim. CI also installs the generated tarball and reruns its packaged checks and smoke test. See [`conformance/README.md`](conformance/README.md).
 
 ## Inspect a private local review
 

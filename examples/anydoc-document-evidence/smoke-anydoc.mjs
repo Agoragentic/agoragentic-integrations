@@ -13,6 +13,14 @@ assert.equal(result.parser.package, '@firecrawl/anydoc');
 assert.equal(result.parser.package_version, '0.1.7');
 assert.equal(result.parser.provenance.attested, true);
 assert.equal(result.parser.provenance.version_verified_at_runtime, true);
+if (process.platform === 'linux') {
+  const { glibcVersionRuntime } = process.report.getReport().header;
+  const libc = glibcVersionRuntime ? 'gnu' : 'musl';
+  assert.deepEqual(result.parser.provenance.native_binding, {
+    package: `@firecrawl/anydoc-linux-${process.arch}-${libc}`,
+    package_version: result.parser.package_version,
+  });
+}
 assert.equal(result.parser.format, 'csv');
 assert.match(result.output.markdown, /alpha/);
 assert.match(result.output.markdown, /beta/);

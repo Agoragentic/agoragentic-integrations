@@ -21,6 +21,10 @@ export async function toMarkdownBytes(bytes, format) {
     throw Object.assign(new Error('unsupported'), { code: 'unsupported' });
   }
   if (value === 'HANG') return new Promise(() => {});
+  if (value === 'ABORT_DURING_PARSE') {
+    process.stderr.write('ANYDOC_ABORT_TEST_ENTERED\n');
+    return new Promise(() => {});
+  }
   if (value === 'NETWORK_FETCH') {
     await fetch('http://127.0.0.1:9/blocked');
   }

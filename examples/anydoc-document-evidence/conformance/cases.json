@@ -213,6 +213,29 @@
       ]
     },
     {
+      "id": "docx-referenced-footnote-and-endnote",
+      "file": "word-notes.docx",
+      "format": "docx",
+      "expected_canonical_format": "docx",
+      "expect_conversion": true,
+      "expected_markdown_tokens": [
+        "Visible paragraph with a footnote",
+        "Visible paragraph with an endnote",
+        "Synthetic footnote evidence marker",
+        "Synthetic endnote evidence marker"
+      ],
+      "expected_structured_note_count": 2,
+      "expected_risk": "medium",
+      "expected_receipt_status": "incomplete",
+      "expected_coverage_complete": true,
+      "expected_blockers": ["document_notes_require_review"],
+      "expected_limitations": ["layout_text_boxes_headers_and_footers_may_be_lossy"],
+      "semantic_observation_labels": [
+        "docx_referenced_footnote_and_endnote_text_retained_as_markdown",
+        "two_structured_notes_require_review_before_receipt_completion"
+      ]
+    },
+    {
       "id": "pptx-untitled-slides",
       "file": "untitled-slides.pptx",
       "format": "pptx",
@@ -260,6 +283,24 @@
       "expected_canonical_format": "pdf",
       "expect_conversion": false,
       "expected_error_code": "unsupported_or_ocr_required"
+    },
+    {
+      "id": "pdf-text-then-image-ocr-required",
+      "file": "text-then-image.pdf",
+      "format": "pdf",
+      "expected_canonical_format": "pdf",
+      "expect_conversion": false,
+      "expected_error_code": "unsupported_or_ocr_required",
+      "expected_retryable": false
+    },
+    {
+      "id": "pdf-image-then-text-ocr-required",
+      "file": "image-then-text.pdf",
+      "format": "pdf",
+      "expected_canonical_format": "pdf",
+      "expect_conversion": false,
+      "expected_error_code": "unsupported_or_ocr_required",
+      "expected_retryable": false
     },
     {
       "id": "pdf-encrypted-rejected",
